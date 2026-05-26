@@ -1,0 +1,8 @@
+{
+  "name": "گالری نمونه",
+  "type": "builtin",
+  "version": "1.0.0",
+  "icon": "gallery.png",
+  "description": "نمایش تصاویر نمونه برای تست ماژول built-in",
+  "author": "ModuleHub"
+}

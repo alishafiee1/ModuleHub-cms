@@ -42,7 +42,9 @@
     </header>
     <main>
       <div class="upload">
-        <h3>نصب ماژول (ZIP)</h3>
+        <h3>نصب ماژول standalone (ZIP)</h3>
+        <p class="warn">فقط ماژول‌های standalone با index.html و docker-compose. صفحات عادی در core تعریف می‌شوند.</p>
+        <p class="warn">کنترل Start/Stop روی <a href="/" style="color:#4fc3f7">صفحه اصلی</a> هم در دسترس است (پس از ورود).</p>
         <input id="zipFile" type="file" accept=".zip" />
         <label><input id="approvePerms" type="checkbox" /> تأیید دسترسی‌های standalone</label><br/>
         <button onclick="uploadModule()">آپلود</button>
@@ -81,7 +83,7 @@
           <div class="actions">
             ${m.type === 'standalone' ? `<button onclick="startMod('${m.id}')">Start</button><button class="secondary" onclick="stopMod('${m.id}')">Stop</button><button class="secondary" onclick="viewLogs('${m.id}')">Logs</button>` : ''}
             ${m.type === 'standalone' && !m.permissionsApproved ? `<button onclick="approve('${m.id}')">Approve</button>` : ''}
-            <button class="danger" onclick="removeMod('${m.id}')">Delete</button>
+            ${m.type !== 'builtin' ? `<button class="danger" onclick="removeMod('${m.id}')">Delete</button>` : '<span class="warn">built-in</span>'}
           </div>
         </div>`).join('');
     }

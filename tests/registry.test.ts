@@ -29,7 +29,7 @@ describe('ModuleRegistry', () => {
     const entry = {
       id: 'test-mod',
       name: 'Test',
-      type: 'static' as const,
+      type: 'builtin' as const,
       version: '1.0.0',
       icon: 'x.png',
       description: 'desc',
@@ -52,7 +52,7 @@ describe('ModuleRegistry', () => {
     registry.upsert({
       id: 'a',
       name: 'A',
-      type: 'static',
+      type: 'builtin',
       version: '1',
       icon: 'i',
       description: 'd',
@@ -64,7 +64,7 @@ describe('ModuleRegistry', () => {
     registry.upsert({
       id: 'b',
       name: 'B',
-      type: 'static',
+      type: 'builtin',
       version: '1',
       icon: 'i',
       description: 'd',

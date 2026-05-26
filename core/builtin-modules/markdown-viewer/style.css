@@ -1,0 +1,4 @@
+body { font-family: 'Segoe UI', sans-serif; background: #111827; color: #f3f4f6; margin: 0; padding: 2rem; }
+a { color: #4fc3f7; }
+.markdown-body { background: #1f2937; padding: 1.5rem; border-radius: 8px; margin-top: 1rem; }
+pre { background: #0f172a; padding: 1rem; border-radius: 6px; overflow-x: auto; }

@@ -1,13 +1,13 @@
 import path from 'path';
 import fs from 'fs';
-import { Router, Express, Request, Response, NextFunction } from 'express';
+import { Router, Express, Request, Response } from 'express';
 import multer from 'multer';
 import { AppConfig } from '../server/config';
 import { ModuleRegistry } from '../modules/registry';
 import { ModuleInstaller } from '../modules/installer';
-import { ManifestValidator } from '../modules/manifest-validator';
 import { DockerManager } from '../docker/manager';
 import { ReverseProxyManager } from '../proxy/reverse-proxy-manager';
+import { SiteLayoutRegistry } from '../site-layout/registry';
 import { filterModulesByRole, requireAuth, requireModuleAccess } from '../auth/session';
 import { logger } from '../server/logger';
 
@@ -19,6 +19,7 @@ export interface AdminRouterDeps {
   installer: ModuleInstaller;
   dockerManager: DockerManager;
   proxyManager: ReverseProxyManager;
+  layoutRegistry: SiteLayoutRegistry;
 }
 
 /**
@@ -26,7 +27,7 @@ export interface AdminRouterDeps {
  */
 export function createAdminRouter(deps: AdminRouterDeps): Router {
   const router = Router();
-  const { config, registry, installer, dockerManager, proxyManager } = deps;
+  const { config, registry, installer, dockerManager, proxyManager, layoutRegistry } = deps;
 
   router.post('/login', (req: Request, res: Response) => {
     const { password } = req.body as { password?: string };
@@ -43,6 +44,19 @@ export function createAdminRouter(deps: AdminRouterDeps): Router {
     req.session.destroy(() => {
       res.json({ ok: true });
     });
+  });
+
+  router.get('/site-layout', requireAuth, (_req: Request, res: Response) => {
+    res.json(layoutRegistry.getData());
+  });
+
+  router.put('/site-layout', requireAuth, (req: Request, res: Response) => {
+    const result = layoutRegistry.setData(req.body);
+    if (!result.success) {
+      res.status(400).json({ errors: result.errors });
+      return;
+    }
+    res.json(layoutRegistry.getData());
   });
 
   router.get('/modules', requireAuth, (req: Request, res: Response) => {
@@ -89,7 +103,7 @@ export function createAdminRouter(deps: AdminRouterDeps): Router {
     mod.updatedAt = new Date().toISOString();
     registry.upsert(mod);
     if (mod.proxyPrefix && mod.hostPort) {
-      proxyManager.registerRoute(mod.id, mod.proxyPrefix, mod.hostPort);
+      proxyManager.registerRoute(mod.id, mod.proxyPrefix, mod.hostPort, mod.proxyPaths ?? ['api']);
     }
     res.json({
       ok: true,
@@ -122,11 +136,19 @@ export function createAdminRouter(deps: AdminRouterDeps): Router {
 
   router.delete('/modules/:id', requireAuth, requireModuleAccess((id) => registry.getById(id)), async (req: Request, res: Response) => {
     const mod = registry.getById(req.params.id)!;
+    if (mod.type === 'builtin') {
+      res.status(400).json({ error: 'Built-in modules cannot be deleted' });
+      return;
+    }
     if (mod.type === 'standalone' && mod.status === 'running') {
       await dockerManager.stopModule(mod);
     }
     proxyManager.removeRoute(mod.id);
-    installer.uninstall(mod.id);
+    const removed = installer.uninstall(mod.id);
+    if (!removed) {
+      res.status(500).json({ error: 'Uninstall failed' });
+      return;
+    }
     res.json({ ok: true });
   });
 
@@ -156,33 +178,5 @@ export function serveDashboard(app: Express, config: AppConfig): void {
   const dashboardPath = path.join(config.projectRoot, 'core', 'src', 'admin', 'dashboard.html');
   app.get('/admin', (_req, res) => {
     res.sendFile(dashboardPath);
-  });
-}
-
-/**
- * Mount static module file serving at /modules/:id/
- */
-export function mountStaticModules(app: Express, config: AppConfig, registry: ModuleRegistry): void {
-  app.get('/modules/:id/*', (req: Request, res: Response) => {
-    const moduleId = req.params.id;
-    const mod = registry.getById(moduleId);
-    if (!mod || mod.type !== 'static') {
-      res.status(404).json({ error: 'Static module not found' });
-      return;
-    }
-    let relPath = req.params[0] ?? '';
-    if (!relPath || relPath.endsWith('/')) {
-      relPath = `${relPath}index.html`.replace(/\/+/g, '/');
-    }
-    const filePath = path.join(mod.installPath, relPath);
-    if (!filePath.startsWith(mod.installPath) || !fs.existsSync(filePath)) {
-      res.status(404).json({ error: 'Asset not found' });
-      return;
-    }
-    res.sendFile(filePath);
-  });
-
-  app.get('/modules/:id', (req: Request, res: Response) => {
-    res.redirect(`/modules/${req.params.id}/`);
   });
 }

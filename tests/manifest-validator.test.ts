@@ -3,10 +3,21 @@ import { ManifestValidator, sanitizeModuleId } from '../core/src/modules/manifes
 describe('ManifestValidator', () => {
   const validator = new ManifestValidator();
 
-  it('validates static manifest', () => {
+  it('rejects static manifest type at schema level', () => {
     const result = validator.validate({
       name: 'Gallery',
       type: 'static',
+      version: '1.0.0',
+      icon: 'g.png',
+      description: 'A gallery',
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it('validates builtin manifest', () => {
+    const result = validator.validate({
+      name: 'Gallery',
+      type: 'builtin',
       version: '1.0.0',
       icon: 'g.png',
       description: 'A gallery',
@@ -37,7 +48,7 @@ describe('ManifestValidator', () => {
         icon: 'a.png',
         description: 'API',
         docker: { composeFile: 'docker-compose.yml', ports: [3000] },
-        proxy: { prefix: '/modules/demo/', internalPort: 3000 },
+        proxy: { prefix: '/modules/demo/', internalPort: 3000, paths: ['api'] },
       },
       compose,
     );

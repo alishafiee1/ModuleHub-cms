@@ -7,6 +7,7 @@ import { ManifestValidator } from './manifest-validator';
 import { ModuleEntry } from './types';
 import { logger } from '../server/logger';
 import { isZipEntryNameSafe, resolveSafeModulePath } from './path-safety';
+import { SiteLayoutRegistry } from '../site-layout/registry';
 
 export interface InstallResult {
   success: boolean;
@@ -24,6 +25,7 @@ export class ModuleInstaller {
     private readonly config: AppConfig,
     private readonly registry: ModuleRegistry,
     private readonly validator: ManifestValidator,
+    private readonly layoutRegistry?: SiteLayoutRegistry,
   ) {}
 
   /**
@@ -60,11 +62,23 @@ export class ModuleInstaller {
     }
 
     const { manifest, moduleId } = validation;
-    const baseDir =
-      manifest.type === 'static'
-        ? this.config.staticModulesDir
-        : this.config.standaloneModulesDir;
-    const targetDir = path.join(baseDir, moduleId);
+    if (manifest.type !== 'standalone') {
+      return {
+        success: false,
+        errors: ['only standalone modules can be uploaded; built-in pages are part of core'],
+        warnings: validation.warnings,
+      };
+    }
+
+    const hasIndex = entries.some((e) => {
+      const normalized = e.entryName.replace(/\\/g, '/');
+      return normalized === 'index.html' || normalized.endsWith('/index.html');
+    });
+    if (!hasIndex) {
+      return { success: false, errors: ['standalone ZIP must include index.html at module root'], warnings: validation.warnings };
+    }
+
+    const targetDir = path.join(this.config.standaloneModulesDir, moduleId);
 
     if (fs.existsSync(targetDir)) {
       return { success: false, errors: [`module "${moduleId}" already exists`], warnings: validation.warnings };
@@ -87,6 +101,12 @@ export class ModuleInstaller {
       fs.writeFileSync(destPath, entry.getData());
     }
 
+    const fileValidation = this.validator.validateStandaloneFiles(targetDir);
+    if (!fileValidation.valid) {
+      fs.rmSync(targetDir, { recursive: true, force: true });
+      return { success: false, errors: fileValidation.errors, warnings: fileValidation.warnings };
+    }
+
     const now = new Date().toISOString();
     const entry: ModuleEntry = {
       id: moduleId,
@@ -95,17 +115,19 @@ export class ModuleInstaller {
       version: manifest.version,
       icon: manifest.icon,
       description: manifest.description,
-      status: manifest.type === 'static' ? 'static' : 'stopped',
+      status: 'stopped',
       installPath: targetDir,
       adminRole: manifest.admin_role,
       proxyPrefix: manifest.proxy?.prefix,
+      proxyPaths: manifest.proxy?.paths ?? ['api'],
       internalPort: manifest.proxy?.internalPort,
-      permissionsApproved: manifest.type === 'static' ? true : approvePermissions,
+      permissionsApproved: approvePermissions,
       createdAt: now,
       updatedAt: now,
     };
 
     this.registry.upsert(entry);
+    this.layoutRegistry?.addStandaloneItem(entry);
     logger.info('Module installed', { moduleId, type: manifest.type });
 
     return {
@@ -113,7 +135,7 @@ export class ModuleInstaller {
       moduleId,
       warnings: validation.warnings,
       errors: [],
-      needsPermissionApproval: manifest.type === 'standalone' && !approvePermissions,
+      needsPermissionApproval: !approvePermissions,
     };
   }
 
@@ -123,10 +145,14 @@ export class ModuleInstaller {
   uninstall(moduleId: string): boolean {
     const mod = this.registry.getById(moduleId);
     if (!mod) return false;
+    if (mod.type === 'builtin') {
+      return false;
+    }
     if (fs.existsSync(mod.installPath)) {
       fs.rmSync(mod.installPath, { recursive: true, force: true });
     }
     this.registry.remove(moduleId);
+    this.layoutRegistry?.removeItem(moduleId);
     logger.info('Module uninstalled', { moduleId });
     return true;
   }

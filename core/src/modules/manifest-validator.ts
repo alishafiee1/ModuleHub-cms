@@ -64,6 +64,10 @@ export class ManifestValidator {
       }
     }
 
+    if (manifest.type === 'builtin' && manifest.docker) {
+      errors.push('builtin modules must not include docker section');
+    }
+
     const moduleId = sanitizeModuleId(manifest.name);
 
     return {
@@ -89,6 +93,34 @@ export class ManifestValidator {
       ? fs.readFileSync(composePath, 'utf-8')
       : undefined;
     return this.validate(raw, composeContent);
+  }
+
+  /**
+   * Validate standalone module directory includes required files on disk.
+   */
+  validateStandaloneFiles(moduleDir: string): ValidationResult {
+    const base = this.validateFromPath(moduleDir);
+    if (!base.valid) {
+      return base;
+    }
+    const indexPath = `${moduleDir}/index.html`;
+    if (!fs.existsSync(indexPath)) {
+      return {
+        valid: false,
+        errors: ['standalone modules require index.html at module root'],
+        warnings: base.warnings,
+      };
+    }
+    const composeFile = base.manifest?.docker?.composeFile ?? 'docker-compose.yml';
+    const composePath = `${moduleDir}/${composeFile}`;
+    if (!fs.existsSync(composePath)) {
+      return {
+        valid: false,
+        errors: [`missing docker compose file: ${composeFile}`],
+        warnings: base.warnings,
+      };
+    }
+    return base;
   }
 }
 

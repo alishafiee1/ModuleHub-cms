@@ -4,7 +4,7 @@ import { ModuleEntry } from '../core/src/modules/types';
 const base: ModuleEntry = {
   id: 'm1',
   name: 'M',
-  type: 'static',
+  type: 'builtin',
   version: '1',
   icon: 'i',
   description: 'd',

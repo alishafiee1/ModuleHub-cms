@@ -42,6 +42,8 @@ table th code {
 
 ## پروپزال: سامانه مدولار مدیریت محتوای پویا با قابلیت ماژول‌های مستقل (Standalone) مبتنی بر داکر
 
+> **به‌روزرسانی v2 (2026):** صفحه اصلی عمومی `/` با `site-layout.json`، ماژول‌های عادی **built-in** در `core/builtin-modules/`، آپلود ZIP فقط برای **standalone** (`index.html` + Docker). جزئیات: `openspec/changes/public-homepage-architecture-v2/`
+
 ### ۱. عنوان پروژه
 **CMS پویای هسته‌محور با پشتیبانی از ماژول‌های ایزوله (Dockerized Standalone Modules)**  
 نام پیشنهادی: `moduleHub-cms`

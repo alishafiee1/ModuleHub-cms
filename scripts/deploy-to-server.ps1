@@ -18,6 +18,7 @@ $tarArgs = Get-ChildItem $LocalPath | Where-Object { $exclude -notcontains $_.Na
 scp -r "$LocalPath\scripts" "${Server}:${RemoteHome}/"
 scp -r "$LocalPath\config" "${Server}:${RemoteHome}/"
 scp -r "$LocalPath\core" "${Server}:${RemoteHome}/"
+scp -r "$LocalPath\standalone-modules" "${Server}:${RemoteHome}/"
 scp "$LocalPath\package.json" "$LocalPath\package-lock.json" "$LocalPath\tsconfig.json" "${Server}:${RemoteHome}/"
 
 if ($Install) {

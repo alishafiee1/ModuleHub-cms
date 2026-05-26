@@ -55,13 +55,14 @@ server {
 |------|-----|
 | `/opt/modulehub-cms` | کد و build |
 | `/var/lib/modulehub/modules.json` | رجیstry |
-| `/var/run/docker.sock` | Docker socket |
+| `/var/lib/modulehub/site-layout.json` | layout صفحه اصلی |
+| `/` | homepage عمومی (دیگر redirect به admin نیست) |
 
-## دسترسی فایل
+## migration v2
 
 ```bash
-sudo chown -R modulehub:modulehub /var/lib/modulehub
-sudo usermod -aG docker modulehub
+bash /opt/modulehub-cms/scripts/migrate-to-v2.sh
+sudo systemctl restart modulehub-cms
 ```
 
 </div>

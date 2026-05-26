@@ -7,10 +7,11 @@ interface ProxyRoute {
   prefix: string;
   targetPort: number;
   moduleId: string;
+  proxyPaths: string[];
 }
 
 /**
- * Dynamic reverse proxy for standalone module prefixes.
+ * Dynamic reverse proxy for standalone module API paths only.
  */
 export class ReverseProxyManager {
   private readonly proxy = httpProxy.createProxyServer({ changeOrigin: true });
@@ -28,10 +29,10 @@ export class ReverseProxyManager {
   /**
    * Register proxy route for a module.
    */
-  registerRoute(moduleId: string, prefix: string, targetPort: number): void {
+  registerRoute(moduleId: string, prefix: string, targetPort: number, proxyPaths: string[] = ['api']): void {
     this.routes = this.routes.filter((r) => r.moduleId !== moduleId);
-    this.routes.push({ prefix, targetPort, moduleId });
-    logger.info('Proxy route registered', { moduleId, prefix, targetPort });
+    this.routes.push({ prefix, targetPort, moduleId, proxyPaths });
+    logger.info('Proxy route registered', { moduleId, prefix, targetPort, proxyPaths });
   }
 
   /**
@@ -42,16 +43,37 @@ export class ReverseProxyManager {
   }
 
   /**
+   * Check if request path should be proxied to container.
+   */
+  private matchRoute(reqPath: string): ProxyRoute | undefined {
+    for (const route of this.routes) {
+      if (!reqPath.startsWith(route.prefix)) {
+        continue;
+      }
+      const remainder = reqPath.slice(route.prefix.length).replace(/^\//, '');
+      const firstSegment = remainder.split('/')[0] ?? '';
+      if (route.proxyPaths.includes(firstSegment)) {
+        return route;
+      }
+    }
+    return undefined;
+  }
+
+  /**
    * Mount proxy middleware on Express app.
    */
   mount(app: Express): void {
     app.use((req: Request, res: Response, next: NextFunction) => {
-      const route = this.routes.find((r) => req.path.startsWith(r.prefix));
+      const route = this.matchRoute(req.path);
       if (!route) return next();
 
       const mod = this.registry.getById(route.moduleId);
       if (!mod || mod.status !== 'running' || !mod.hostPort) {
-        res.status(503).json({ error: 'Module unavailable', moduleId: route?.moduleId });
+        res.status(503).json({
+          error: 'Module unavailable',
+          moduleId: route.moduleId,
+          message: 'سرویس این ماژول در حال حاضر متوقف است.',
+        });
         return;
       }
 

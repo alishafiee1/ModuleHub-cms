@@ -1,0 +1,138 @@
+body {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
+  color: #e0e0e0;
+  margin: 0;
+}
+
+.hero {
+  background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+  color: #fff;
+  padding: 60px 0;
+  text-align: center;
+}
+
+.container {
+  width: min(1140px, 92%);
+  margin: 0 auto;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  margin: 32px 0;
+}
+
+.card-wrap {
+  position: relative;
+}
+
+.card-link {
+  background: linear-gradient(135deg, #263238 0%, #37474f 100%);
+  border: 1px solid rgba(79, 195, 247, 0.2);
+  border-radius: 16px;
+  padding: 28px;
+  text-decoration: none;
+  color: inherit;
+  transition: 0.3s;
+  display: block;
+  height: 100%;
+}
+
+.card-link:hover {
+  transform: translateY(-6px);
+  border-color: #4fc3f7;
+  box-shadow: 0 12px 24px rgba(79, 195, 247, 0.2);
+  color: inherit;
+}
+
+.card-icon {
+  font-size: 36px;
+  color: #4fc3f7;
+  margin-bottom: 12px;
+}
+
+.card-icon img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.card-subtitle {
+  color: #b0bec5;
+  font-size: 0.95rem;
+}
+
+.status-dot {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.status-dot.running,
+.status-dot.static {
+  background: #22c55e;
+}
+
+.status-dot.stopped {
+  background: #64748b;
+}
+
+.status-dot.error {
+  background: #ef4444;
+}
+
+.admin-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-actions button {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.admin-actions button.secondary {
+  background: #475569;
+}
+
+.admin-actions button:hover {
+  opacity: 0.9;
+}
+
+.stats-tooltip {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-top: 6px;
+  min-height: 1rem;
+}
+
+.footer {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-top: 1px solid rgba(79, 195, 247, 0.2);
+  padding: 28px 0;
+  text-align: center;
+  color: #b0bec5;
+  margin-top: 24px;
+}
+
+.footer a {
+  color: #4fc3f7;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}

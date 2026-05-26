@@ -47,7 +47,7 @@ table th code {
 ```json
 {
   "name": "نمایشگر دما",
-  "type": "standalone",     // یا "static"
+  "type": "standalone",     // یا "builtin" (فقط در core)
   "version": "1.0.0",
   "icon": "thermometer.png",
   "description": "نمایش لحظه‌ای دما از سنسور",
@@ -67,7 +67,8 @@ table th code {
   },
   "proxy": {
     "prefix": "/modules/temp-display/",
-    "internalPort": 3000
+    "internalPort": 3000,
+    "paths": ["api"]
   },
   "webhook": {                     // اختیاری – برای اعلان رویدادها
     "onInstall": "https://...",

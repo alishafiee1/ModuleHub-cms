@@ -3,12 +3,15 @@ import { z } from 'zod';
 export const ModuleStatusSchema = z.enum(['running', 'stopped', 'static', 'error']);
 export type ModuleStatus = z.infer<typeof ModuleStatusSchema>;
 
-export const ModuleTypeSchema = z.enum(['static', 'standalone']);
+export const ModuleTypeSchema = z.enum(['builtin', 'standalone', 'static']);
 export type ModuleType = z.infer<typeof ModuleTypeSchema>;
+
+export const ManifestTypeSchema = z.enum(['builtin', 'standalone']);
+export type ManifestType = z.infer<typeof ManifestTypeSchema>;
 
 export const ManifestSchema = z.object({
   name: z.string().min(1),
-  type: ModuleTypeSchema,
+  type: ManifestTypeSchema,
   version: z.string().min(1),
   icon: z.string().min(1),
   description: z.string().min(1),
@@ -36,6 +39,7 @@ export const ManifestSchema = z.object({
     .object({
       prefix: z.string().min(1),
       internalPort: z.number().int().min(1).max(65535),
+      paths: z.array(z.string()).optional(),
     })
     .optional(),
   webhook: z
@@ -59,6 +63,7 @@ export interface ModuleEntry {
   installPath: string;
   adminRole?: string;
   proxyPrefix?: string;
+  proxyPaths?: string[];
   internalPort?: number;
   hostPort?: number;
   containerId?: string;
