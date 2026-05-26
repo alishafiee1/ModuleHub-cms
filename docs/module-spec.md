@@ -1,46 +1,10 @@
 
-<style>
-body, p, h1, h2, h3, h4, h5, h6, li, ul, ol {
-    font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
-    direction: rtl;
-    text-align: right;
-}
+# مشخصات فنی ماژول‌ها در ModuleHub CMS
 
-pre, code {
-    direction: ltr;
-    text-align: left;
-}
+> **راهنمای کامل و ساده برای ماژول Standalone (ZIP):** [standalone-module-guide.md](standalone-module-guide.md)  
+> **راهنمای مخصوص هوش مصنوعی (AI Agent):** [standalone-module-ai-guide.md](standalone-module-ai-guide.md)
 
-/* RTL tables --- Persian layout: right-aligned cells and logical column order for RTL readers */
-table {
-    direction: rtl;
-    text-align: right;
-    width: 100%;
-    border-collapse: collapse;
-    margin-inline-start: 0;
-    margin-inline-end: auto;
-}
-
-thead th,
-tbody td {
-    text-align: right;
-    vertical-align: top;
-    padding: 0.35em 0.5em;
-}
-
-/* Keep CLI/command snippets in table cells readable (LTR) */
-table td code,
-table th code {
-    direction: ltr;
-    unicode-bidi: embed;
-    text-align: left;
-    display: inline-block;
-}
-</style>
-
-# مشخصات فنی ماژول‌ها در ModularCore CMS
-
-هر ماژول (اعم از ایستا یا مستقل) باید یک پوشه با نام یکتا و شامل فایل `manifest.json` باشد.
+هر ماژول standalone باید یک پوشه با نام یکتا و شامل فایل `manifest.json` باشد.
 
 ## 📄 ساختار manifest.json
 
