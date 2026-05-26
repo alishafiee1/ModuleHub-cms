@@ -6,7 +6,8 @@ This change closes the gap between the deployed MVP and the user's refined visio
 
 ## What Changes
 
-- Add **public homepage** at `/` driven by `site-layout.json` (title, icon, page type, route, display order)
+- Add **public homepage** at `/` driven by `site-layout.json` (title, subtitle, icon, page type, route, display order)
+- Apply **RODI Docs card UI** as visual reference (`Ai_projects/main.html`): dark gradient background, hero section, responsive card grid with hover lift, Font Awesome icons, RTL Vazirmatn typography
 - Introduce **built-in core modules** (`core/builtin-modules/`) for regular pages: gallery, markdown viewer, etc. — implemented in core, registered in layout JSON
 - **BREAKING**: Deprecate ZIP upload of `type: static` modules; static content pages are core-owned, not user-uploaded folders
 - **BREAKING**: Standalone modules MUST include `index.html` at package root (validated on upload)

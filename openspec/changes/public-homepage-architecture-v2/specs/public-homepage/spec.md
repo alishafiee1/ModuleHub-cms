@@ -13,7 +13,35 @@ The system SHALL serve a public homepage at `/` without requiring authentication
 #### Scenario: Homepage shows tile metadata
 
 - **WHEN** the homepage renders
-- **THEN** each layout item SHALL display its title, icon, and link to its configured route
+- **THEN** each layout item SHALL display its title, subtitle, icon, and link to its configured route
+
+### Requirement: Homepage visual design from reference
+
+The public homepage SHALL use the card layout and styling defined in reference file `Ai_projects/main.html` (RODI Docs main page).
+
+#### Scenario: Hero section rendered
+
+- **WHEN** the homepage loads
+- **THEN** the page SHALL show a hero section with `siteTitle` and `siteSubtitle` from `site-layout.json`
+- **AND** the hero SHALL use the dark gradient styling from the reference design
+
+#### Scenario: Card grid matches reference
+
+- **WHEN** layout items are rendered
+- **THEN** tiles SHALL appear in a responsive CSS grid with `minmax(260px, 1fr)` columns and 24px gap
+- **AND** each tile SHALL use the reference card gradient, border, 16px radius, and hover lift effect
+
+#### Scenario: Card content structure
+
+- **WHEN** a module tile is rendered
+- **THEN** the tile SHALL show a Font Awesome icon (from `iconClass`), title (`<h5>`), and muted subtitle
+- **AND** the entire card body SHALL be a clickable link to the module route
+
+#### Scenario: RTL typography
+
+- **WHEN** the homepage is served
+- **THEN** the HTML SHALL use `lang="fa"` and `dir="rtl"`
+- **AND** the page SHALL load Vazirmatn as the primary font family
 
 ### Requirement: Module status on homepage tiles
 
@@ -62,3 +90,13 @@ The homepage SHALL link each tile to its configured route for visitor access.
 
 - **WHEN** a user clicks a standalone module tile with route `/modules/demo-api/`
 - **THEN** the browser SHALL navigate to the standalone module landing page
+
+### Requirement: Homepage footer
+
+The homepage SHALL include a footer consistent with the reference design.
+
+#### Scenario: Footer with admin link
+
+- **WHEN** the homepage renders
+- **THEN** a footer SHALL display site copyright text
+- **AND** a link to `/admin` SHALL be available for system management

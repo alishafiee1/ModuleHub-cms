@@ -1,6 +1,6 @@
 ## 1. Site Layout Registry
 
-- [ ] 1.1 Define Zod schema and TypeScript types for `site-layout.json` items (`id`, `title`, `icon`, `pageType`, `route`, `sortOrder`)
+- [ ] 1.1 Define Zod schema and TypeScript types for `site-layout.json` (`siteTitle`, `siteSubtitle`, items with `id`, `title`, `subtitle`, `iconClass`, `icon`, `pageType`, `route`, `sortOrder`)
 - [ ] 1.2 Implement `SiteLayoutRegistry` with atomic load/save at `core/data/site-layout.json`
 - [ ] 1.3 Add bootstrap: generate default layout from built-in + standalone modules when file missing
 - [ ] 1.4 Add `GET /api/site-layout` and `PUT /api/site-layout` (auth required)
@@ -18,11 +18,14 @@
 
 ## 3. Public Homepage
 
-- [ ] 3.1 Create `core/src/public/homepage.html` — minimal RTL tile grid (title, icon, status dot, link)
-- [ ] 3.2 Implement `GET /` route: load layout + registry status, render homepage (no redirect to admin)
-- [ ] 3.3 Add inline admin overlay JS: Start/Stop/Logs/stats when session + role match
-- [ ] 3.4 Add footer link to `/admin` for system management login
-- [ ] 3.5 Write integration test: `/` returns 200 HTML with layout tile titles
+- [ ] 3.1 Create `core/src/public/homepage.css` — extract card/hero/footer styles from reference `Ai_projects/main.html` (gradients, `.cards` grid, `.card-link` hover, `.card-icon`, `.footer`)
+- [ ] 3.2 Create `core/src/public/homepage.html` template — hero (`siteTitle` + `siteSubtitle`), RTL Vazirmatn, Bootstrap 5.3 + Font Awesome 6 CDN, card grid with icon/title/subtitle/status dot per layout item
+- [ ] 3.3 Map layout fields to card markup: `iconClass` → `<i class="card-icon">`, `title` → `<h5>`, `subtitle` → muted description (same structure as RODI Docs cards)
+- [ ] 3.4 Implement `GET /` route: load layout + registry status, render homepage (no redirect to admin)
+- [ ] 3.5 Add status dot on card corner (green running/builtin, gray stopped) without breaking card-link hover
+- [ ] 3.6 Add inline admin overlay JS: Start/Stop/Logs/stats below subtitle when session + role match; stop click propagation so card link still works
+- [ ] 3.7 Add footer with copyright + link to `/admin` (reference `.footer` styling)
+- [ ] 3.8 Write integration test: `/` returns 200 HTML with layout tile titles and hero text
 
 ## 4. Standalone Module Contract (Breaking)
 
@@ -57,7 +60,7 @@
 ## 8. Documentation
 
 - [ ] 8.1 Update `docs/proposal.md` to reflect revised architecture (built-in vs standalone, site-layout.json)
-- [ ] 8.2 Add `docs/public-homepage.md` — layout JSON format and admin overlay behavior
+- [ ] 8.2 Add `docs/public-homepage.md` — layout JSON format, card UI reference (`Ai_projects/main.html`), admin overlay behavior
 - [ ] 8.3 Update `docs/ubuntu-deployment.md` — verify nginx `/` now serves public content
 
 ## 9. Verification

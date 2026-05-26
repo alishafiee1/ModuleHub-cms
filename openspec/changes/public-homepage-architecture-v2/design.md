@@ -18,6 +18,7 @@ The user refined the architecture:
 **Goals:**
 
 - Deliver a minimal, RTL-friendly public homepage at `/` for anonymous visitors
+- Match homepage card visual design to reference `Ai_projects/main.html` (RODI Docs main page)
 - Drive homepage tiles from `site-layout.json` (presentation) linked to `modules.json` (runtime state)
 - Implement built-in gallery and markdown viewer as core modules under `core/builtin-modules/`
 - Enforce standalone contract: `index.html` + Docker compose on upload
@@ -44,15 +45,18 @@ The user refined the architecture:
 
 **Alternative considered:** Single merged JSON — rejected because install/uninstall mutations would risk corrupting display config.
 
-**`site-layout.json` item shape:**
+**`site-layout.json` shape:**
 
 ```json
 {
+  "siteTitle": "ModuleHub CMS",
+  "siteSubtitle": "ماژول‌ها و صفحات سایت",
   "items": [
     {
       "id": "sample-gallery",
       "title": "گالری نمونه",
-      "icon": "gallery.png",
+      "subtitle": "نمایش تصاویر نمونه برای تست",
+      "iconClass": "fas fa-images",
       "pageType": "builtin",
       "route": "/pages/sample-gallery/",
       "sortOrder": 1
@@ -60,7 +64,8 @@ The user refined the architecture:
     {
       "id": "demo-api",
       "title": "Demo API",
-      "icon": "api.png",
+      "subtitle": "API ساده Node.js در Docker",
+      "iconClass": "fas fa-plug",
       "pageType": "standalone",
       "route": "/modules/demo-api/",
       "sortOrder": 2
@@ -68,6 +73,8 @@ The user refined the architecture:
   ]
 }
 ```
+
+`iconClass` (Font Awesome) is preferred for homepage tiles; optional `icon` image filename remains as fallback.
 
 ### 2. Built-in modules live in `core/builtin-modules/<id>/`
 
@@ -122,6 +129,39 @@ The user refined the architecture:
 ### 8. Layout bootstrap on standalone install/uninstall
 
 **Choice:** On standalone install, auto-append layout item if missing (defaults from manifest). On uninstall, remove layout item. Built-in modules registered at core bootstrap from static list in code + layout file.
+
+### 9. Homepage card UI — reference `Ai_projects/main.html`
+
+**Choice:** Public homepage HTML/CSS SHALL follow the RODI Docs main page card pattern (user-provided reference at `Ai_projects/main.html`).
+
+**Visual tokens (from reference):**
+
+| Element | Style |
+|---------|--------|
+| Page background | `linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)` |
+| Hero section | `linear-gradient(135deg, #0f2027, #203a43, #2c5364)`, centered title + subtitle |
+| Card grid | CSS grid `repeat(auto-fit, minmax(260px, 1fr))`, gap 24px |
+| Card (`.card-link`) | Gradient `#263238 → #37474f`, border `rgba(79,195,247,0.2)`, radius 16px, padding 28px |
+| Card hover | `translateY(-6px)`, border `#4fc3f7`, shadow `0 12px 24px rgba(79,195,247,0.2)` |
+| Card icon | Font Awesome 36px, color `#4fc3f7` |
+| Card title | `<h5>` bold; subtitle muted (`#b0bec5`) |
+| Footer | Dark gradient, top border accent, copyright + admin link |
+| Typography | Vazirmatn (Google Fonts), RTL `dir="rtl"` |
+
+**ModuleHub extensions on top of reference:**
+
+- **Status dot** — top-left of card: green (`#22c55e`) running/builtin, gray (`#64748b`) stopped standalone
+- **Admin toolbar** — small Start/Stop/Logs buttons below subtitle when admin session + role match (must not break card hover or link navigation)
+- **Whole card clickable** — primary navigation via `<a class="card-link">` wrapping icon + title + subtitle (same as reference)
+- **No Bootstrap JS required** — reference uses Bootstrap CSS only; homepage MAY use Bootstrap 5.3 grid/container classes or pure CSS grid equivalent
+
+**Assets to bundle or CDN (match reference):**
+
+- Bootstrap 5.3 CSS (CDN acceptable for MVP)
+- Font Awesome 6.0
+- Vazirmatn font
+
+**File location:** `core/src/public/homepage.html` + `core/src/public/homepage.css` (extract styles from reference, do not hotlink external HTML)
 
 ## Risks / Trade-offs
 

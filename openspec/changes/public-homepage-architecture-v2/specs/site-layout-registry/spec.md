@@ -16,17 +16,31 @@ The system SHALL store homepage presentation configuration in `site-layout.json`
 
 ### Requirement: Layout item schema
 
-Each layout item SHALL include `id`, `title`, `icon`, `pageType`, `route`, and `sortOrder`.
+Each layout item SHALL include `id`, `title`, `subtitle`, `pageType`, `route`, and `sortOrder`. Each item SHALL include `iconClass` (Font Awesome) or optional `icon` (image filename).
 
-#### Scenario: Valid layout item
+#### Scenario: Valid layout item with iconClass
 
-- **WHEN** a layout item has `pageType` of `builtin` or `standalone`
+- **WHEN** a layout item has `pageType` of `builtin` or `standalone` and a valid `iconClass` such as `fas fa-images`
 - **THEN** validation SHALL pass and the item SHALL be eligible for homepage rendering
+
+#### Scenario: Valid layout item with image icon fallback
+
+- **WHEN** a layout item has `icon` filename but no `iconClass`
+- **THEN** validation SHALL pass and the homepage SHALL render the image icon instead
 
 #### Scenario: Invalid pageType rejected
 
 - **WHEN** a layout item has an unknown `pageType`
 - **THEN** validation SHALL fail with a descriptive error
+
+### Requirement: Site-level homepage metadata
+
+`site-layout.json` SHALL include top-level `siteTitle` and `siteSubtitle` for the hero section.
+
+#### Scenario: Hero text from layout file
+
+- **WHEN** the homepage reads `site-layout.json`
+- **THEN** the hero SHALL display `siteTitle` as the main heading and `siteSubtitle` as the tagline
 
 ### Requirement: Layout API for administrators
 
@@ -49,7 +63,7 @@ The system SHALL update layout entries when standalone modules are installed or 
 #### Scenario: Auto-add on standalone install
 
 - **WHEN** a standalone module is installed and no layout item exists for its id
-- **THEN** the system SHALL append a layout item using manifest name, icon, and default route `/modules/<id>/`
+- **THEN** the system SHALL append a layout item using manifest name, description as subtitle, default `iconClass`, and route `/modules/<id>/`
 
 #### Scenario: Remove on uninstall
 
