@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ModuleHub CMS — Admin</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    body { margin: 0; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+    header { padding: 1rem 1.5rem; background: #1e293b; display: flex; justify-content: space-between; align-items: center; }
+    main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
+    .tile { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1rem; position: relative; }
+    .status { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-left: 6px; }
+    .status.running, .status.static { background: #22c55e; }
+    .status.stopped { background: #64748b; }
+    .status.error { background: #ef4444; }
+    .actions { margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    button { background: #2563eb; color: #fff; border: none; padding: 0.4rem 0.75rem; border-radius: 6px; cursor: pointer; }
+    button.danger { background: #dc2626; }
+    button.secondary { background: #475569; }
+    #login { max-width: 360px; margin: 4rem auto; background: #1e293b; padding: 2rem; border-radius: 12px; }
+    input, input[type=file] { width: 100%; padding: 0.5rem; margin: 0.5rem 0 1rem; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #e2e8f0; }
+    .upload { background: #1e293b; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; }
+    .warn { color: #fbbf24; font-size: 0.85rem; margin-top: 0.5rem; }
+    .tooltip { display: none; position: absolute; top: 2rem; left: 1rem; background: #0f172a; border: 1px solid #334155; padding: 0.5rem; border-radius: 6px; font-size: 0.8rem; z-index: 10; }
+    .tile:hover .tooltip { display: block; }
+  </style>
+</head>
+<body>
+  <div id="login">
+    <h2>ورود مدیر</h2>
+    <input id="password" type="password" placeholder="رمز عبور" />
+    <button onclick="login()">ورود</button>
+    <p id="loginError" style="color:#ef4444"></p>
+  </div>
+
+  <div id="app" style="display:none">
+    <header>
+      <h1>ModuleHub CMS</h1>
+      <button class="secondary" onclick="logout()">خروج</button>
+    </header>
+    <main>
+      <div class="upload">
+        <h3>نصب ماژول (ZIP)</h3>
+        <input id="zipFile" type="file" accept=".zip" />
+        <label><input id="approvePerms" type="checkbox" /> تأیید دسترسی‌های standalone</label><br/>
+        <button onclick="uploadModule()">آپلود</button>
+        <p id="uploadMsg"></p>
+      </div>
+      <div class="grid" id="tiles"></div>
+    </main>
+  </div>
+
+  <script>
+    async function api(path, opts = {}) {
+      const res = await fetch('/api' + path, { credentials: 'same-origin', ...opts });
+      if (res.status === 401) { document.getElementById('login').style.display = 'block'; document.getElementById('app').style.display = 'none'; throw new Error('auth'); }
+      return res.json();
+    }
+
+    async function login() {
+      const password = document.getElementById('password').value;
+      const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ password }) });
+      if (r.ok) { document.getElementById('login').style.display = 'none'; document.getElementById('app').style.display = 'block'; loadModules(); }
+      else document.getElementById('loginError').textContent = 'رمز اشتباه';
+    }
+
+    async function logout() { await api('/logout', { method: 'POST' }); location.reload(); }
+
+    async function loadModules() {
+      const { modules } = await api('/modules');
+      const tiles = document.getElementById('tiles');
+      tiles.innerHTML = modules.map(m => `
+        <div class="tile" data-id="${m.id}" onmouseenter="loadStats('${m.id}')">
+          <strong>${m.name}</strong>
+          <span class="status ${m.status}" title="${m.status}"></span>
+          <p>${m.description}</p>
+          <small>${m.type} · v${m.version}</small>
+          <div class="tooltip" id="stats-${m.id}"></div>
+          <div class="actions">
+            ${m.type === 'standalone' ? `<button onclick="startMod('${m.id}')">Start</button><button class="secondary" onclick="stopMod('${m.id}')">Stop</button><button class="secondary" onclick="viewLogs('${m.id}')">Logs</button>` : ''}
+            ${m.type === 'standalone' && !m.permissionsApproved ? `<button onclick="approve('${m.id}')">Approve</button>` : ''}
+            <button class="danger" onclick="removeMod('${m.id}')">Delete</button>
+          </div>
+        </div>`).join('');
+    }
+
+    async function loadStats(id) {
+      if (!document.getElementById('stats-' + id)) return;
+      try {
+        const { stats } = await api('/modules/' + id + '/stats');
+        if (stats) document.getElementById('stats-' + id).textContent = `CPU: ${stats.cpuPercent} · RAM: ${stats.memoryUsage}/${stats.memoryLimit}`;
+      } catch {}
+    }
+
+    async function startMod(id) {
+      const r = await api('/modules/' + id + '/start', { method: 'POST' });
+      if (r.firewallWarning) alert(r.firewallWarning);
+      loadModules();
+    }
+    async function stopMod(id) { await api('/modules/' + id + '/stop', { method: 'POST' }); loadModules(); }
+    async function approve(id) { await api('/modules/' + id + '/approve', { method: 'POST' }); loadModules(); }
+    async function viewLogs(id) { const { logs } = await api('/modules/' + id + '/logs'); alert(logs); }
+    async function removeMod(id) { if (confirm('حذف ماژول؟')) { await api('/modules/' + id, { method: 'DELETE' }); loadModules(); } }
+
+    async function uploadModule() {
+      const file = document.getElementById('zipFile').files[0];
+      if (!file) return;
+      const fd = new FormData();
+      fd.append('module', file);
+      fd.append('approvePermissions', document.getElementById('approvePerms').checked);
+      const res = await fetch('/api/modules/upload', { method: 'POST', body: fd, credentials: 'same-origin' });
+      const data = await res.json();
+      document.getElementById('uploadMsg').textContent = res.ok ? 'نصب شد: ' + data.moduleId : data.errors?.join(', ') || 'خطا';
+      if (res.ok) loadModules();
+    }
+  </script>
+</body>
+</html>

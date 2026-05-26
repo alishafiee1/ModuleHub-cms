@@ -1,0 +1,8 @@
+{
+  "name": "گالری نمونه",
+  "type": "static",
+  "version": "1.0.0",
+  "icon": "gallery.png",
+  "description": "نمایش تصاویر نمونه برای تست ماژول static",
+  "author": "ModuleHub"
+}

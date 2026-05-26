@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    read_only: true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp

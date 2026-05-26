@@ -2,7 +2,7 @@
 
 ModuleHub CMS needs a modular content platform where site administrators can add, update, and remove independent page blocks (static galleries, live dashboards, robot control panels) without modifying the core. Existing monolithic CMS approaches make parallel development and AI-assisted module creation difficult; a folder-based contract (`manifest.json` + optional `docker-compose.yml`) with an isolated Docker runtime solves this.
 
-This change establishes the initial project foundation: TypeScript/Node.js core, module registry, upload pipeline, static and standalone module support, Docker lifecycle management, dynamic reverse proxy, and an admin dashboard with resource monitoring.
+This change establishes the initial project foundation: TypeScript/Node.js core, module registry, upload pipeline, static and standalone module support, Docker lifecycle management, dynamic reverse proxy, and an admin dashboard with resource monitoring — **targeted at Ubuntu Server LTS** as the primary deployment platform.
 
 ## What Changes
 
@@ -17,7 +17,8 @@ This change establishes the initial project foundation: TypeScript/Node.js core,
 - Add **role-based module visibility** using `admin_role` from manifest
 - Provide **sample modules** (one static gallery, one standalone demo) for integration testing
 - Add **Jest unit tests** for core services and `.env.example` for configuration
-- Document quick-start in root `README.md`
+- Document Ubuntu Server quick-start in root `README.md` (systemd service, Docker, UFW)
+- Target **Ubuntu Server LTS (22.04 / 24.04)** as the only supported production OS
 
 ## Capabilities
 
@@ -40,6 +41,8 @@ This change establishes the initial project foundation: TypeScript/Node.js core,
 
 - **New codebase**: `core/` TypeScript application (Express or Fastify), `static-modules/`, `standalone-modules/`, `config/`
 - **Dependencies**: `dockerode`, `http-proxy`, `adm-zip` (or equivalent), validation library (e.g. `zod`), Jest
-- **Runtime requirements**: Docker Engine + Docker Compose on host; Node.js 20+
+- **Target OS**: Ubuntu Server LTS (22.04 or 24.04) — production deployment, systemd service, UFW, Linux paths
+- **Runtime requirements**: Docker Engine + Docker Compose plugin on Ubuntu host; Node.js 20+ via NodeSource or nvm
+- **Not supported for production**: Windows Server, macOS (dev-only via WSL2/SSH to Ubuntu)
 - **Security**: Untrusted module code runs only in Docker with `cap_drop: ALL`, `read_only`, resource limits; secrets via `process.env`
 - **Docs**: Aligns with `doc/proposal.md`, `doc/module-spec.md`, `doc/code-rolls.md`, `CLAUDE.md`

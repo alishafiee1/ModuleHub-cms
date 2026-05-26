@@ -1,0 +1,17 @@
+[Unit]
+Description=ModuleHub CMS — Modular Docker CMS
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=modulehub
+Group=modulehub
+WorkingDirectory=/opt/modulehub-cms
+EnvironmentFile=/opt/modulehub-cms/.env
+ExecStart=/usr/bin/node /opt/modulehub-cms/dist/core/src/server/index.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

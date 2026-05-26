@@ -1,5 +1,19 @@
 ## ADDED Requirements
 
+### Requirement: Ubuntu host compatibility
+
+The system SHALL run on Ubuntu Server LTS (22.04 or 24.04) as the supported production platform, using Linux paths, systemd, and the Docker socket at `/var/run/docker.sock`.
+
+#### Scenario: Docker socket on Ubuntu
+
+- **WHEN** the core starts on Ubuntu with Docker installed
+- **THEN** it SHALL connect to `unix:///var/run/docker.sock` by default
+
+#### Scenario: Unsupported production OS
+
+- **WHEN** deployment documentation is published
+- **THEN** it SHALL state that Windows and macOS are not supported for production (development via WSL2/SSH only)
+
 ### Requirement: Start standalone module container
 
 The system SHALL start standalone modules using `docker compose up -d` in the module directory with resource limits from the manifest.

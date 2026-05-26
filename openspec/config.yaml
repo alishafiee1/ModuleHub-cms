@@ -2,12 +2,15 @@ schema: spec-driven
 
 # Project context (optional)
 # This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Target platform: Ubuntu Server LTS (22.04 or 24.04) on bare metal or VPS.
+  ModuleHub CMS runs natively on Linux — not Windows/macOS for production.
+  Host stack: systemd, Docker Engine + Docker Compose plugin, UFW firewall, optional Nginx as external reverse proxy.
+  Core user: dedicated Linux user (e.g. modulehub) in the docker group for socket access.
+  Paths follow Linux conventions (/var/www, /opt/modulehub-cms, /etc/systemd/system).
+  Development on Windows is allowed via WSL2 or remote SSH to Ubuntu; CI and deployment targets Ubuntu only.
+  Tech stack: Node.js 20+, TypeScript, Express, dockerode, JSON registry (modules.json).
+  Align with doc/proposal.md, doc/module-spec.md, doc/code-rolls.md, CLAUDE.md.
 
 # Per-artifact rules (optional)
 # Add custom rules for specific artifacts.
