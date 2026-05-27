@@ -7,6 +7,7 @@ import { SiteLayoutRegistry } from '../site-layout/registry';
 import { ManifestValidator } from './manifest-validator';
 import { ModuleEntry, ModuleManifest } from './types';
 import { ModuleRegistry } from './registry';
+import { hashModulePassword, moduleManifestHasPassword, readModuleManifest } from '../auth/module-password';
 import { logger } from '../server/logger';
 
 export const ModuleSettingsInputSchema = z.object({
@@ -25,6 +26,8 @@ export const ModuleSettingsInputSchema = z.object({
   entryHtml: z.string().min(1).optional(),
   layoutIcon: z.string().optional(),
   layoutIconClass: z.string().optional(),
+  modulePassword: z.string().min(4).optional(),
+  clearModulePassword: z.boolean().optional(),
 });
 
 export type ModuleSettingsInput = z.infer<typeof ModuleSettingsInputSchema>;
@@ -42,6 +45,7 @@ export interface ModuleSettingsView {
   entryHtml: string;
   layoutIcon?: string;
   layoutIconClass?: string;
+  hasModulePassword: boolean;
   warnings: string[];
 }
 
@@ -104,6 +108,7 @@ export class ModuleSettingsService {
       entryHtml: manifest.entryHtml ?? 'index.html',
       layoutIcon: layoutItem?.kind === 'module' ? layoutItem.icon : undefined,
       layoutIconClass: layoutItem?.kind === 'module' ? layoutItem.iconClass : undefined,
+      hasModulePassword: moduleManifestHasPassword(manifest),
       warnings: validation.warnings,
     };
   }
@@ -132,6 +137,16 @@ export class ModuleSettingsService {
       return { success: false, errors: ['manifest.json not found'], warnings: [] };
     }
 
+    let modulePasswordHash =
+      (manifest as ModuleManifest & { modulePasswordHash?: string | null }).modulePasswordHash ??
+      undefined;
+
+    if (input.clearModulePassword) {
+      modulePasswordHash = undefined;
+    } else if (input.modulePassword?.trim()) {
+      modulePasswordHash = await hashModulePassword(input.modulePassword.trim());
+    }
+
     const updatedManifest: ModuleManifest = {
       ...manifest,
       docker: {
@@ -151,6 +166,12 @@ export class ModuleSettingsService {
       github: input.github,
       entryHtml: input.entryHtml ?? manifest.entryHtml ?? 'index.html',
     };
+
+    if (input.clearModulePassword) {
+      updatedManifest.modulePasswordHash = null;
+    } else if (input.modulePassword?.trim()) {
+      updatedManifest.modulePasswordHash = modulePasswordHash;
+    }
 
     const composePath = path.join(
       mod.installPath,
@@ -213,10 +234,6 @@ export class ModuleSettingsService {
   }
 
   private readManifest(installPath: string): ModuleManifest | null {
-    const manifestPath = path.join(installPath, 'manifest.json');
-    if (!fs.existsSync(manifestPath)) {
-      return null;
-    }
-    return JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as ModuleManifest;
+    return readModuleManifest(installPath);
   }
 }

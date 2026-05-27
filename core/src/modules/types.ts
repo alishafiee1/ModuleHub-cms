@@ -62,6 +62,7 @@ export const ManifestSchema = z.object({
     })
     .optional(),
   entryHtml: z.string().min(1).optional(),
+  modulePasswordHash: z.string().min(1).nullable().optional(),
 });
 
 export type ModuleManifest = z.infer<typeof ManifestSchema>;

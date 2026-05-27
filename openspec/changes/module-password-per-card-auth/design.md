@@ -42,3 +42,15 @@ In-memory map IP+moduleId; 5 failures / 15 min → 429.
 - bcrypt verify mock
 - rate limit triggers 429
 - scoped token cannot delete or access other module
+
+## Threat model
+
+| Threat | Mitigation |
+|--------|------------|
+| Password brute force | bcrypt + rate limit 5 failures / 15 min per IP+module |
+| Hash leakage via API | GET settings returns `hasModulePassword` only |
+| Plaintext in logs | unlock handler never logs password body |
+| Cross-module access | cookie payload bound to `moduleId`; middleware checks match |
+| Privilege escalation via scoped session | delete/list/upload remain global admin only |
+| Cookie forgery | HMAC-signed cookie with `SESSION_SECRET` |
+| Session fixation | new cookie issued per successful unlock |

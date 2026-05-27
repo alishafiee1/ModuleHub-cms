@@ -1,3 +1,6 @@
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import vm from 'vm';
 import { renderHomepage } from '../core/src/public/homepage-renderer';
 import { SiteLayoutData } from '../core/src/site-layout/types';
@@ -43,16 +46,26 @@ function extractInlineScript(html: string): string {
 
 function createGearSandbox(fetchMock: jest.Mock): vm.Context {
   const elementStub = () => ({
-    classList: { add: jest.fn(), remove: jest.fn() },
+    classList: { add: jest.fn(), remove: jest.fn(), toggle: jest.fn() },
     textContent: '',
     value: '',
+    checked: false,
   });
   return {
     fetch: fetchMock,
-    document: { getElementById: jest.fn(() => elementStub()) },
+    IS_GLOBAL_ADMIN: true,
+    sessionStorage: {
+      getItem: jest.fn(() => null),
+      setItem: jest.fn(),
+    },
+    document: {
+      getElementById: jest.fn(() => elementStub()),
+      querySelectorAll: jest.fn(() => []),
+    },
     location: { reload: jest.fn() },
     alert: jest.fn(),
     confirm: jest.fn(() => true),
+    prompt: jest.fn(() => 'pass'),
     setInterval: jest.fn(() => 1),
     clearInterval: jest.fn(),
     JSON,
@@ -72,7 +85,7 @@ describe('homepage gear dialog', () => {
     expect(adminHtml).toContain('class="card-gear"');
     expect(adminHtml).toContain('id="gear-modal"');
     expect(adminHtml).toContain('openGearModal');
-    expect(adminHtml).not.toContain('class="admin-actions"');
+    expect(adminHtml).toContain('gear-settings-module-password');
 
     const anonHtml = renderHomepage({
       layout: standaloneLayout,
@@ -82,6 +95,26 @@ describe('homepage gear dialog', () => {
     });
     expect(anonHtml).not.toContain('class="card-gear"');
     expect(anonHtml).not.toContain('id="gear-modal"');
+  });
+
+  it('shows gear for anonymous users when module password is configured', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mh-gear-pwd-'));
+    const moduleDir = path.join(tmpDir, 'demo-api');
+    fs.mkdirSync(moduleDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(moduleDir, 'manifest.json'),
+      JSON.stringify({ modulePasswordHash: '$2b$10$abcdefghijklmnopqrstuv' }),
+    );
+    const html = renderHomepage({
+      layout: standaloneLayout,
+      modules: [{ ...standaloneModule, installPath: moduleDir }],
+      isAuthenticated: false,
+      currentFolderId: 'root',
+    });
+    expect(html).toContain('class="card-gear"');
+    expect(html).toContain('id="gear-modal"');
+    expect(html).toContain('openGearModal');
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
   it('gear modal script includes git pull and partial upload', () => {

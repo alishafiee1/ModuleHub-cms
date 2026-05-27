@@ -1,9 +1,14 @@
 /**
- * Gear control on module card (admin only).
+ * Gear control on module card (admin or module-password managers).
  */
-export function renderGearButton(moduleId: string, moduleName: string, status: string): string {
+export function renderGearButton(
+  moduleId: string,
+  moduleName: string,
+  status: string,
+  requiresPassword: boolean,
+): string {
   return `<button type="button" class="card-gear" aria-label=${JSON.stringify(`مدیریت ${moduleName}`)}
-    onclick="event.stopPropagation(); event.preventDefault(); openGearModal(${JSON.stringify(moduleId)}, ${JSON.stringify(moduleName)}, ${JSON.stringify(status)})">
+    onclick="event.stopPropagation(); event.preventDefault(); openGearModal(${JSON.stringify(moduleId)}, ${JSON.stringify(moduleName)}, ${JSON.stringify(status)}, ${requiresPassword ? 'true' : 'false'})">
     <i class="fas fa-cog" aria-hidden="true"></i>
   </button>`;
 }
@@ -30,7 +35,7 @@ export function renderGearModalMarkup(): string {
           <button type="button" class="secondary" onclick="gearStopModule()">Stop</button>
           <button type="button" class="secondary" onclick="gearLoadLogs()">Logs</button>
           <button type="button" class="secondary" onclick="gearShowSettings()">Settings</button>
-          <button type="button" class="danger" onclick="gearDeleteModule()">Delete</button>
+          <button type="button" class="danger gear-admin-only" onclick="gearDeleteModule()">Delete</button>
         </div>
       </section>
       <section class="gear-section">
@@ -62,6 +67,14 @@ export function renderGearModalMarkup(): string {
         <label class="gear-field">GitHub branch
           <input id="gear-settings-github-branch" type="text" dir="ltr" placeholder="main" />
         </label>
+        <label class="gear-field">رمز مدیریت ماژول (جدید)
+          <input id="gear-settings-module-password" type="password" autocomplete="new-password" />
+        </label>
+        <label class="gear-field gear-checkbox">
+          <input id="gear-settings-clear-module-password" type="checkbox" />
+          حذف رمز ماژول
+        </label>
+        <p id="gear-settings-password-hint" class="gear-hint"></p>
         <div class="gear-actions">
           <button type="button" onclick="gearSaveSettings()">ذخیره Settings</button>
         </div>
@@ -88,10 +101,50 @@ export function renderGearModalScript(): string {
   return `
     let gearModuleId = null;
     let gearStatsTimer = null;
+    const gearUnlockCacheKey = (id) => 'modulehub_unlock_' + id;
 
-    function openGearModal(id, name, status) {
+    function gearApplyAdminVisibility() {
+      document.querySelectorAll('.gear-admin-only').forEach((el) => {
+        el.classList.toggle('hidden', !IS_GLOBAL_ADMIN);
+      });
+    }
+
+    async function ensureModuleAccess(id, requiresPassword) {
+      if (requiresPassword) {
+        if (sessionStorage.getItem(gearUnlockCacheKey(id))) {
+          return true;
+        }
+        const password = prompt('رمز این ماژول را وارد کنید:');
+        if (!password) {
+          return false;
+        }
+        try {
+          await api('/modules/' + id + '/unlock', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password }),
+          });
+          sessionStorage.setItem(gearUnlockCacheKey(id), '1');
+          return true;
+        } catch (e) {
+          if (e.status === 429) alert('تلاش زیاد — ۱۵ دقیقه بعد دوباره امتحان کنید');
+          else alert('رمز نادرست یا دسترسی مجاز نیست');
+          return false;
+        }
+      }
+      if (!IS_GLOBAL_ADMIN) {
+        alert('برای مدیریت این ماژول از /admin وارد شوید');
+        return false;
+      }
+      return true;
+    }
+
+    async function openGearModal(id, name, status, requiresPassword) {
+      const allowed = await ensureModuleAccess(id, requiresPassword);
+      if (!allowed) return;
       gearModuleId = id;
       document.getElementById('gear-modal')?.classList.add('open');
+      gearApplyAdminVisibility();
       document.getElementById('gear-module-meta').textContent = name + ' · ' + status;
       document.getElementById('gear-logs').textContent = '—';
       document.getElementById('gear-settings-msg').textContent = '';
@@ -165,6 +218,14 @@ export function renderGearModalScript(): string {
         document.getElementById('gear-settings-icon-class').value = settings.layoutIconClass ?? '';
         document.getElementById('gear-settings-github-repo').value = settings.github?.repo ?? '';
         document.getElementById('gear-settings-github-branch').value = settings.github?.branch ?? '';
+        document.getElementById('gear-settings-module-password').value = '';
+        document.getElementById('gear-settings-clear-module-password').checked = false;
+        const hint = document.getElementById('gear-settings-password-hint');
+        if (hint) {
+          hint.textContent = settings.hasModulePassword
+            ? 'رمز فعال است — برای تغییر، رمز جدید وارد کنید.'
+            : 'رمز اختیاری — بدون آن فقط admin سراسری می‌تواند ⚙ را باز کند.';
+        }
       } catch {
         document.getElementById('gear-settings-msg').textContent = 'خطا در بارگذاری Settings';
       }
@@ -183,6 +244,8 @@ export function renderGearModalScript(): string {
         proxyPaths: proxyPaths.length ? proxyPaths : ['api'],
         layoutIconClass: document.getElementById('gear-settings-icon-class').value.trim() || undefined,
         github: githubRepo ? { repo: githubRepo, branch: githubBranch || undefined } : undefined,
+        modulePassword: document.getElementById('gear-settings-module-password')?.value?.trim() || undefined,
+        clearModulePassword: document.getElementById('gear-settings-clear-module-password')?.checked || undefined,
       };
       try {
         await api('/modules/' + gearModuleId + '/settings', {

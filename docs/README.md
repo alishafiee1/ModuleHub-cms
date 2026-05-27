@@ -102,7 +102,7 @@ table td code, table th code { direction: ltr; text-align: left; display: inline
 | P2b | `standalone-settings-form-and-lifecycle` | Docker settings mode ✅ |
 | P2c | `homepage-gear-dialog-admin-actions` | دیالوگ ⚙ ✅ |
 | P3 | `github-sync-and-partial-zip-update` | Git pull + Partial ZIP ✅ |
-| P4 | `module-password-per-card-auth` | رمز per-module |
+| P4 | `module-password-per-card-auth` | رمز per-module ✅ |
 
 ترتیب پیشنهادی پیاده‌سازی: P1 → P2a → P2b → P2c → P3 → P4
 

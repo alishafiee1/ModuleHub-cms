@@ -17,6 +17,7 @@ import { SiteLayoutRegistry } from '../core/src/site-layout/registry';
 import { GitSyncService } from '../core/src/sync/git-sync-service';
 import { PartialUploadService } from '../core/src/modules/partial-upload-service';
 import { ModuleSettingsService } from '../core/src/modules/module-settings-service';
+import { ModuleUnlockService } from '../core/src/auth/module-unlock-service';
 
 function writeCatalogTemplate(catalogDir: string, templateId: string): void {
   const templateDir = path.join(catalogDir, templateId);
@@ -89,6 +90,7 @@ describe('catalog instances API', () => {
     );
     const gitSyncService = new GitSyncService(registry);
     const partialUploadService = new PartialUploadService(registry);
+    const moduleUnlockService = new ModuleUnlockService(registry, 'test-secret');
 
     const app = express();
     app.use(express.json());
@@ -120,6 +122,7 @@ describe('catalog instances API', () => {
         settingsService,
         gitSyncService,
         partialUploadService,
+        moduleUnlockService,
       }),
     );
 

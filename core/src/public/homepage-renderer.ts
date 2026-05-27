@@ -2,6 +2,7 @@ import { buildBreadcrumb, getChildFolders, getItemsForFolder } from '../site-lay
 import { SiteLayoutData, SiteLayoutFolder } from '../site-layout/types';
 import { ModuleEntry } from '../modules/types';
 import { canManageModule } from '../auth/session';
+import { moduleManifestHasPassword, readModuleManifest } from '../auth/module-password';
 import { renderGearButton, renderGearModalMarkup, renderGearModalScript } from './homepage-gear-modal';
 
 /**
@@ -22,6 +23,27 @@ export interface HomepageRenderOptions {
   isAuthenticated: boolean;
   userRole?: string;
   currentFolderId: string;
+}
+
+/**
+ * Whether gear control should appear on a standalone module card.
+ */
+function shouldShowModuleGear(module: ModuleEntry, options: HomepageRenderOptions): boolean {
+  if (module.type !== 'standalone') {
+    return false;
+  }
+  if (options.isAuthenticated && canManageModule(options.userRole, module)) {
+    return true;
+  }
+  const manifest = readModuleManifest(module.installPath);
+  return moduleManifestHasPassword(manifest);
+}
+
+/**
+ * Whether user has global admin session (can delete modules).
+ */
+function isGlobalAdminSession(options: HomepageRenderOptions): boolean {
+  return Boolean(options.isAuthenticated && options.userRole === 'admin');
 }
 
 /**
@@ -48,14 +70,14 @@ function renderModuleCard(
       ? `<div class="card-icon"><img src="${escapeHtml(item.icon)}" alt="" /></div>`
       : `<div class="card-icon"><i class="fas fa-puzzle-piece"></i></div>`;
 
-  const showGear =
-    module?.type === 'standalone' &&
-    options.isAuthenticated &&
-    module &&
-    canManageModule(options.userRole, module);
+  const showGear = module ? shouldShowModuleGear(module, options) : false;
+  const requiresPassword =
+    module && showGear
+      ? moduleManifestHasPassword(readModuleManifest(module.installPath))
+      : false;
 
   const gearMarkup = showGear
-    ? renderGearButton(module!.id, module!.name, module!.status)
+    ? renderGearButton(module!.id, module!.name, module!.status, requiresPassword)
     : '';
 
   return `<div class="card-wrap">
@@ -170,10 +192,16 @@ export function renderHomepage(options: HomepageRenderOptions): string {
     .join('\n');
 
   const addCard = options.isAuthenticated ? renderAddCard() : '';
+  const needsGearModal =
+    options.isAuthenticated ||
+    options.modules.some(
+      (mod) => mod.type === 'standalone' && moduleManifestHasPassword(readModuleManifest(mod.installPath)),
+    );
   const cards = `${folderCards}\n${itemCards}\n${addCard}`;
   const breadcrumb = renderBreadcrumb(options.layout, options.currentFolderId);
   const addModal = options.isAuthenticated ? renderAddModal(options.currentFolderId) : '';
-  const gearModal = options.isAuthenticated ? renderGearModalMarkup() : '';
+  const gearModal = needsGearModal ? renderGearModalMarkup() : '';
+  const isGlobalAdmin = isGlobalAdminSession(options);
 
   return `<!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -208,6 +236,7 @@ export function renderHomepage(options: HomepageRenderOptions): string {
   </footer>
   <script>
     const CURRENT_FOLDER_ID = ${JSON.stringify(options.currentFolderId)};
+    const IS_GLOBAL_ADMIN = ${JSON.stringify(isGlobalAdmin)};
     async function api(path, opts = {}) {
       const res = await fetch('/api' + path, { credentials: 'same-origin', ...opts });
       const data = await res.json().catch(() => ({}));

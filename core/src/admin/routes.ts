@@ -14,6 +14,8 @@ import { ModuleSettingsService } from '../modules/module-settings-service';
 import { GitSyncService } from '../sync/git-sync-service';
 import { PartialUploadService } from '../modules/partial-upload-service';
 import { filterModulesByRole, requireAuth, requireModuleAccess } from '../auth/session';
+import { requireModuleGearAccess } from '../auth/module-access';
+import { ModuleUnlockService } from '../auth/module-unlock-service';
 import { logger } from '../server/logger';
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
@@ -30,6 +32,7 @@ export interface AdminRouterDeps {
   settingsService: ModuleSettingsService;
   gitSyncService: GitSyncService;
   partialUploadService: PartialUploadService;
+  moduleUnlockService: ModuleUnlockService;
 }
 
 /**
@@ -37,7 +40,9 @@ export interface AdminRouterDeps {
  */
 export function createAdminRouter(deps: AdminRouterDeps): Router {
   const router = Router();
-  const { config, registry, installer, dockerManager, proxyManager, layoutRegistry, catalogService, catalogInstanceService, settingsService, gitSyncService, partialUploadService } = deps;
+  const { config, registry, installer, dockerManager, proxyManager, layoutRegistry, catalogService, catalogInstanceService, settingsService, gitSyncService, partialUploadService, moduleUnlockService } = deps;
+
+  const gearAccess = requireModuleGearAccess((id) => registry.getById(id), config.sessionSecret);
 
   router.post('/login', (req: Request, res: Response) => {
     const { password } = req.body as { password?: string };
@@ -147,10 +152,20 @@ export function createAdminRouter(deps: AdminRouterDeps): Router {
     res.json(result);
   });
 
+  router.post('/modules/:id/unlock', async (req: Request, res: Response) => {
+    const { password } = req.body as { password?: string };
+    const result = await moduleUnlockService.unlock(req, res, req.params.id, password);
+    if (!result.success) {
+      const status = result.rateLimited ? 429 : 401;
+      res.status(status).json({ error: result.errors[0], errors: result.errors });
+      return;
+    }
+    res.json({ ok: true });
+  });
+
   router.get(
     '/modules/:id/settings',
-    requireAuth,
-    requireModuleAccess((id) => registry.getById(id)),
+    gearAccess,
     (req: Request, res: Response) => {
       const settings = settingsService.getSettings(req.params.id);
       if (!settings) {
@@ -163,8 +178,7 @@ export function createAdminRouter(deps: AdminRouterDeps): Router {
 
   router.put(
     '/modules/:id/settings',
-    requireAuth,
-    requireModuleAccess((id) => registry.getById(id)),
+    gearAccess,
     async (req: Request, res: Response) => {
       const result = await settingsService.saveSettings(req.params.id, req.body);
       if (!result.success) {
@@ -180,7 +194,7 @@ export function createAdminRouter(deps: AdminRouterDeps): Router {
     },
   );
 
-  router.post('/modules/:id/start', requireAuth, requireModuleAccess((id) => registry.getById(id)), async (req: Request, res: Response) => {
+  router.post('/modules/:id/start', gearAccess, async (req: Request, res: Response) => {
     const mod = registry.getById(req.params.id)!;
     if (mod.type !== 'standalone') {
       res.status(400).json({ error: 'Only standalone modules can be started' });
@@ -219,7 +233,7 @@ export function createAdminRouter(deps: AdminRouterDeps): Router {
     });
   });
 
-  router.post('/modules/:id/stop', requireAuth, requireModuleAccess((id) => registry.getById(id)), async (req: Request, res: Response) => {
+  router.post('/modules/:id/stop', gearAccess, async (req: Request, res: Response) => {
     const mod = registry.getById(req.params.id)!;
     await dockerManager.stopModule(mod);
     mod.status = 'stopped';
@@ -257,13 +271,13 @@ export function createAdminRouter(deps: AdminRouterDeps): Router {
     res.json({ ok: true });
   });
 
-  router.get('/modules/:id/logs', requireAuth, requireModuleAccess((id) => registry.getById(id)), async (req: Request, res: Response) => {
+  router.get('/modules/:id/logs', gearAccess, async (req: Request, res: Response) => {
     const mod = registry.getById(req.params.id)!;
     const logs = await dockerManager.getLogs(mod);
     res.json({ logs });
   });
 
-  router.get('/modules/:id/stats', requireAuth, requireModuleAccess((id) => registry.getById(id)), async (req: Request, res: Response) => {
+  router.get('/modules/:id/stats', gearAccess, async (req: Request, res: Response) => {
     const mod = registry.getById(req.params.id)!;
     if (!mod.containerId) {
       res.json({ stats: null });
@@ -273,7 +287,7 @@ export function createAdminRouter(deps: AdminRouterDeps): Router {
     res.json({ stats });
   });
 
-  router.post('/modules/:id/git-pull', requireAuth, requireModuleAccess((id) => registry.getById(id)), async (req: Request, res: Response) => {
+  router.post('/modules/:id/git-pull', gearAccess, async (req: Request, res: Response) => {
     const result = await gitSyncService.pull(req.params.id);
     if (!result.success) {
       const status = result.gitMissing ? 503 : 400;
@@ -286,8 +300,7 @@ export function createAdminRouter(deps: AdminRouterDeps): Router {
 
   router.post(
     '/modules/:id/partial-upload',
-    requireAuth,
-    requireModuleAccess((id) => registry.getById(id)),
+    gearAccess,
     upload.single('partial'),
     (req: Request, res: Response) => {
       if (!req.file) {

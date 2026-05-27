@@ -446,7 +446,7 @@ Auto-fill: read existing `manifest.json` + `site-layout.json` on edit.
 | Instance copy (gallery/md) | ❌ | ✅ |
 | Gear dialog | partial (homepage admin) | ✅ full dialog |
 | GitHub pull | ✅ P3 |
-| Module password | ❌ | ✅ |
+| Module password | ✅ P4 |
 | Partial ZIP update | ✅ P3 |
 
 ---
@@ -459,7 +459,7 @@ Auto-fill: read existing `manifest.json` + `site-layout.json` on edit.
 | instance-id collision | validate kebab-case + unique check |
 | Git pull overwrites local uploads | backup + restore `images/`, `markdown/`, `uploads/` before/after pull; confirm در UI |
 | Partial ZIP overwrite | path-safety + max 50 files; admin confirm via gear dialog |
-| module password bypass | hash + rate limit; separate from admin session (🔜 P4) |
+| module password bypass | hash + rate limit; separate from admin session (✅ P4) |
 | Too many Docker modules on small VPS | default memory caps; warn on Start |
 | Docker settings mode vs public traffic | document which URLs open before Save; proxy gated until Running |
 | Legacy docs (static ZIP, auto-start) | use [docs/README.md](README.md) as index; archive old files |

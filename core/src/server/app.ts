@@ -14,6 +14,7 @@ import { CatalogInstanceService } from '../catalog/catalog-instance-service';
 import { ModuleSettingsService } from '../modules/module-settings-service';
 import { GitSyncService } from '../sync/git-sync-service';
 import { PartialUploadService } from '../modules/partial-upload-service';
+import { ModuleUnlockService } from '../auth/module-unlock-service';
 import { bootstrapExistingModules, migrateLegacyStaticGallery } from '../modules/bootstrap';
 import { mountPublicRoutes, mountBuiltinModules, mountStandaloneHostFiles } from '../public/routes';
 
@@ -63,6 +64,7 @@ export function createApp(): express.Express {
   );
   const gitSyncService = new GitSyncService(registry);
   const partialUploadService = new PartialUploadService(registry);
+  const moduleUnlockService = new ModuleUnlockService(registry, config.sessionSecret);
 
   const installer = new ModuleInstaller(
     config,
@@ -79,7 +81,7 @@ export function createApp(): express.Express {
 
   app.use(
     '/api',
-    createAdminRouter({ config, registry, installer, dockerManager, proxyManager, layoutRegistry, catalogService, catalogInstanceService, settingsService, gitSyncService, partialUploadService }),
+    createAdminRouter({ config, registry, installer, dockerManager, proxyManager, layoutRegistry, catalogService, catalogInstanceService, settingsService, gitSyncService, partialUploadService, moduleUnlockService }),
   );
   serveDashboard(app, config);
 

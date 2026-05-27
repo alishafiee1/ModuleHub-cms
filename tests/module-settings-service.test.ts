@@ -106,6 +106,7 @@ describe('ModuleSettingsService', () => {
     expect(settings?.ports).toEqual([3000]);
     expect(settings?.proxyPrefix).toBe('/modules/zip-api/');
     expect(settings?.layoutIconClass).toBe('fas fa-plug');
+    expect(settings?.hasModulePassword).toBe(false);
     expect(settings?.status).toBe('settings_pending');
   });
 
