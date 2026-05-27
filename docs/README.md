@@ -90,7 +90,20 @@ table td code, table th code { direction: ltr; text-align: left; display: inline
 
 ## OpenSpec
 
-- **فعلی:** `openspec/changes/public-homepage-architecture-v2/`
-- **منسوخ:** `openspec/changes/modulehub-cms-initial-core/` (static ZIP، proxy کل مسیر)
+- **فعلی (v2):** `openspec/changes/public-homepage-architecture-v2/` ✅
+- **منسوخ:** `openspec/changes/modulehub-cms-initial-core/` ⛔
+
+### Roadmap (P1–P4) — آماده برای `/opsx:apply`
+
+| فاز | Change | محتوا |
+|-----|--------|--------|
+| P1 | `virtual-folder-tree-and-browse` | پوشه مجازی، browse، Add card |
+| P2a | `catalog-modules-and-instance-copy` | catalog + instance مستقل |
+| P2b | `standalone-settings-form-and-lifecycle` | Docker settings mode |
+| P2c | `homepage-gear-dialog-admin-actions` | دیالوگ ⚙ |
+| P3 | `github-sync-and-partial-zip-update` | Git pull + ZIP جزئی |
+| P4 | `module-password-per-card-auth` | رمز per-module |
+
+ترتیب پیشنهادی پیاده‌سازی: P1 → P2a → P2b → P2c → P3 → P4
 
 </div>

@@ -62,5 +62,6 @@ Each **Add** (catalog template or ZIP) creates an independent instance under `st
 
 ## OpenSpec
 
-- Initial core: `openspec/changes/modulehub-cms-initial-core/`
-- Public homepage v2: `openspec/changes/public-homepage-architecture-v2/`
+- Initial core: `openspec/changes/modulehub-cms-initial-core/` (superseded)
+- Public homepage v2: `openspec/changes/public-homepage-architecture-v2/` (complete)
+- Roadmap P1–P4: see [docs/README.md](docs/README.md#openspec)
