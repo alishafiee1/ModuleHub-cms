@@ -70,4 +70,8 @@ bash /opt/modulehub-cms/scripts/migrate-to-v2.sh
 sudo systemctl restart modulehub-cms
 ```
 
+## به‌روزرسانی کد (بعد از deploy اول)
+
+راهنمای گام‌به‌گام: [server-update-restart.md](server-update-restart.md)
+
 </div>

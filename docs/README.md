@@ -36,7 +36,7 @@ table td code, table th code { direction: ltr; text-align: left; display: inline
 | **توسعه‌دهنده core** | [design.md](design.md) → [code-rolls.md](code-rolls.md) → OpenSpec v2 |
 | **سازنده ماژول ZIP** | [standalone-module-guide.md](standalone-module-guide.md) → [module-spec.md](module-spec.md) |
 | **AI / Agent** | [standalone-module-ai-guide.md](standalone-module-ai-guide.md) → [module-spec.md](module-spec.md) |
-| **استقرار Ubuntu** | [ubuntu-deployment.md](ubuntu-deployment.md) → [.env.example](../.env.example) |
+| **استقرار Ubuntu** | [ubuntu-deployment.md](ubuntu-deployment.md) → [server-update-restart.md](server-update-restart.md) → [.env.example](../.env.example) |
 
 ---
 
@@ -52,6 +52,7 @@ table td code, table th code { direction: ltr; text-align: left; display: inline
 | [standalone-module-ai-guide.md](standalone-module-ai-guide.md) | prompt و قرارداد برای AI | ✅ |
 | [public-homepage.md](public-homepage.md) | homepage و `site-layout.json` | ✅ flat layout |
 | [ubuntu-deployment.md](ubuntu-deployment.md) | نصب production روی Ubuntu | ✅ |
+| [server-update-restart.md](server-update-restart.md) | به‌روزرسانی کد + restart گام‌به‌گام | ✅ |
 | [code-rolls.md](code-rolls.md) | قوانین کدنویسی و PR | ✅ |
 | [archive/](archive/) | اسناد منسوخ | ⛔ |
 

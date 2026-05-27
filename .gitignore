@@ -1,6 +1,9 @@
+docs/server-condition.md
 node_modules/
 dist/
 data/
 .env
 *.log
 coverage/
+
+docs/server condition.md
