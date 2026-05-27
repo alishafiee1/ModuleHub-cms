@@ -49,7 +49,7 @@ describe('renderHomepage', () => {
     expect(html).not.toContain('class="card-add"');
   });
 
-  it('shows admin actions for standalone when authenticated', () => {
+  it('shows gear control for standalone when authenticated', () => {
     const html = renderHomepage({
       layout: {
         ...baseLayout,
@@ -85,7 +85,9 @@ describe('renderHomepage', () => {
       userRole: 'admin',
       currentFolderId: 'root',
     });
-    expect(html).toContain('Start');
+    expect(html).toContain('class="card-gear"');
+    expect(html).toContain('openGearModal');
+    expect(html).not.toContain('class="admin-actions"');
     expect(html).toContain('status-dot stopped');
   });
 

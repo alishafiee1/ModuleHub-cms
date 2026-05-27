@@ -2,6 +2,7 @@ import { buildBreadcrumb, getChildFolders, getItemsForFolder } from '../site-lay
 import { SiteLayoutData, SiteLayoutFolder } from '../site-layout/types';
 import { ModuleEntry } from '../modules/types';
 import { canManageModule } from '../auth/session';
+import { renderGearButton, renderGearModalMarkup, renderGearModalScript } from './homepage-gear-modal';
 
 /**
  * Escape HTML special characters for safe template output.
@@ -47,29 +48,24 @@ function renderModuleCard(
       ? `<div class="card-icon"><img src="${escapeHtml(item.icon)}" alt="" /></div>`
       : `<div class="card-icon"><i class="fas fa-puzzle-piece"></i></div>`;
 
-  const showAdmin =
+  const showGear =
     module?.type === 'standalone' &&
     options.isAuthenticated &&
     module &&
     canManageModule(options.userRole, module);
 
-  const adminMarkup = showAdmin
-    ? `<div class="admin-actions" onclick="event.stopPropagation(); event.preventDefault();">
-        <button type="button" onclick="event.stopPropagation(); startModule('${escapeHtml(module!.id)}')">Start</button>
-        <button type="button" class="secondary" onclick="event.stopPropagation(); stopModule('${escapeHtml(module!.id)}')">Stop</button>
-        <button type="button" class="secondary" onclick="event.stopPropagation(); viewLogs('${escapeHtml(module!.id)}')">Logs</button>
-      </div>
-      <div class="stats-tooltip" id="stats-${escapeHtml(module!.id)}" onmouseenter="loadStats('${escapeHtml(module!.id)}')"></div>`
+  const gearMarkup = showGear
+    ? renderGearButton(module!.id, module!.name, module!.status)
     : '';
 
   return `<div class="card-wrap">
     <span class="status-dot ${statusClass}" title="${statusClass}"></span>
+    ${gearMarkup}
     <a class="card-link" href="${escapeHtml(item.route)}">
       ${iconMarkup}
       <h5 class="mb-2">${escapeHtml(item.title)}</h5>
       <div class="card-subtitle">${escapeHtml(item.subtitle)}</div>
     </a>
-    ${adminMarkup}
   </div>`;
 }
 
@@ -177,6 +173,7 @@ export function renderHomepage(options: HomepageRenderOptions): string {
   const cards = `${folderCards}\n${itemCards}\n${addCard}`;
   const breadcrumb = renderBreadcrumb(options.layout, options.currentFolderId);
   const addModal = options.isAuthenticated ? renderAddModal(options.currentFolderId) : '';
+  const gearModal = options.isAuthenticated ? renderGearModalMarkup() : '';
 
   return `<!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -202,6 +199,7 @@ export function renderHomepage(options: HomepageRenderOptions): string {
     <div class="cards">${cards}</div>
   </main>
   ${addModal}
+  ${gearModal}
   <footer class="footer">
     <div class="container">
       &copy; ${new Date().getFullYear()} ModuleHub CMS ·
@@ -212,32 +210,17 @@ export function renderHomepage(options: HomepageRenderOptions): string {
     const CURRENT_FOLDER_ID = ${JSON.stringify(options.currentFolderId)};
     async function api(path, opts = {}) {
       const res = await fetch('/api' + path, { credentials: 'same-origin', ...opts });
+      const data = await res.json().catch(() => ({}));
       if (res.status === 401) throw new Error('auth');
-      return res.json();
+      if (!res.ok) {
+        const err = new Error(data.error || data.errors?.join(', ') || 'request failed');
+        err.payload = data;
+        err.status = res.status;
+        throw err;
+      }
+      return data;
     }
-    async function startModule(id) {
-      try {
-        const r = await api('/modules/' + id + '/start', { method: 'POST' });
-        if (r.firewallWarning) alert(r.firewallWarning);
-        location.reload();
-      } catch (e) { alert('خطا در Start — از /admin وارد شوید'); }
-    }
-    async function stopModule(id) {
-      try { await api('/modules/' + id + '/stop', { method: 'POST' }); location.reload(); }
-      catch (e) { alert('خطا در Stop'); }
-    }
-    async function viewLogs(id) {
-      try { const { logs } = await api('/modules/' + id + '/logs'); alert(logs); }
-      catch (e) { alert('خطا در دریافت Logs'); }
-    }
-    async function loadStats(id) {
-      const el = document.getElementById('stats-' + id);
-      if (!el) return;
-      try {
-        const { stats } = await api('/modules/' + id + '/stats');
-        if (stats) el.textContent = 'CPU: ' + stats.cpuPercent + ' · RAM: ' + stats.memoryUsage + '/' + stats.memoryLimit;
-      } catch {}
-    }
+    ${renderGearModalScript()}
     function openAddModal() {
       document.getElementById('add-modal')?.classList.add('open');
     }

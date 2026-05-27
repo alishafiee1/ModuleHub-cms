@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ModuleHub CMS — Admin</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
     body { margin: 0; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
@@ -34,6 +34,11 @@
     .settings-form label { display: block; font-size: 0.9rem; margin-bottom: 0.25rem; }
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
     .settings-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+    .tile-gear { position: absolute; top: 8px; left: 8px; width: 32px; height: 32px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #94a3b8; cursor: pointer; }
+    .tile-gear:hover { color: #e2e8f0; border-color: #64748b; }
+    .gear-quick-panel { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 110; align-items: center; justify-content: center; padding: 1rem; }
+    .gear-quick-panel.open { display: flex; }
+    .gear-quick-form { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.25rem; width: min(420px, 100%); }
   </style>
 </head>
 <body>
@@ -105,8 +110,27 @@
     </div>
   </div>
 
+  <div id="gear-quick-panel" class="gear-quick-panel" onclick="if(event.target===this) closeDashboardGear()">
+    <div class="gear-quick-form">
+      <h3 id="gear-quick-title">مدیریت ماژول</h3>
+      <p id="gear-quick-meta" class="warn"></p>
+      <div class="actions">
+        <button onclick="dashboardGearStart()">Start</button>
+        <button class="secondary" onclick="dashboardGearStop()">Stop</button>
+        <button class="secondary" onclick="dashboardGearLogs()">Logs</button>
+        <button class="secondary" onclick="dashboardGearSettings()">Settings</button>
+        <button class="danger" onclick="dashboardGearDelete()">Delete</button>
+        <button class="secondary" disabled title="Coming in P3">Git Pull</button>
+        <button class="secondary" disabled title="Coming in P3">Partial ZIP</button>
+      </div>
+      <pre id="gear-quick-logs" class="warn" style="max-height:120px;overflow:auto;direction:ltr;text-align:left"></pre>
+      <button class="secondary" onclick="closeDashboardGear()">بستن</button>
+    </div>
+  </div>
+
   <script>
     let currentSettingsModuleId = null;
+    let dashboardGearModuleId = null;
 
     async function api(path, opts = {}) {
       const res = await fetch('/api' + path, { credentials: 'same-origin', ...opts });
@@ -139,16 +163,68 @@
       const tiles = document.getElementById('tiles');
       tiles.innerHTML = modules.map(m => `
         <div class="${tileClass(m)}" data-id="${m.id}" onclick="onTileClick('${m.id}', '${m.status}', '${m.type}')" onmouseenter="loadStats('${m.id}')">
+          ${m.type === 'standalone' ? `<button type="button" class="tile-gear" title="مدیریت" onclick="event.stopPropagation(); openDashboardGear('${m.id}', '${m.name}', '${m.status}')"><i class="fas fa-cog"></i></button>` : ''}
           <strong>${m.name}</strong>
           <span class="status ${m.status}" title="${m.status}"></span>
           <p>${m.description}</p>
           <small>${m.type} · v${m.version}</small>
           <div class="tooltip" id="stats-${m.id}"></div>
           <div class="actions" onclick="event.stopPropagation()">
-            ${m.type === 'standalone' ? `<button onclick="openSettings('${m.id}')">Settings</button><button onclick="startMod('${m.id}')">Start</button><button class="secondary" onclick="stopMod('${m.id}')">Stop</button><button class="secondary" onclick="viewLogs('${m.id}')">Logs</button>` : ''}
+            ${m.type === 'standalone' ? `<button onclick="openDashboardGear('${m.id}', '${m.name}', '${m.status}')">⚙ مدیریت</button>` : ''}
             ${m.type !== 'builtin' ? `<button class="danger" onclick="removeMod('${m.id}')">Delete</button>` : '<span class="warn">built-in</span>'}
           </div>
         </div>`).join('');
+    }
+
+    function openDashboardGear(id, name, status) {
+      dashboardGearModuleId = id;
+      document.getElementById('gear-quick-title').textContent = 'مدیریت: ' + name;
+      document.getElementById('gear-quick-meta').textContent = id + ' · ' + status;
+      document.getElementById('gear-quick-logs').textContent = '';
+      document.getElementById('gear-quick-panel').classList.add('open');
+    }
+
+    function closeDashboardGear() {
+      dashboardGearModuleId = null;
+      document.getElementById('gear-quick-panel').classList.remove('open');
+    }
+
+    async function dashboardGearStart() {
+      if (!dashboardGearModuleId) return;
+      try {
+        const r = await api('/modules/' + dashboardGearModuleId + '/start', { method: 'POST' });
+        if (r.firewallWarning) alert(r.firewallWarning);
+        closeDashboardGear(); loadModules();
+      } catch (error) {
+        if (error.payload?.needsSettings) { closeDashboardGear(); openSettings(dashboardGearModuleId); }
+        else alert(error.message);
+      }
+    }
+
+    async function dashboardGearStop() {
+      if (!dashboardGearModuleId) return;
+      await api('/modules/' + dashboardGearModuleId + '/stop', { method: 'POST' });
+      closeDashboardGear(); loadModules();
+    }
+
+    async function dashboardGearLogs() {
+      if (!dashboardGearModuleId) return;
+      const { logs } = await api('/modules/' + dashboardGearModuleId + '/logs');
+      document.getElementById('gear-quick-logs').textContent = logs || '(خالی)';
+    }
+
+    function dashboardGearSettings() {
+      if (!dashboardGearModuleId) return;
+      const id = dashboardGearModuleId;
+      closeDashboardGear();
+      openSettings(id);
+    }
+
+    async function dashboardGearDelete() {
+      if (!dashboardGearModuleId) return;
+      if (!confirm('حذف ماژول؟')) return;
+      await api('/modules/' + dashboardGearModuleId, { method: 'DELETE' });
+      closeDashboardGear(); loadModules();
     }
 
     function onTileClick(id, status, type) {

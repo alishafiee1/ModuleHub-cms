@@ -100,7 +100,7 @@ table td code, table th code { direction: ltr; text-align: left; display: inline
 | P1 | `virtual-folder-tree-and-browse` | پوشه مجازی، browse، Add card ✅ |
 | P2a | `catalog-modules-and-instance-copy` | catalog + instance مستقل ✅ |
 | P2b | `standalone-settings-form-and-lifecycle` | Docker settings mode ✅ |
-| P2c | `homepage-gear-dialog-admin-actions` | دیالوگ ⚙ |
+| P2c | `homepage-gear-dialog-admin-actions` | دیالوگ ⚙ ✅ |
 | P3 | `github-sync-and-partial-zip-update` | Git pull + ZIP جزئی |
 | P4 | `module-password-per-card-auth` | رمز per-module |
 

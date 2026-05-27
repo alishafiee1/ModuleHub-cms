@@ -92,6 +92,168 @@ body {
   background: #ef4444;
 }
 
+.card-gear {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(79, 195, 247, 0.35);
+  background: rgba(15, 23, 42, 0.85);
+  color: #4fc3f7;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-gear:hover {
+  background: rgba(37, 99, 235, 0.35);
+  border-color: #4fc3f7;
+}
+
+.gear-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1100;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.gear-modal.open {
+  display: flex;
+}
+
+.gear-modal-panel {
+  background: #263238;
+  border: 1px solid rgba(79, 195, 247, 0.25);
+  border-radius: 12px;
+  padding: 1.25rem;
+  width: min(560px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  color: #e0e0e0;
+}
+
+.gear-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gear-modal-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.gear-close {
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 0.15rem 0.5rem;
+}
+
+.gear-meta {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.gear-section {
+  margin-bottom: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(79, 195, 247, 0.15);
+}
+
+.gear-section h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.gear-stats {
+  font-size: 0.9rem;
+  color: #cbd5e1;
+}
+
+.gear-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.gear-actions button {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.gear-actions button.secondary {
+  background: #475569;
+}
+
+.gear-actions button.danger {
+  background: #dc2626;
+}
+
+.gear-actions button.disabled-stub:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.gear-logs {
+  background: #1a1a2e;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  padding: 0.75rem;
+  max-height: 140px;
+  overflow: auto;
+  font-size: 0.8rem;
+  direction: ltr;
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+.gear-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.gear-field input {
+  padding: 0.45rem;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  background: #1a1a2e;
+  color: #e0e0e0;
+}
+
+.gear-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.gear-hint {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  margin: 0.35rem 0 0;
+}
+
+.gear-msg {
+  color: #fbbf24;
+  font-size: 0.85rem;
+}
+
 .admin-actions {
   margin-top: 12px;
   display: flex;
