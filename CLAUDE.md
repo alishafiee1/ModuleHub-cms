@@ -45,10 +45,17 @@ table th code {
 ```markdown
 # CLAUDE.md – دستورالعمل‌های ویژه برای Claude
 
-این فایل به Claude (دستیار Anthropic) کمک می‌کند تا در پروژه ModularCore CMS همکاری مؤثرتری داشته باشد.
+این فایل به Claude (دستیار Anthropic) کمک می‌کند تا در پروژه **ModuleHub CMS** همکاری مؤثرتری داشته باشد.
+
+**فهرست مستندات:** [docs/README.md](docs/README.md)
 
 ## 🎯 شناخت زمینه (Context)
-شما در حال توسعه یک CMS مدولار با قابلیت افزودن ماژول‌های داکری مستقل هستید. هسته با Node.js + TypeScript نوشته می‌شود. مدیر سایت می‌تواند از طریق پنل، ماژول جدید آپلود کند (ZIP شامل manifest.json و docker-compose.yml) و ماژول به صورت خودکار راه‌اندازی شده و از طریق زیرمسیر `/modules/<name>` در دسترس قرار می‌گیرد.
+
+شما در حال توسعه **ModuleHub CMS** هستید — CMS مدولار با Node.js + TypeScript. مدیر سایت ماژول standalone را ZIP آپلود می‌کند (`manifest.json` + `index.html` + `docker-compose.yml`). پس از upload، Docker برای **تنظیمات** بالا می‌آید (هدف محصول؛ v2 فعلی: Start دستی). Landing در `/modules/<id>/` از host؛ API فقط از `proxy.paths` (پیش‌فرض `api`) به کانتینر.
+
+هر Add (catalog یا ZIP) → instance مستقل در `standalone-modules/<instance-id>/` + ثبت در JSON.
+
+⛔ `type: static` ZIP منسوخ است. ⛔ proxy کل `/modules/<id>/` منسوخ — فقط `proxy.paths`.
 
 ## ✅ قوانین اختصاصی برای Claude
 
@@ -65,7 +72,7 @@ table th code {
 
 ### 3. الگوهای کدنویسی ترجیحی
 - **مدیریت داکر**: از `dockerode` کتابخانه استفاده شود.
-- **پروکسی معکوس**: در ابتدا از `http-proxy` ساده استفاده کنید، بعداً Traefik جایگزین شود.
+- **پروکسی معکوس**: از `http-proxy` برای `proxy.paths` فقط (نه کل مسیر). Traefik out of scope تا v4+.
 - **پایگاه داده**: تا حد امکان از فایل JSON (`modules.json`) استفاده شود تا وابستگی کاهش یابد. فقط در صورت نیاز واقعی به داکیومنت NoSQL (مثل LowDB) بروید.
 
 ### 4. نمونه کد مورد تأیید (ایده‌آل)

@@ -254,24 +254,35 @@ services:
 
 ## ۷. جریان کار از دید مدیر سایت
 
+### v2 فعلی (کد الان)
+
 ```
 ۱. ZIP را در /admin آپلود کنید
         ↓
 ۲. هسته manifest و docker-compose را می‌خواند
         ↓
 ۳. پنل می‌پرسد: پورت‌ها و منابع را تأیید می‌کنید؟
-   (تیک «تأیید دسترسی‌های standalone»)
         ↓
 ۴. ماژول نصب می‌شود — وضعیت: stopped
         ↓
-۵. دکمه Approve (در صورت نیاز) → Start
+۵. Approve (در صورت نیاز) → Start
         ↓
 ۶. Docker بالا می‌آید — دایره سبز روی homepage
-        ↓
-۷. پیام فایروال: «پورت X روی host باز شده — در صورت نیاز UFW را باز کنید»
 ```
 
-همین کارها روی **صفحه اصلی `/`** هم (بعد از login) برای مدیر دیده می‌شود.
+### هدف (settings mode — 🔜)
+
+```
+۱. ZIP آپلود → extract → ثبت JSON
+        ↓
+۲. Docker compose up (برای تنظیمات)
+        ↓
+۳. SettingsForm — اگر ناقص: کلیک کارت در /admin → فرم دوباره
+        ↓
+۴. Save → Running + proxy /api/* فعال
+```
+
+همین کنترل‌ها روی **صفحه اصلی `/`** هم (بعد از login) برای مدیر دیده می‌شود.
 
 ---
 
@@ -366,15 +377,18 @@ app.listen(3000);
 
 | فایل | محتوا |
 |------|--------|
-| `docs/module-spec.md` | مرجع فشرده فیلدهای manifest |
-| `docs/standalone-module-ai-guide.md` | قرارداد و prompt برای AI |
-| `docs/public-homepage.md` | کارت‌ها در صفحه اصلی |
+| [module-spec.md](module-spec.md) | **schema واحد** manifest — مرجع اصلی فیلدها |
+| [standalone-module-ai-guide.md](standalone-module-ai-guide.md) | قرارداد و prompt برای AI |
+| [public-homepage.md](public-homepage.md) | کارت‌ها در صفحه اصلی |
+| [README.md](README.md) | فهرست مستندات |
 | `standalone-modules/demo-api/` | نمونه کامل آماده |
 
 ---
 
 ## خلاصه یک خطی
 
-> **Standalone = ZIP شامل `manifest.json` + `index.html` + Docker؛ landing روی سایت، API داخل کانتینر؛ مدیر باید Approve و Start کند.**
+> **Standalone = ZIP شامل `manifest.json` + `index.html` + Docker؛ landing روی سایت، API داخل کانتینر؛ v2: Start دستی — هدف: Docker settings mode پس از upload.**
+
+Schema کامل: [module-spec.md](module-spec.md)
 
 </div>

@@ -7,7 +7,7 @@ pre, code { direction: ltr; text-align: left; }
 
 # ModuleHub — راهنمای AI (Standalone ZIP)
 
-**نمونه:** `standalone-modules/demo-api/` · **راهنمای انسان:** [standalone-module-guide.md](standalone-module-guide.md)
+**نمونه:** `standalone-modules/demo-api/` · **راهنمای انسان:** [standalone-module-guide.md](standalone-module-guide.md) · **Schema:** [module-spec.md](module-spec.md)
 
 ---
 
@@ -80,12 +80,26 @@ services:
 ## NEVER
 
 - `type: static` · ZIP با پوشه تو در تو · `3000:3000` bind · API فقط `/health` بدون `/api/` · `fetch('http://localhost:3000')` · بدون `index.html`
+- proxy کل `/modules/<id>/` به کانتینر — فقط `proxy.paths` (پیش‌فرض `api`)
+
+---
+
+## Common mistakes (from legacy docs ⛔)
+
+| ⛔ Wrong | ✅ Correct |
+|----------|-----------|
+| Static ZIP upload | standalone only |
+| Auto-start without settings | v2: manual Start; target: settings mode after upload |
+| ModularCore CMS | **ModuleHub CMS** |
 
 ---
 
 ## بعد از تحویل (admin)
 
-آپلود `/admin` → تأیید دسترسی → **Approve** → **Start**
+**v2:** آپلود `/admin` → تأیید دسترسی → Approve → Start  
+**هدف 🔜:** upload → Docker settings mode → Save settings → Running
+
+مرجع lifecycle: [module-spec.md](module-spec.md)
 
 ---
 

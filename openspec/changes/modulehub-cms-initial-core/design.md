@@ -1,3 +1,5 @@
+> **⛔ SUPERSEDED** — Use `openspec/changes/public-homepage-architecture-v2/` and [docs/README.md](../../../docs/README.md). Static ZIP and full-path proxy are deprecated.
+
 ## Context
 
 ModuleHub CMS is a greenfield project. Documentation in `doc/proposal.md`, `doc/module-spec.md`, and `doc/code-rolls.md` defines a modular CMS where each module is a self-contained folder with `manifest.json`. Static modules are served directly; standalone modules run in isolated Docker containers and are exposed via a reverse proxy at `/modules/<name>/`.

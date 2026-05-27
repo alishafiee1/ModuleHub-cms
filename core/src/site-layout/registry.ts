@@ -101,6 +101,7 @@ export class SiteLayoutRegistry {
       'sample-gallery': 'fas fa-images',
       'markdown-viewer': 'fas fa-book-open',
       'demo-api': 'fas fa-plug',
+      'thankio': 'fas fa-gamepad',
     };
     this.data = {
       siteTitle: 'ModuleHub CMS',

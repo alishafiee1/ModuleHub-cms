@@ -64,8 +64,8 @@ table th code {
 ## 🧪 نحوه آزمایش تغییرات
 ```bash
 # clone مخزن
-git clone ...
-cd modularcore-cms
+git clone https://github.com/alishafiee1/moduleHub-cms
+cd moduleHub-cms
 cp .env.example .env   # و مقادیر واقعی را تنظیم کنید
 
 # نصب وابستگی‌ها

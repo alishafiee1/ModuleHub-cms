@@ -53,4 +53,6 @@ UI از الگوی [Ai_projects/main.html](../../Ai_projects/main.html) (RODI Do
 - `GET /api/site-layout` — خواندن layout (auth)
 - `PUT /api/site-layout` — به‌روزرسانی layout (auth)
 
+مستندات: [README.md](README.md)
+
 </div>

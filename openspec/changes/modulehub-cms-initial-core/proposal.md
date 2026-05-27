@@ -1,3 +1,5 @@
+> **⛔ SUPERSEDED** — This change is historical only. Use `openspec/changes/public-homepage-architecture-v2/` and [docs/README.md](../../../docs/README.md) as current truth. Static ZIP upload and full-path proxy are deprecated.
+
 ## Why
 
 ModuleHub CMS needs a modular content platform where site administrators can add, update, and remove independent page blocks (static galleries, live dashboards, robot control panels) without modifying the core. Existing monolithic CMS approaches make parallel development and AI-assisted module creation difficult; a folder-based contract (`manifest.json` + optional `docker-compose.yml`) with an isolated Docker runtime solves this.

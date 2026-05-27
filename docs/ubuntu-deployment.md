@@ -51,12 +51,16 @@ server {
 
 ## مسیرها
 
-| مسیر |用途 |
-|------|-----|
-| `/opt/modulehub-cms` | کد و build |
-| `/var/lib/modulehub/modules.json` | رجیstry |
-| `/var/lib/modulehub/site-layout.json` | layout صفحه اصلی |
-| `/` | homepage عمومی (دیگر redirect به admin نیست) |
+| محیط | مسیر |
+|------|------|
+| **Production code** | `/opt/modulehub-cms` |
+| **Production JSON** | `/var/lib/modulehub/modules.json`, `site-layout.json` |
+| **Development JSON** | `data/modules.json`, `data/site-layout.json` (via `.env`) |
+| **Homepage** | `/` — عمومی (بدون redirect به admin) |
+
+مقادیر JSON از `MODULES_JSON_PATH` و `SITE_LAYOUT_JSON_PATH` در `.env` خوانده می‌شوند.
+
+> **فایروال:** فقط پورت هسته (مثلاً 4000) کافی است اگر همهٔ APIها از reverse proxy داخلی عبور کنند. پورت‌های dynamic Docker فقط در صورت دسترسی مستقیم به host لازمند.
 
 ## migration v2
 

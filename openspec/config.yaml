@@ -10,7 +10,7 @@ context: |
   Paths follow Linux conventions (/var/www, /opt/modulehub-cms, /etc/systemd/system).
   Development on Windows is allowed via WSL2 or remote SSH to Ubuntu; CI and deployment targets Ubuntu only.
   Tech stack: Node.js 20+, TypeScript, Express, dockerode, JSON registry (modules.json).
-  Align with doc/proposal.md, doc/module-spec.md, doc/code-rolls.md, CLAUDE.md.
+  Align with docs/README.md, docs/proposal.md, docs/design.md, docs/module-spec.md, docs/code-rolls.md, CLAUDE.md.
 
 # Per-artifact rules (optional)
 # Add custom rules for specific artifacts.
