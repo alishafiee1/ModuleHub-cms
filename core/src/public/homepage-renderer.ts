@@ -28,7 +28,7 @@ export interface HomepageRenderOptions {
  */
 function resolveStatusClass(module: ModuleEntry | undefined): string {
   if (!module) return 'stopped';
-  if (module.type === 'builtin') return 'static';
+  if (module.type === 'builtin' || module.type === 'instance') return 'static';
   return module.status;
 }
 
@@ -259,8 +259,62 @@ export function renderHomepage(options: HomepageRenderOptions): string {
     function goUploadZip() {
       window.location.href = '/admin';
     }
-    function showCatalogStub() {
-      alert('کتابخانهٔ آماده در فاز بعد (catalog-modules) فعال می‌شود.');
+    function showCatalogSection() {
+      document.getElementById('catalog-section')?.classList.remove('hidden');
+      loadCatalogTemplates();
+    }
+    function hideCatalogSection() {
+      document.getElementById('catalog-section')?.classList.add('hidden');
+    }
+    async function loadCatalogTemplates() {
+      const select = document.getElementById('catalog-template');
+      if (!select) return;
+      try {
+        const { templates } = await api('/catalog');
+        select.innerHTML = '<option value="">— انتخاب قالب —</option>';
+        for (const template of templates) {
+          const option = document.createElement('option');
+          option.value = template.templateId;
+          option.textContent = template.title;
+          option.dataset.description = template.description;
+          option.dataset.iconClass = template.defaultIconClass;
+          select.appendChild(option);
+        }
+      } catch (e) {
+        alert('خطا در بارگذاری کاتالوگ — از /admin وارد شوید');
+      }
+    }
+    function onCatalogTemplateChange() {
+      const select = document.getElementById('catalog-template');
+      const option = select?.selectedOptions?.[0];
+      const descField = document.getElementById('catalog-description');
+      if (option?.dataset.description && descField && !descField.value.trim()) {
+        descField.value = option.dataset.description;
+      }
+    }
+    async function createCatalogInstance() {
+      const templateId = document.getElementById('catalog-template')?.value?.trim();
+      const cardTitle = document.getElementById('catalog-title')?.value?.trim();
+      const instanceId = document.getElementById('catalog-instance-id')?.value?.trim();
+      const cardDescription = document.getElementById('catalog-description')?.value?.trim();
+      if (!templateId) { alert('قالب را انتخاب کنید'); return; }
+      if (!cardTitle) { alert('عنوان کارت را وارد کنید'); return; }
+      try {
+        await api('/instances', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            templateId,
+            instanceId: instanceId || cardTitle,
+            cardTitle,
+            cardDescription,
+            folderId: CURRENT_FOLDER_ID,
+          }),
+        });
+        location.reload();
+      } catch (e) {
+        alert('خطا در ساخت instance — شناسه تکراری یا ورودی نامعتبر');
+      }
     }
   </script>
 </body>
@@ -278,13 +332,36 @@ function renderAddModal(currentFolderId: string): string {
       <div class="add-modal-actions">
         <button type="button" onclick="createNewFolder()">پوشهٔ جدید</button>
         <button type="button" onclick="goUploadZip()">آپلود ZIP</button>
-        <button type="button" class="secondary" onclick="showCatalogStub()">از آماده‌ها</button>
+        <button type="button" class="secondary" onclick="showCatalogSection()">از آماده‌ها</button>
         <button type="button" class="secondary" onclick="closeAddModal()">بستن</button>
       </div>
       <label class="add-modal-field">
         نام پوشهٔ جدید
         <input id="new-folder-title" type="text" placeholder="مثلاً نمونه‌کارها" />
       </label>
+      <div id="catalog-section" class="catalog-section hidden">
+        <h3>افزودن از کاتالوگ</h3>
+        <label class="add-modal-field">
+          قالب
+          <select id="catalog-template" onchange="onCatalogTemplateChange()"></select>
+        </label>
+        <label class="add-modal-field">
+          عنوان کارت
+          <input id="catalog-title" type="text" placeholder="مثلاً گالری پروژه‌ها" />
+        </label>
+        <label class="add-modal-field">
+          شناسه instance (اختیاری)
+          <input id="catalog-instance-id" type="text" placeholder="my-gallery" dir="ltr" />
+        </label>
+        <label class="add-modal-field">
+          توضیح
+          <input id="catalog-description" type="text" placeholder="توضیح کوتاه" />
+        </label>
+        <div class="add-modal-actions">
+          <button type="button" onclick="createCatalogInstance()">ساخت instance</button>
+          <button type="button" class="secondary" onclick="hideCatalogSection()">انصراف</button>
+        </div>
+      </div>
     </div>
   </div>`;
 }

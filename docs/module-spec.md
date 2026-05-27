@@ -29,8 +29,8 @@
 | `proxy.prefix` | ✅ | ✅ | `/modules/<module-id>/` |
 | `proxy.internalPort` | ✅ | ✅ | پورت داخل کانتینر |
 | `proxy.paths` | — | ✅ | پیش‌فرض `["api"]` — **فقط** این مسیرها proxy می‌شوند |
-| `github` | — | 🔜 | `{ repo, branch }` — planned |
-| `entryHtml` | — | 🔜 | پیش‌فرض `index.html` |
+| `github` | — | ✅ | `{ repo, branch }` |
+| `entryHtml` | — | ✅ | پیش‌فرض `index.html` |
 | `modulePasswordHash` | — | 🔜 | planned P4 |
 | `webhook` | — | 🔜 planned | `onInstall` / `onUninstall` — **not implemented** |
 
@@ -86,10 +86,9 @@
 
 | مرحله | هدف 🔜 | v2 فعلی ✅ |
 |-------|--------|-----------|
-| Upload ZIP | validate + extract | ✅ |
-| Docker | compose up (settings mode) | Start دستی پس از Approve |
-| Settings | فرم؛ کلیک کارت اگر ناقص | 🔜 |
-| Running | proxy فعال | ✅ پس از Start |
+| Upload ZIP | validate + extract + Docker settings mode | ✅ |
+| Settings | فرم؛ کلیک کارت اگر ناقص | ✅ P2b |
+| Running | proxy فعال پس از Save settings | ✅ |
 
 ---
 

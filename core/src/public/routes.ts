@@ -101,7 +101,7 @@ export function mountStandaloneHostFiles(app: Express, registry: ModuleRegistry)
   app.get('/modules/:id/*', (req: Request, res: Response) => {
     const moduleId = req.params.id;
     const mod = registry.getById(moduleId);
-    if (!mod || mod.type !== 'standalone') {
+    if (!mod || (mod.type !== 'standalone' && mod.type !== 'instance')) {
       res.status(404).json({ error: 'Standalone module not found' });
       return;
     }

@@ -10,21 +10,30 @@
     header { padding: 1rem 1.5rem; background: #1e293b; display: flex; justify-content: space-between; align-items: center; }
     main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
-    .tile { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1rem; position: relative; }
+    .tile { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1rem; position: relative; cursor: pointer; }
+    .tile.settings-pending { border-color: #f59e0b; }
     .status { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-left: 6px; }
     .status.running, .status.static { background: #22c55e; }
     .status.stopped { background: #64748b; }
+    .status.settings_pending, .status.installing { background: #f59e0b; }
     .status.error { background: #ef4444; }
     .actions { margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
     button { background: #2563eb; color: #fff; border: none; padding: 0.4rem 0.75rem; border-radius: 6px; cursor: pointer; }
     button.danger { background: #dc2626; }
     button.secondary { background: #475569; }
     #login { max-width: 360px; margin: 4rem auto; background: #1e293b; padding: 2rem; border-radius: 12px; }
-    input, input[type=file] { width: 100%; padding: 0.5rem; margin: 0.5rem 0 1rem; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #e2e8f0; }
+    input, input[type=file], select, textarea { width: 100%; padding: 0.5rem; margin: 0.5rem 0 1rem; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #e2e8f0; }
     .upload { background: #1e293b; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; }
     .warn { color: #fbbf24; font-size: 0.85rem; margin-top: 0.5rem; }
     .tooltip { display: none; position: absolute; top: 2rem; left: 1rem; background: #0f172a; border: 1px solid #334155; padding: 0.5rem; border-radius: 6px; font-size: 0.8rem; z-index: 10; }
     .tile:hover .tooltip { display: block; }
+    .settings-panel { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }
+    .settings-panel.open { display: flex; }
+    .settings-form { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.25rem; width: min(520px, 100%); max-height: 90vh; overflow-y: auto; }
+    .settings-form h3 { margin-top: 0; }
+    .settings-form label { display: block; font-size: 0.9rem; margin-bottom: 0.25rem; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .settings-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
   </style>
 </head>
 <body>
@@ -43,10 +52,9 @@
     <main>
       <div class="upload">
         <h3>نصب ماژول standalone (ZIP)</h3>
-        <p class="warn">فقط ماژول‌های standalone با index.html و docker-compose. صفحات عادی در core تعریف می‌شوند.</p>
+        <p class="warn">پس از آپلود، Docker برای تنظیمات بالا می‌آید — فرم Settings را تکمیل کنید.</p>
         <p class="warn">کنترل Start/Stop روی <a href="/" style="color:#4fc3f7">صفحه اصلی</a> هم در دسترس است (پس از ورود).</p>
         <input id="zipFile" type="file" accept=".zip" />
-        <label><input id="approvePerms" type="checkbox" /> تأیید دسترسی‌های standalone</label><br/>
         <button onclick="uploadModule()">آپلود</button>
         <p id="uploadMsg"></p>
       </div>
@@ -54,11 +62,63 @@
     </main>
   </div>
 
+  <div id="settings-panel" class="settings-panel" onclick="if(event.target===this) closeSettings()">
+    <div class="settings-form" role="dialog" aria-labelledby="settings-title">
+      <h3 id="settings-title">تنظیمات ماژول</h3>
+      <p id="settings-module-name" class="warn"></p>
+      <div id="settings-warnings"></div>
+      <label>پورت‌های داخل کانتینر (با کاما)</label>
+      <input id="settings-ports" type="text" dir="ltr" placeholder="3000" />
+      <div class="field-row">
+        <div>
+          <label>internalPort</label>
+          <input id="settings-internal-port" type="number" dir="ltr" />
+        </div>
+        <div>
+          <label>proxy prefix</label>
+          <input id="settings-proxy-prefix" type="text" dir="ltr" />
+        </div>
+      </div>
+      <label>proxy paths (با کاما)</label>
+      <input id="settings-proxy-paths" type="text" dir="ltr" placeholder="api" />
+      <div class="field-row">
+        <div>
+          <label>memory</label>
+          <input id="settings-memory" type="text" dir="ltr" placeholder="256M" />
+        </div>
+        <div>
+          <label>cpus</label>
+          <input id="settings-cpus" type="text" dir="ltr" placeholder="0.2" />
+        </div>
+      </div>
+      <label>GitHub repo (اختیاری)</label>
+      <input id="settings-github-repo" type="url" dir="ltr" placeholder="https://github.com/org/repo" />
+      <label>entry HTML</label>
+      <input id="settings-entry-html" type="text" dir="ltr" placeholder="index.html" />
+      <label>آیکون کارت (iconClass)</label>
+      <input id="settings-icon-class" type="text" dir="ltr" placeholder="fas fa-cube" />
+      <div class="settings-actions">
+        <button onclick="saveSettings()">ذخیره و Running</button>
+        <button class="secondary" onclick="closeSettings()">بستن</button>
+      </div>
+      <p id="settings-msg" class="warn"></p>
+    </div>
+  </div>
+
   <script>
+    let currentSettingsModuleId = null;
+
     async function api(path, opts = {}) {
       const res = await fetch('/api' + path, { credentials: 'same-origin', ...opts });
       if (res.status === 401) { document.getElementById('login').style.display = 'block'; document.getElementById('app').style.display = 'none'; throw new Error('auth'); }
-      return res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const err = new Error(data.error || data.errors?.join(', ') || 'request failed');
+        err.payload = data;
+        err.status = res.status;
+        throw err;
+      }
+      return data;
     }
 
     async function login() {
@@ -70,22 +130,87 @@
 
     async function logout() { await api('/logout', { method: 'POST' }); location.reload(); }
 
+    function tileClass(mod) {
+      return mod.status === 'settings_pending' ? 'tile settings-pending' : 'tile';
+    }
+
     async function loadModules() {
       const { modules } = await api('/modules');
       const tiles = document.getElementById('tiles');
       tiles.innerHTML = modules.map(m => `
-        <div class="tile" data-id="${m.id}" onmouseenter="loadStats('${m.id}')">
+        <div class="${tileClass(m)}" data-id="${m.id}" onclick="onTileClick('${m.id}', '${m.status}', '${m.type}')" onmouseenter="loadStats('${m.id}')">
           <strong>${m.name}</strong>
           <span class="status ${m.status}" title="${m.status}"></span>
           <p>${m.description}</p>
           <small>${m.type} · v${m.version}</small>
           <div class="tooltip" id="stats-${m.id}"></div>
-          <div class="actions">
-            ${m.type === 'standalone' ? `<button onclick="startMod('${m.id}')">Start</button><button class="secondary" onclick="stopMod('${m.id}')">Stop</button><button class="secondary" onclick="viewLogs('${m.id}')">Logs</button>` : ''}
-            ${m.type === 'standalone' && !m.permissionsApproved ? `<button onclick="approve('${m.id}')">Approve</button>` : ''}
+          <div class="actions" onclick="event.stopPropagation()">
+            ${m.type === 'standalone' ? `<button onclick="openSettings('${m.id}')">Settings</button><button onclick="startMod('${m.id}')">Start</button><button class="secondary" onclick="stopMod('${m.id}')">Stop</button><button class="secondary" onclick="viewLogs('${m.id}')">Logs</button>` : ''}
             ${m.type !== 'builtin' ? `<button class="danger" onclick="removeMod('${m.id}')">Delete</button>` : '<span class="warn">built-in</span>'}
           </div>
         </div>`).join('');
+    }
+
+    function onTileClick(id, status, type) {
+      if (type === 'standalone' && status === 'settings_pending') {
+        openSettings(id);
+      }
+    }
+
+    async function openSettings(id) {
+      currentSettingsModuleId = id;
+      document.getElementById('settings-msg').textContent = '';
+      const { settings } = await api('/modules/' + id + '/settings');
+      document.getElementById('settings-module-name').textContent = 'ماژول: ' + id + ' · وضعیت: ' + settings.status;
+      document.getElementById('settings-ports').value = (settings.ports || []).join(', ');
+      document.getElementById('settings-internal-port').value = settings.internalPort ?? '';
+      document.getElementById('settings-proxy-prefix').value = settings.proxyPrefix ?? '';
+      document.getElementById('settings-proxy-paths').value = (settings.proxyPaths || ['api']).join(', ');
+      document.getElementById('settings-memory').value = settings.memory ?? '';
+      document.getElementById('settings-cpus').value = settings.cpus ?? '';
+      document.getElementById('settings-github-repo').value = settings.github?.repo ?? '';
+      document.getElementById('settings-entry-html').value = settings.entryHtml ?? 'index.html';
+      document.getElementById('settings-icon-class').value = settings.layoutIconClass ?? '';
+      document.getElementById('settings-warnings').innerHTML = (settings.warnings || [])
+        .map(w => '<p class="warn">' + w + '</p>').join('');
+      document.getElementById('settings-panel').classList.add('open');
+    }
+
+    function closeSettings() {
+      document.getElementById('settings-panel').classList.remove('open');
+      currentSettingsModuleId = null;
+    }
+
+    async function saveSettings() {
+      if (!currentSettingsModuleId) return;
+      const portsRaw = document.getElementById('settings-ports').value.split(',').map(v => parseInt(v.trim(), 10)).filter(n => !Number.isNaN(n));
+      const proxyPaths = document.getElementById('settings-proxy-paths').value.split(',').map(v => v.trim()).filter(Boolean);
+      const githubRepo = document.getElementById('settings-github-repo').value.trim();
+      const payload = {
+        ports: portsRaw,
+        internalPort: parseInt(document.getElementById('settings-internal-port').value, 10),
+        proxyPrefix: document.getElementById('settings-proxy-prefix').value.trim(),
+        proxyPaths: proxyPaths.length ? proxyPaths : ['api'],
+        memory: document.getElementById('settings-memory').value.trim() || undefined,
+        cpus: document.getElementById('settings-cpus').value.trim() || undefined,
+        entryHtml: document.getElementById('settings-entry-html').value.trim() || 'index.html',
+        layoutIconClass: document.getElementById('settings-icon-class').value.trim() || undefined,
+        github: githubRepo ? { repo: githubRepo } : undefined,
+      };
+      try {
+        const result = await api('/modules/' + currentSettingsModuleId + '/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (result.warnings?.length) {
+          document.getElementById('settings-msg').textContent = result.warnings.join(' · ');
+        }
+        closeSettings();
+        loadModules();
+      } catch (error) {
+        document.getElementById('settings-msg').textContent = error.payload?.errors?.join(', ') || error.message;
+      }
     }
 
     async function loadStats(id) {
@@ -97,12 +222,16 @@
     }
 
     async function startMod(id) {
-      const r = await api('/modules/' + id + '/start', { method: 'POST' });
-      if (r.firewallWarning) alert(r.firewallWarning);
-      loadModules();
+      try {
+        const r = await api('/modules/' + id + '/start', { method: 'POST' });
+        if (r.firewallWarning) alert(r.firewallWarning);
+        loadModules();
+      } catch (error) {
+        if (error.payload?.needsSettings) openSettings(id);
+        else alert(error.message);
+      }
     }
     async function stopMod(id) { await api('/modules/' + id + '/stop', { method: 'POST' }); loadModules(); }
-    async function approve(id) { await api('/modules/' + id + '/approve', { method: 'POST' }); loadModules(); }
     async function viewLogs(id) { const { logs } = await api('/modules/' + id + '/logs'); alert(logs); }
     async function removeMod(id) { if (confirm('حذف ماژول؟')) { await api('/modules/' + id, { method: 'DELETE' }); loadModules(); } }
 
@@ -111,11 +240,15 @@
       if (!file) return;
       const fd = new FormData();
       fd.append('module', file);
-      fd.append('approvePermissions', document.getElementById('approvePerms').checked);
       const res = await fetch('/api/modules/upload', { method: 'POST', body: fd, credentials: 'same-origin' });
       const data = await res.json();
-      document.getElementById('uploadMsg').textContent = res.ok ? 'نصب شد: ' + data.moduleId : data.errors?.join(', ') || 'خطا';
-      if (res.ok) loadModules();
+      document.getElementById('uploadMsg').textContent = res.ok
+        ? 'نصب شد: ' + data.moduleId + ' — تنظیمات را تکمیل کنید.'
+        : data.errors?.join(', ') || 'خطا';
+      if (res.ok) {
+        await loadModules();
+        if (data.moduleId) openSettings(data.moduleId);
+      }
     }
   </script>
 </body>

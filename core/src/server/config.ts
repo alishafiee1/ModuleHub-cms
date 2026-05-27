@@ -11,6 +11,7 @@ export interface AppConfig {
   modulesJsonPath: string;
   siteLayoutJsonPath: string;
   builtinModulesDir: string;
+  catalogModulesDir: string;
   staticModulesDir: string;
   standaloneModulesDir: string;
   dockerSocket: string;
@@ -30,6 +31,7 @@ export function loadConfig(): AppConfig {
     modulesJsonPath: process.env.MODULES_JSON_PATH ?? path.join(projectRoot, 'data', 'modules.json'),
     siteLayoutJsonPath: process.env.SITE_LAYOUT_JSON_PATH ?? path.join(projectRoot, 'data', 'site-layout.json'),
     builtinModulesDir: process.env.BUILTIN_MODULES_DIR ?? path.join(projectRoot, 'core', 'builtin-modules'),
+    catalogModulesDir: process.env.CATALOG_MODULES_DIR ?? path.join(projectRoot, 'core', 'catalog-modules'),
     staticModulesDir: process.env.STATIC_MODULES_DIR ?? path.join(projectRoot, 'static-modules'),
     standaloneModulesDir: process.env.STANDALONE_MODULES_DIR ?? path.join(projectRoot, 'standalone-modules'),
     dockerSocket: process.env.DOCKER_SOCKET ?? 'unix:///var/run/docker.sock',

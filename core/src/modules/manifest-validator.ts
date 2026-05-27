@@ -39,7 +39,9 @@ export class ManifestValidator {
 
     const manifest = parsed.data;
 
-    if (manifest.type === 'standalone') {
+    if (manifest.type === 'instance') {
+      // catalog copies — static host files, no Docker
+    } else if (manifest.type === 'standalone') {
       if (!manifest.docker) {
         errors.push('standalone modules require docker section');
       }
@@ -119,6 +121,29 @@ export class ManifestValidator {
         errors: [`missing docker compose file: ${composeFile}`],
         warnings: base.warnings,
       };
+    }
+    return base;
+  }
+
+  /**
+   * Validate catalog instance directory (manifest + index.html, no Docker).
+   */
+  validateInstanceFiles(moduleDir: string): ValidationResult {
+    const manifestPath = `${moduleDir}/manifest.json`;
+    if (!fs.existsSync(manifestPath)) {
+      return { valid: false, errors: ['manifest.json not found'], warnings: [] };
+    }
+    const raw = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as unknown;
+    const base = this.validate(raw);
+    if (!base.valid || base.manifest?.type !== 'instance') {
+      return {
+        valid: false,
+        errors: base.errors.length ? base.errors : ['instance modules require type: instance'],
+        warnings: base.warnings,
+      };
+    }
+    if (!fs.existsSync(`${moduleDir}/index.html`)) {
+      return { valid: false, errors: ['instance modules require index.html at module root'], warnings: [] };
     }
     return base;
   }

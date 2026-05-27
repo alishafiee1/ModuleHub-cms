@@ -83,6 +83,11 @@ body {
   background: #64748b;
 }
 
+.status-dot.settings_pending,
+.status-dot.installing {
+  background: #f59e0b;
+}
+
 .status-dot.error {
   background: #ef4444;
 }
@@ -256,4 +261,27 @@ body {
   border: 1px solid #475569;
   background: #1a1a2e;
   color: #e0e0e0;
+}
+
+.add-modal-field select {
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  background: #1a1a2e;
+  color: #e0e0e0;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.catalog-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(79, 195, 247, 0.2);
+}
+
+.catalog-section h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
 }

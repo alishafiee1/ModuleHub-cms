@@ -69,10 +69,14 @@ export class ReverseProxyManager {
 
       const mod = this.registry.getById(route.moduleId);
       if (!mod || mod.status !== 'running' || !mod.hostPort) {
+        const settingsPending = mod?.status === 'settings_pending';
         res.status(503).json({
           error: 'Module unavailable',
           moduleId: route.moduleId,
-          message: 'سرویس این ماژول در حال حاضر متوقف است.',
+          settingsPending,
+          message: settingsPending
+            ? 'Complete module settings first — تنظیمات ماژول را تکمیل کنید.'
+            : 'سرویس این ماژول در حال حاضر متوقف است.',
         });
         return;
       }

@@ -109,6 +109,54 @@ export class SiteLayoutRegistry {
   }
 
   /**
+   * Append catalog instance tile if not present.
+   */
+  addInstanceItem(
+    module: ModuleEntry,
+    options: { folderId?: string; iconClass?: string },
+  ): void {
+    if (this.data.items.some((item) => item.id === module.id)) {
+      return;
+    }
+    const maxOrder = this.data.items.reduce(
+      (max, item) => Math.max(max, item.sortOrder),
+      0,
+    );
+    this.data.items.push({
+      id: module.id,
+      folderId: options.folderId ?? DEFAULT_ROOT_FOLDER_ID,
+      kind: 'module',
+      title: module.name,
+      subtitle: module.description,
+      iconClass: options.iconClass ?? 'fas fa-images',
+      pageType: 'standalone',
+      route: module.proxyPrefix ?? `/modules/${module.id}/`,
+      sortOrder: maxOrder + 1,
+    });
+    this.save();
+  }
+
+  /**
+   * Update homepage card icon fields for a module item.
+   */
+  updateModuleItemAppearance(
+    moduleId: string,
+    updates: { icon?: string; iconClass?: string },
+  ): void {
+    const item = this.data.items.find((entry) => entry.id === moduleId && entry.kind === 'module');
+    if (!item || item.kind !== 'module') {
+      return;
+    }
+    if (updates.icon !== undefined) {
+      item.icon = updates.icon || undefined;
+    }
+    if (updates.iconClass !== undefined) {
+      item.iconClass = updates.iconClass || undefined;
+    }
+    this.save();
+  }
+
+  /**
    * Append standalone module tile if not present.
    */
   addStandaloneItem(module: ModuleEntry, iconClass = 'fas fa-cube'): void {

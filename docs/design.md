@@ -325,7 +325,7 @@ deploy.resources.limits.memory: ...
 
 Admin overlay: Start/Stop/Logs + stats tooltip وقتی session + role match.
 
-### D7 — Catalog modules *(planned)*
+### D7 — Catalog modules *(✅ P2a)*
 
 ```
 core/catalog-modules/
@@ -380,7 +380,7 @@ ModuleHub-cms/
 ├── core/
 │   ├── src/                    # Express app
 │   ├── builtin-modules/        # demo pages shipped in repo (v2)
-│   └── catalog-modules/        # read-only templates for Add dialog (🔜)
+│   └── catalog-modules/        # read-only templates for Add dialog (✅ P2a)
 ├── standalone-modules/         # installed standalone + instances
 │   ├── demo-api/
 │   └── thankio/
@@ -405,7 +405,8 @@ ModuleHub-cms/
 | `GET /modules/:id/api/*` | reverse proxy (if running) |
 | `POST /api/modules/upload` | ZIP install |
 | `POST /api/modules/:id/start` | docker compose up |
-| `POST /api/modules/:id/stop` | docker compose down |
+| `GET /api/catalog` | list catalog templates (auth) |
+| `POST /api/instances` | copy catalog template → instance |
 
 ---
 

@@ -1,0 +1,10 @@
+{
+  "name": "{{cardTitle}}",
+  "type": "instance",
+  "version": "1.0.0",
+  "templateVersion": "1.0.0",
+  "icon": "gallery.png",
+  "description": "{{cardDescription}}",
+  "author": "ModuleHub",
+  "catalogTemplateId": "image-gallery"
+}

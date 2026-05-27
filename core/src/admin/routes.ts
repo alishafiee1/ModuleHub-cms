@@ -8,6 +8,9 @@ import { ModuleInstaller } from '../modules/installer';
 import { DockerManager } from '../docker/manager';
 import { ReverseProxyManager } from '../proxy/reverse-proxy-manager';
 import { SiteLayoutRegistry } from '../site-layout/registry';
+import { CatalogService } from '../catalog/catalog-service';
+import { CatalogInstanceService } from '../catalog/catalog-instance-service';
+import { ModuleSettingsService } from '../modules/module-settings-service';
 import { filterModulesByRole, requireAuth, requireModuleAccess } from '../auth/session';
 import { logger } from '../server/logger';
 
@@ -20,6 +23,9 @@ export interface AdminRouterDeps {
   dockerManager: DockerManager;
   proxyManager: ReverseProxyManager;
   layoutRegistry: SiteLayoutRegistry;
+  catalogService: CatalogService;
+  catalogInstanceService: CatalogInstanceService;
+  settingsService: ModuleSettingsService;
 }
 
 /**
@@ -27,7 +33,7 @@ export interface AdminRouterDeps {
  */
 export function createAdminRouter(deps: AdminRouterDeps): Router {
   const router = Router();
-  const { config, registry, installer, dockerManager, proxyManager, layoutRegistry } = deps;
+  const { config, registry, installer, dockerManager, proxyManager, layoutRegistry, catalogService, catalogInstanceService, settingsService } = deps;
 
   router.post('/login', (req: Request, res: Response) => {
     const { password } = req.body as { password?: string };
@@ -77,19 +83,59 @@ export function createAdminRouter(deps: AdminRouterDeps): Router {
     res.status(201).json({ folder: result.folder, layout: layoutRegistry.getData() });
   });
 
+  router.get('/catalog', requireAuth, (_req: Request, res: Response) => {
+    res.json({ templates: catalogService.listTemplates() });
+  });
+
+  router.post('/instances', requireAuth, (req: Request, res: Response) => {
+    const { templateId, instanceId, cardTitle, cardDescription, iconClass, folderId } = req.body as {
+      templateId?: string;
+      instanceId?: string;
+      cardTitle?: string;
+      cardDescription?: string;
+      iconClass?: string;
+      folderId?: string;
+    };
+
+    if (!templateId?.trim() || !cardTitle?.trim()) {
+      res.status(400).json({ error: 'templateId and cardTitle are required' });
+      return;
+    }
+
+    const result = catalogInstanceService.create({
+      templateId: templateId.trim(),
+      instanceId: instanceId?.trim() ?? cardTitle.trim(),
+      cardTitle: cardTitle.trim(),
+      cardDescription: cardDescription?.trim(),
+      iconClass: iconClass?.trim(),
+      folderId: folderId?.trim(),
+    });
+
+    if (!result.success) {
+      const status = result.errors.some((message) => message.includes('already')) ? 409 : 400;
+      res.status(status).json({ errors: result.errors });
+      return;
+    }
+
+    res.status(201).json({
+      instanceId: result.instanceId,
+      module: result.module,
+      layout: layoutRegistry.getData(),
+    });
+  });
+
   router.get('/modules', requireAuth, (req: Request, res: Response) => {
     const all = registry.getAll();
     const filtered = filterModulesByRole(all, req.session.role);
     res.json({ modules: filtered });
   });
 
-  router.post('/modules/upload', requireAuth, upload.single('module'), (req: Request, res: Response) => {
+  router.post('/modules/upload', requireAuth, upload.single('module'), async (req: Request, res: Response) => {
     if (!req.file) {
       res.status(400).json({ error: 'ZIP file required' });
       return;
     }
-    const approve = req.body.approvePermissions === 'true';
-    const result = installer.installFromZip(req.file.buffer, approve);
+    const result = await installer.installFromZip(req.file.buffer);
     if (!result.success) {
       res.status(400).json(result);
       return;
@@ -97,14 +143,51 @@ export function createAdminRouter(deps: AdminRouterDeps): Router {
     res.json(result);
   });
 
+  router.get(
+    '/modules/:id/settings',
+    requireAuth,
+    requireModuleAccess((id) => registry.getById(id)),
+    (req: Request, res: Response) => {
+      const settings = settingsService.getSettings(req.params.id);
+      if (!settings) {
+        res.status(404).json({ error: 'Settings not available for this module' });
+        return;
+      }
+      res.json({ settings });
+    },
+  );
+
+  router.put(
+    '/modules/:id/settings',
+    requireAuth,
+    requireModuleAccess((id) => registry.getById(id)),
+    async (req: Request, res: Response) => {
+      const result = await settingsService.saveSettings(req.params.id, req.body);
+      if (!result.success) {
+        res.status(400).json({ errors: result.errors, warnings: result.warnings });
+        return;
+      }
+      res.json({
+        ok: true,
+        module: result.module,
+        warnings: result.warnings,
+        layout: layoutRegistry.getData(),
+      });
+    },
+  );
+
   router.post('/modules/:id/start', requireAuth, requireModuleAccess((id) => registry.getById(id)), async (req: Request, res: Response) => {
     const mod = registry.getById(req.params.id)!;
     if (mod.type !== 'standalone') {
       res.status(400).json({ error: 'Only standalone modules can be started' });
       return;
     }
-    if (!mod.permissionsApproved) {
-      res.status(403).json({ error: 'Permissions not approved', needsApproval: true });
+    if (mod.status === 'settings_pending') {
+      res.status(400).json({
+        error: 'Complete module settings first',
+        needsSettings: true,
+        message: 'تنظیمات ماژول را ذخیره کنید.',
+      });
       return;
     }
     const result = await dockerManager.startModule(mod);
@@ -158,7 +241,7 @@ export function createAdminRouter(deps: AdminRouterDeps): Router {
       res.status(400).json({ error: 'Built-in modules cannot be deleted' });
       return;
     }
-    if (mod.type === 'standalone' && mod.status === 'running') {
+    if (mod.type === 'standalone' && (mod.status === 'running' || mod.status === 'settings_pending')) {
       await dockerManager.stopModule(mod);
     }
     proxyManager.removeRoute(mod.id);

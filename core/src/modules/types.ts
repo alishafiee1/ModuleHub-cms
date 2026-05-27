@@ -1,12 +1,19 @@
 import { z } from 'zod';
 
-export const ModuleStatusSchema = z.enum(['running', 'stopped', 'static', 'error']);
+export const ModuleStatusSchema = z.enum([
+  'running',
+  'stopped',
+  'static',
+  'error',
+  'settings_pending',
+  'installing',
+]);
 export type ModuleStatus = z.infer<typeof ModuleStatusSchema>;
 
-export const ModuleTypeSchema = z.enum(['builtin', 'standalone', 'static']);
+export const ModuleTypeSchema = z.enum(['builtin', 'standalone', 'static', 'instance']);
 export type ModuleType = z.infer<typeof ModuleTypeSchema>;
 
-export const ManifestTypeSchema = z.enum(['builtin', 'standalone']);
+export const ManifestTypeSchema = z.enum(['builtin', 'standalone', 'instance']);
 export type ManifestType = z.infer<typeof ManifestTypeSchema>;
 
 export const ManifestSchema = z.object({
@@ -48,6 +55,13 @@ export const ManifestSchema = z.object({
       onUninstall: z.string().url().optional(),
     })
     .optional(),
+  github: z
+    .object({
+      repo: z.string().url(),
+      branch: z.string().optional(),
+    })
+    .optional(),
+  entryHtml: z.string().min(1).optional(),
 });
 
 export type ModuleManifest = z.infer<typeof ManifestSchema>;

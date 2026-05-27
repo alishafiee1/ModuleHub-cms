@@ -25,6 +25,7 @@ describe('ModuleInstaller', () => {
       modulesJsonPath: path.join(tmpDir, 'modules.json'),
       siteLayoutJsonPath: path.join(tmpDir, 'site-layout.json'),
       builtinModulesDir: path.join(tmpDir, 'core/builtin-modules'),
+      catalogModulesDir: path.join(tmpDir, 'core/catalog-modules'),
       staticModulesDir: path.join(tmpDir, 'static-modules'),
       standaloneModulesDir: path.join(tmpDir, 'standalone-modules'),
       dockerSocket: 'unix:///var/run/docker.sock',
@@ -42,7 +43,7 @@ describe('ModuleInstaller', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('rejects static module zip upload', () => {
+  it('rejects static module zip upload', async () => {
     const zip = new AdmZip();
     zip.addFile(
       'manifest.json',
@@ -59,12 +60,12 @@ describe('ModuleInstaller', () => {
     zip.addFile('index.html', Buffer.from('<html><body>hi</body></html>'));
 
     const installer = new ModuleInstaller(config, registry, new ManifestValidator(), layoutRegistry);
-    const result = installer.installFromZip(zip.toBuffer());
+    const result = await installer.installFromZip(zip.toBuffer());
     expect(result.success).toBe(false);
     expect(result.errors.join(' ')).toMatch(/standalone|static|built-in/i);
   });
 
-  it('installs standalone module from zip when index.html present', () => {
+  it('installs standalone module from zip when index.html present', async () => {
     const zip = new AdmZip();
     zip.addFile(
       'manifest.json',
@@ -84,14 +85,15 @@ describe('ModuleInstaller', () => {
     zip.addFile('docker-compose.yml', Buffer.from('services:\n  app:\n    cap_drop:\n      - ALL\n    read_only: true'));
 
     const installer = new ModuleInstaller(config, registry, new ManifestValidator(), layoutRegistry);
-    const result = installer.installFromZip(zip.toBuffer(), true);
+    const result = await installer.installFromZip(zip.toBuffer());
     expect(result.success).toBe(true);
     expect(result.moduleId).toBe('zip-api');
-    expect(registry.getById('zip-api')?.status).toBe('stopped');
+    expect(registry.getById('zip-api')?.status).toBe('settings_pending');
+    expect(registry.getById('zip-api')?.permissionsApproved).toBe(true);
     expect(layoutRegistry.getData().items.some((i) => i.id === 'zip-api')).toBe(true);
   });
 
-  it('rejects standalone zip without index.html', () => {
+  it('rejects standalone zip without index.html', async () => {
     const zip = new AdmZip();
     zip.addFile(
       'manifest.json',
@@ -110,7 +112,7 @@ describe('ModuleInstaller', () => {
     zip.addFile('docker-compose.yml', Buffer.from('cap_drop:\nread_only: true'));
 
     const installer = new ModuleInstaller(config, registry, new ManifestValidator(), layoutRegistry);
-    const result = installer.installFromZip(zip.toBuffer());
+    const result = await installer.installFromZip(zip.toBuffer());
     expect(result.success).toBe(false);
     expect(result.errors.join(' ')).toMatch(/index.html/i);
   });

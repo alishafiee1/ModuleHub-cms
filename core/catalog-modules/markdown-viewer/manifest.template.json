@@ -1,0 +1,10 @@
+{
+  "name": "{{cardTitle}}",
+  "type": "instance",
+  "version": "1.0.0",
+  "templateVersion": "1.0.0",
+  "icon": "markdown.png",
+  "description": "{{cardDescription}}",
+  "author": "ModuleHub",
+  "catalogTemplateId": "markdown-viewer"
+}

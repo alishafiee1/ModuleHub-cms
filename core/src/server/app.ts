@@ -9,6 +9,9 @@ import { DockerManager } from '../docker/manager';
 import { ReverseProxyManager } from '../proxy/reverse-proxy-manager';
 import { SiteLayoutRegistry } from '../site-layout/registry';
 import { createAdminRouter, serveDashboard } from '../admin/routes';
+import { CatalogService } from '../catalog/catalog-service';
+import { CatalogInstanceService } from '../catalog/catalog-instance-service';
+import { ModuleSettingsService } from '../modules/module-settings-service';
 import { bootstrapExistingModules, migrateLegacyStaticGallery } from '../modules/bootstrap';
 import { mountPublicRoutes, mountBuiltinModules, mountStandaloneHostFiles } from '../public/routes';
 
@@ -40,9 +43,30 @@ export function createApp(): express.Express {
   migrateLegacyStaticGallery(registry, config);
   layoutRegistry.bootstrapFromModules(registry.getAll());
 
-  const installer = new ModuleInstaller(config, registry, validator, layoutRegistry);
   const dockerManager = new DockerManager(config.dockerSocket);
   const proxyManager = new ReverseProxyManager(registry);
+  const catalogService = new CatalogService(config);
+  const catalogInstanceService = new CatalogInstanceService(
+    config,
+    registry,
+    layoutRegistry,
+    validator,
+  );
+  const settingsService = new ModuleSettingsService(
+    registry,
+    layoutRegistry,
+    validator,
+    dockerManager,
+    proxyManager,
+  );
+
+  const installer = new ModuleInstaller(
+    config,
+    registry,
+    validator,
+    layoutRegistry,
+    dockerManager,
+  );
 
   proxyManager.mount(app);
   mountStandaloneHostFiles(app, registry);
@@ -51,7 +75,7 @@ export function createApp(): express.Express {
 
   app.use(
     '/api',
-    createAdminRouter({ config, registry, installer, dockerManager, proxyManager, layoutRegistry }),
+    createAdminRouter({ config, registry, installer, dockerManager, proxyManager, layoutRegistry, catalogService, catalogInstanceService, settingsService }),
   );
   serveDashboard(app, config);
 

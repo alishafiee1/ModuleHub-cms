@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import AdmZip from 'adm-zip';
 import { AppConfig } from '../server/config';
+import { DockerManager } from '../docker/manager';
 import { ModuleRegistry } from './registry';
 import { ManifestValidator } from './manifest-validator';
 import { ModuleEntry } from './types';
@@ -14,7 +15,7 @@ export interface InstallResult {
   moduleId?: string;
   warnings: string[];
   errors: string[];
-  needsPermissionApproval?: boolean;
+  needsSettings?: boolean;
 }
 
 /**
@@ -26,12 +27,65 @@ export class ModuleInstaller {
     private readonly registry: ModuleRegistry,
     private readonly validator: ManifestValidator,
     private readonly layoutRegistry?: SiteLayoutRegistry,
+    private readonly dockerManager?: DockerManager,
   ) {}
 
   /**
-   * Install module from uploaded ZIP buffer.
+   * Install module from uploaded ZIP buffer and start Docker in settings mode.
    */
-  installFromZip(zipBuffer: Buffer, approvePermissions = false): InstallResult {
+  async installFromZip(zipBuffer: Buffer): Promise<InstallResult> {
+    const extractResult = this.extractAndRegister(zipBuffer);
+    if (!extractResult.success || !extractResult.moduleId) {
+      return extractResult;
+    }
+
+    const mod = this.registry.getById(extractResult.moduleId);
+    if (!mod) {
+      return { ...extractResult, success: false, errors: ['Module registration failed'] };
+    }
+
+    if (!this.dockerManager) {
+      mod.status = 'settings_pending';
+      mod.permissionsApproved = true;
+      mod.updatedAt = new Date().toISOString();
+      this.registry.upsert(mod);
+      return { ...extractResult, needsSettings: true };
+    }
+
+    mod.status = 'installing';
+    mod.updatedAt = new Date().toISOString();
+    this.registry.upsert(mod);
+
+    const dockerResult = await this.dockerManager.startModule(mod);
+    if (!dockerResult.success) {
+      mod.status = 'settings_pending';
+      mod.updatedAt = new Date().toISOString();
+      this.registry.upsert(mod);
+      return {
+        ...extractResult,
+        needsSettings: true,
+        warnings: [
+          ...extractResult.warnings,
+          dockerResult.error ?? 'Docker start failed — complete settings and retry Save',
+        ],
+      };
+    }
+
+    mod.status = 'settings_pending';
+    mod.permissionsApproved = true;
+    mod.hostPort = dockerResult.hostPort;
+    mod.containerId = dockerResult.containerId;
+    mod.updatedAt = new Date().toISOString();
+    this.registry.upsert(mod);
+
+    logger.info('Module installed in settings mode', { moduleId: mod.id });
+    return { ...extractResult, needsSettings: true };
+  }
+
+  /**
+   * Extract ZIP, validate, and register module without Docker.
+   */
+  private extractAndRegister(zipBuffer: Buffer): InstallResult {
     const zip = new AdmZip(zipBuffer);
     const entries = zip.getEntries();
 
@@ -75,13 +129,21 @@ export class ModuleInstaller {
       return normalized === 'index.html' || normalized.endsWith('/index.html');
     });
     if (!hasIndex) {
-      return { success: false, errors: ['standalone ZIP must include index.html at module root'], warnings: validation.warnings };
+      return {
+        success: false,
+        errors: ['standalone ZIP must include index.html at module root'],
+        warnings: validation.warnings,
+      };
     }
 
     const targetDir = path.join(this.config.standaloneModulesDir, moduleId);
 
     if (fs.existsSync(targetDir)) {
-      return { success: false, errors: [`module "${moduleId}" already exists`], warnings: validation.warnings };
+      return {
+        success: false,
+        errors: [`module "${moduleId}" already exists`],
+        warnings: validation.warnings,
+      };
     }
 
     fs.mkdirSync(targetDir, { recursive: true });
@@ -115,27 +177,27 @@ export class ModuleInstaller {
       version: manifest.version,
       icon: manifest.icon,
       description: manifest.description,
-      status: 'stopped',
+      status: 'settings_pending',
       installPath: targetDir,
       adminRole: manifest.admin_role,
       proxyPrefix: manifest.proxy?.prefix,
       proxyPaths: manifest.proxy?.paths ?? ['api'],
       internalPort: manifest.proxy?.internalPort,
-      permissionsApproved: approvePermissions,
+      permissionsApproved: true,
       createdAt: now,
       updatedAt: now,
     };
 
     this.registry.upsert(entry);
     this.layoutRegistry?.addStandaloneItem(entry);
-    logger.info('Module installed', { moduleId, type: manifest.type });
+    logger.info('Module extracted', { moduleId, type: manifest.type });
 
     return {
       success: true,
       moduleId,
       warnings: validation.warnings,
       errors: [],
-      needsPermissionApproval: !approvePermissions,
+      needsSettings: true,
     };
   }
 

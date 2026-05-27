@@ -99,5 +99,8 @@ describe('renderHomepage', () => {
     });
     expect(html).toContain('class="card-add"');
     expect(html).toContain('add-modal');
+    expect(html).toContain('catalog-section');
+    expect(html).toContain('createCatalogInstance');
+    expect(html).not.toContain('showCatalogStub');
   });
 });
