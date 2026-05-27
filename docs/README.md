@@ -45,12 +45,15 @@ table td code, table th code { direction: ltr; text-align: left; display: inline
 | فایل | محتوا | وضعیت |
 |------|--------|--------|
 | [proposal.md](proposal.md) | روایت و چشم‌انداز (فارسی) | ✅ + 🔜 (جدول Current/Target) |
-| [proposal-simple.md](proposal-simple.md) | همان روایت به زبان ساده‌تر | ✅ + 🔜 |
+| [proposal-simple.md](proposal-simple.md) | همان روایت به زبان ساده‌تر | ✅ روایت |
+| [current-status.md](current-status.md) | وضعیت واقعی پیاده‌سازی (P0–P4) | ✅ |
+| [glossary-and-field-ownership.md](glossary-and-field-ownership.md) | واژگان + مالکیت فیلدها | ✅ |
+| [audit-matrix.md](audit-matrix.md) | بررسی هم‌راستایی docs ↔ code | ✅ |
 | [design.md](design.md) | معماری فنی، تصمیم‌ها، فازبندی | **منبع فنی اصلی** |
 | [module-spec.md](module-spec.md) | schema واحد `manifest.json` | ✅ |
 | [standalone-module-guide.md](standalone-module-guide.md) | راهنمای ZIP برای انسان | ✅ (بخش lifecycle: 🔜 settings mode) |
 | [standalone-module-ai-guide.md](standalone-module-ai-guide.md) | prompt و قرارداد برای AI | ✅ |
-| [public-homepage.md](public-homepage.md) | homepage و `site-layout.json` | ✅ flat layout |
+| [public-homepage.md](public-homepage.md) | homepage، gear، `site-layout.json` | ✅ |
 | [ubuntu-deployment.md](ubuntu-deployment.md) | نصب production روی Ubuntu | ✅ |
 | [server-update-restart.md](server-update-restart.md) | به‌روزرسانی کد + restart گام‌به‌گام | ✅ |
 | [code-rolls.md](code-rolls.md) | قوانین کدنویسی و PR | ✅ |
@@ -104,7 +107,8 @@ table td code, table th code { direction: ltr; text-align: left; display: inline
 | P2c | `homepage-gear-dialog-admin-actions` | دیالوگ ⚙ ✅ |
 | P3 | `github-sync-and-partial-zip-update` | Git pull + Partial ZIP ✅ |
 | P4 | `module-password-per-card-auth` | رمز per-module ✅ |
+| P5 | audit alignment | lifecycle deprecate، ZIP UX، catalog bootstrap، registry Zod ✅ |
 
-ترتیب پیشنهادی پیاده‌سازی: P1 → P2a → P2b → P2c → P3 → P4
+ترتیب پیشنهادی پیاده‌سازی: P1 → P2a → P2b → P2c → P3 → P4 → P5 (audit)
 
 </div>

@@ -435,19 +435,21 @@ Auto-fill: read existing `manifest.json` + `site-layout.json` on edit.
 | Capability | v2 (now) | Target (proposal) |
 |------------|----------|---------------------|
 | Public homepage `/` | ✅ | ✅ |
-| Flat card list (root only) | ✅ | — |
 | Virtual nested folders (JSON) | ✅ | ✅ |
+| Browse `/browse/<folder-id>/` | ✅ | ✅ |
 | Add card at end of grid (admin) | ✅ | ✅ |
 | site-layout.json | ✅ tree + folders | ✅ tree + folders |
 | ZIP standalone install | ✅ | ✅ |
-| Docker Start/Stop/Stats | ✅ (Approve/Start دستی) | ✅ + settings mode پس از upload |
-| Built-in gallery/markdown | ✅ sample (fixed id) | ✅ per-instance copy |
-| Add dialog catalog | ❌ | ✅ catalog-modules |
-| Instance copy (gallery/md) | ❌ | ✅ |
-| Gear dialog | partial (homepage admin) | ✅ full dialog |
-| GitHub pull | ✅ P3 |
-| Module password | ✅ P4 |
-| Partial ZIP update | ✅ P3 |
+| Docker settings mode after upload | ✅ | ✅ |
+| Settings form → Running | ✅ | ✅ |
+| Built-in gallery/markdown (demo) | ✅ legacy bootstrap | catalog instance (preferred) |
+| Add dialog catalog | ✅ | ✅ |
+| Instance copy (gallery/md) | ✅ | ✅ |
+| Gear dialog (⚙) | ✅ | ✅ |
+| GitHub pull | ✅ | ✅ |
+| Module password | ✅ | ✅ |
+| Partial ZIP update | ✅ | ✅ |
+| `POST /approve` | ⛔ 410 Gone | — |
 
 ---
 

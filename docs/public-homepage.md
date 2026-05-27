@@ -50,11 +50,13 @@ UI از الگوی [Ai_projects/main.html](../../Ai_projects/main.html) (RODI Do
 
 ## Admin overlay
 
-وقتی مدیر login کرده (`/admin`) و به `/` برمی‌گردد:
+وقتی مدیر login کرده (`/admin`) و به `/` یا `/browse/...` برمی‌گردد:
 
-- روی کارت‌های standalone: Start / Stop / Logs
+- کارت **Add** (+) در انتهای grid برای پوشه جدید، catalog، یا ZIP
+- روی کارت‌های **standalone/instance**: آیکون **⚙** → دیالوگ gear (Start/Stop/Logs/Settings/Git/Partial ZIP)
 - tooltip مصرف CPU/RAM از Docker stats
 - هشدار فایروال پس از Start
+- builtin demoها gear ندارند — از catalog instance استفاده کنید
 
 ## API
 

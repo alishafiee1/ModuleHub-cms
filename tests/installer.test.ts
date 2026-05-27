@@ -30,6 +30,7 @@ describe('ModuleInstaller', () => {
       standaloneModulesDir: path.join(tmpDir, 'standalone-modules'),
       dockerSocket: 'unix:///var/run/docker.sock',
       projectRoot: tmpDir,
+      bootstrapBuiltinLayout: false,
     };
     fs.mkdirSync(config.staticModulesDir);
     fs.mkdirSync(config.standaloneModulesDir);
@@ -117,9 +118,28 @@ describe('ModuleInstaller', () => {
     expect(result.errors.join(' ')).toMatch(/index.html/i);
   });
 
-  it('rejects unsafe zip entry names', () => {
-    expect(isZipEntryNameSafe('../escape.txt')).toBe(false);
-    expect(isZipEntryNameSafe('subdir/../../escape.txt')).toBe(false);
-    expect(isZipEntryNameSafe('manifest.json')).toBe(true);
+  it('rejects zip with manifest in subfolder', async () => {
+    const zip = new AdmZip();
+    zip.addFile(
+      'thankio/manifest.json',
+      Buffer.from(
+        JSON.stringify({
+          name: 'thankio',
+          type: 'standalone',
+          version: '1.0.0',
+          icon: 'a.png',
+          description: 'Game',
+          docker: { composeFile: 'docker-compose.yml', ports: [3000] },
+          proxy: { prefix: '/modules/thankio/', internalPort: 3000 },
+        }),
+      ),
+    );
+    zip.addFile('thankio/index.html', Buffer.from('<html></html>'));
+    zip.addFile('thankio/docker-compose.yml', Buffer.from('cap_drop:\nread_only: true'));
+
+    const installer = new ModuleInstaller(config, registry, new ManifestValidator(), layoutRegistry);
+    const result = await installer.installFromZip(zip.toBuffer());
+    expect(result.success).toBe(false);
+    expect(result.errors.join(' ')).toMatch(/ZIP root|thankio/);
   });
 });

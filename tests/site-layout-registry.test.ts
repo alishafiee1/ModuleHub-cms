@@ -17,7 +17,35 @@ describe('SiteLayoutRegistry', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('bootstraps default layout from modules', () => {
+  it('bootstraps default layout from modules when includeBuiltinDemos is true', () => {
+    registry.bootstrapFromModules(
+      [
+        {
+          id: 'sample-gallery',
+          name: 'Gallery',
+          type: 'builtin',
+          version: '1',
+          icon: 'g.png',
+          description: 'Gallery page',
+          status: 'static',
+          installPath: '/tmp/g',
+          createdAt: '',
+          updatedAt: '',
+        },
+      ],
+      { includeBuiltinDemos: true },
+    );
+    const data = registry.getData();
+    expect(data.items).toHaveLength(1);
+    expect(data.items[0].kind).toBe('module');
+    if (data.items[0].kind === 'module') {
+      expect(data.items[0].route).toBe('/pages/sample-gallery/');
+    }
+    expect(data.items[0].folderId).toBe('root');
+    expect(data.folders[0].id).toBe('root');
+  });
+
+  it('skips builtin modules in bootstrap by default', () => {
     registry.bootstrapFromModules([
       {
         id: 'sample-gallery',
@@ -31,15 +59,21 @@ describe('SiteLayoutRegistry', () => {
         createdAt: '',
         updatedAt: '',
       },
+      {
+        id: 'demo-api',
+        name: 'Demo API',
+        type: 'standalone',
+        version: '1',
+        icon: 'a.png',
+        description: 'API',
+        status: 'stopped',
+        installPath: '/tmp/api',
+        createdAt: '',
+        updatedAt: '',
+      },
     ]);
-    const data = registry.getData();
-    expect(data.items).toHaveLength(1);
-    expect(data.items[0].kind).toBe('module');
-    if (data.items[0].kind === 'module') {
-      expect(data.items[0].route).toBe('/pages/sample-gallery/');
-    }
-    expect(data.items[0].folderId).toBe('root');
-    expect(data.folders[0].id).toBe('root');
+    expect(registry.getData().items).toHaveLength(1);
+    expect(registry.getData().items[0].id).toBe('demo-api');
   });
 
   it('validates v3 layout on setData', () => {

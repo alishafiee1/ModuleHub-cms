@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { ModuleEntry, ModuleRegistryData } from './types';
+import { ModuleEntry, ModuleRegistryData, ModuleRegistrySchema } from './types';
 import { logger } from '../server/logger';
 
 /**
@@ -24,7 +24,21 @@ export class ModuleRegistry {
       return;
     }
     const raw = fs.readFileSync(this.registryPath, 'utf-8');
-    this.data = JSON.parse(raw) as ModuleRegistryData;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (error) {
+      logger.error('Invalid modules.json — not valid JSON', error);
+      return;
+    }
+    const validated = ModuleRegistrySchema.safeParse(parsed);
+    if (!validated.success) {
+      logger.error('Invalid modules.json schema', {
+        errors: validated.error.errors.map((issue) => `${issue.path.join('.')}: ${issue.message}`),
+      });
+      return;
+    }
+    this.data = validated.data;
   }
 
   /**

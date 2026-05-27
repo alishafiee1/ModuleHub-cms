@@ -50,10 +50,10 @@ table th code {
 | **صفحه کاربر** | فایل `index.html` — مثل یک صفحه وب ساده |
 | **برنامه واقعی** | داخل کانتینر Docker (Node، Python، …) |
 | **نصب** | یک فایل ZIP از پنل admin |
-| **اجرا** | مدیر باید دسترسی‌ها را تأیید کند و دکمه **Start** بزند |
+| **اجرا** | پس از Save Settings در دیالوگ ⚙ — Docker در settings mode بالا می‌آید |
 
-صفحات ساده مثل «گالری» یا «مارکدان» **از ZIP نصب نمی‌شوند** — آن‌ها داخل خود پروژه (built-in) هستند.  
-**فقط ماژول‌های Standalone** از پنل قابل آپلود‌اند.
+صفحات ساده مثل «گالری» یا «مارک‌داون» را از **catalog** (Add card) بسازید — هر Add یک **instance** مستقل است.  
+built-in demo در `core/builtin-modules/` فقط برای توسعه است.
 
 ---
 
@@ -252,35 +252,25 @@ services:
 
 ---
 
-## ۷. جریان کار از دید مدیر سایت
-
-### v2 فعلی (کد الان)
+## ۷. جریان کار از دید مدیر سایت (settings mode — ✅)
 
 ```
-۱. ZIP را در /admin آپلود کنید
+۱. ZIP را در /admin یا Add card آپلود کنید
         ↓
 ۲. هسته manifest و docker-compose را می‌خواند
         ↓
-۳. پنل می‌پرسد: پورت‌ها و منابع را تأیید می‌کنید؟
+۳. Docker بالا می‌آید (settings mode) — وضعیت: settings_pending
         ↓
-۴. ماژول نصب می‌شود — وضعیت: stopped
+۴. ⚙ → Settings — فرم را کامل کنید و Save
         ↓
-۵. Approve (در صورت نیاز) → Start
-        ↓
-۶. Docker بالا می‌آید — دایره سبز روی homepage
+۵. وضعیت Running — proxy فعال، دایره سبز روی homepage
 ```
 
-### هدف (settings mode — 🔜)
+⛔ **Approve + Start دستی** منسوخ است — API `POST /modules/:id/approve` پاسخ 410 می‌دهد.
 
-```
-۱. ZIP آپلود → extract → ثبت JSON
-        ↓
-۲. Docker compose up (برای تنظیمات)
-        ↓
-۳. SettingsForm — اگر ناقص: کلیک کارت در /admin → فرم دوباره
-        ↓
-۴. Save → Running + proxy /api/* فعال
-```
+### گالری / مارک‌داون
+
+از **Add → catalog** یک instance بسازید (`core/catalog-modules/`). built-in demo فقط برای توسعه است.
 
 همین کنترل‌ها روی **صفحه اصلی `/`** هم (بعد از login) برای مدیر دیده می‌شود.
 

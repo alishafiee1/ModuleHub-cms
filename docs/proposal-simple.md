@@ -97,13 +97,15 @@ table td code, table th code {
 
 ## کجای کار ایستاده‌ایم؟
 
-| بخش | v2 ✅ | هدف 🔜 |
-|------|------|--------|
-| صفحهٔ اصلی با کارت‌ها | ✅ | + پوشه مجازی |
-| آپلود ZIP | ✅ | + settings mode Docker |
-| گالری / مارک‌داون | ✅ demo | instance مستقل |
-| کتابخانه catalog | — | ✅ |
-| ⚙ + GitHub + رمز per-module | — | ✅ |
+> **جدول وضعیت پیاده‌سازی (کد واقعی):** [current-status.md](current-status.md)
+
+| بخش | روایت (هدف) |
+|------|-------------|
+| صفحهٔ اصلی + پوشه مجازی + browse | ✅ |
+| آپلود ZIP + settings mode | ✅ |
+| catalog + instance | ✅ |
+| ⚙ gear + GitHub + رمز per-module | ✅ |
+| گالری/مارک‌داون به‌صورت instance (نه فقط demo) | 🔜 bootstrap catalog-first |
 
 ---
 

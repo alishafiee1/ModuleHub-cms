@@ -196,10 +196,17 @@ export class SiteLayoutRegistry {
   /**
    * Bootstrap default layout from registered modules when file is empty.
    */
-  bootstrapFromModules(modules: ModuleEntry[]): void {
+  bootstrapFromModules(
+    modules: ModuleEntry[],
+    options: { includeBuiltinDemos?: boolean } = {},
+  ): void {
     if (this.data.items.length > 0) {
       return;
     }
+    const includeBuiltinDemos = options.includeBuiltinDemos ?? false;
+    const layoutModules = includeBuiltinDemos
+      ? modules
+      : modules.filter((mod) => mod.type === 'standalone' || mod.type === 'instance');
     const defaults: Record<string, string> = {
       'sample-gallery': 'fas fa-images',
       'markdown-viewer': 'fas fa-book-open',
@@ -211,7 +218,7 @@ export class SiteLayoutRegistry {
       siteSubtitle: 'ماژول‌ها و صفحات سایت',
       rootFolderId: DEFAULT_ROOT_FOLDER_ID,
       folders: [createDefaultRootFolder()],
-      items: modules.map((mod, index) => ({
+      items: layoutModules.map((mod, index) => ({
         id: mod.id,
         folderId: DEFAULT_ROOT_FOLDER_ID,
         kind: 'module' as const,

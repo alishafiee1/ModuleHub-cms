@@ -67,29 +67,34 @@ export const ManifestSchema = z.object({
 
 export type ModuleManifest = z.infer<typeof ManifestSchema>;
 
-export interface ModuleEntry {
-  id: string;
-  name: string;
-  type: ModuleType;
-  version: string;
-  icon: string;
-  description: string;
-  status: ModuleStatus;
-  installPath: string;
-  adminRole?: string;
-  proxyPrefix?: string;
-  proxyPaths?: string[];
-  internalPort?: number;
-  hostPort?: number;
-  containerId?: string;
-  permissionsApproved?: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+export const ModuleEntrySchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  type: ModuleTypeSchema,
+  version: z.string().min(1),
+  icon: z.string().min(1),
+  description: z.string().min(1),
+  status: ModuleStatusSchema,
+  installPath: z.string().min(1),
+  adminRole: z.string().optional(),
+  proxyPrefix: z.string().optional(),
+  proxyPaths: z.array(z.string()).optional(),
+  internalPort: z.number().int().optional(),
+  hostPort: z.number().int().optional(),
+  containerId: z.string().optional(),
+  /** @deprecated Legacy approve flow — settings save sets this; no runtime gate. */
+  permissionsApproved: z.boolean().optional(),
+  createdAt: z.string().min(1),
+  updatedAt: z.string().min(1),
+});
 
-export interface ModuleRegistryData {
-  modules: ModuleEntry[];
-}
+export type ModuleEntry = z.infer<typeof ModuleEntrySchema>;
+
+export const ModuleRegistrySchema = z.object({
+  modules: z.array(ModuleEntrySchema),
+});
+
+export type ModuleRegistryData = z.infer<typeof ModuleRegistrySchema>;
 
 export interface ModuleStats {
   cpuPercent: string;

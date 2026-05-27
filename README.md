@@ -5,11 +5,17 @@ Modular CMS with built-in pages and Docker standalone modules — **Ubuntu Serve
 ## Features
 
 - Public homepage at `/` with JSON-driven module cards (RODI Docs card UI)
-- Built-in pages at `/pages/<id>/` (gallery, markdown viewer)
-- Standalone ZIP upload (`index.html` + Docker) at `/modules/<id>/`
+- Virtual folders + browse at `/browse/<folder-id>/`
+- Add card (admin): new folder, catalog instance, or ZIP upload
+- Built-in pages at `/pages/<id>/` (legacy demos) + catalog instances at `/modules/<id>/`
+- Standalone ZIP upload (`index.html` + Docker) — settings mode → Save → Running
+- Gear dialog (⚙) on homepage: Start/Stop/Logs/Settings/Git/Partial ZIP
+- Module password per card (optional)
 - Dynamic reverse proxy for module API paths
-- Admin dashboard at `/admin` with Start/Stop/Logs
+- Admin dashboard at `/admin`
 - Role-based module access
+
+Implementation status: [docs/current-status.md](docs/current-status.md)
 
 ## Routes
 

@@ -246,11 +246,12 @@ export function createAdminRouter(deps: AdminRouterDeps): Router {
   });
 
   router.post('/modules/:id/approve', requireAuth, requireModuleAccess((id) => registry.getById(id)), (req: Request, res: Response) => {
-    const mod = registry.getById(req.params.id)!;
-    mod.permissionsApproved = true;
-    mod.updatedAt = new Date().toISOString();
-    registry.upsert(mod);
-    res.json({ ok: true });
+    logger.warn('Deprecated approve endpoint called', { moduleId: req.params.id });
+    res.status(410).json({
+      error: 'deprecated',
+      message:
+        'POST /modules/:id/approve is deprecated. Open module Settings from the gear dialog and Save Settings instead.',
+    });
   });
 
   router.delete('/modules/:id', requireAuth, requireModuleAccess((id) => registry.getById(id)), async (req: Request, res: Response) => {

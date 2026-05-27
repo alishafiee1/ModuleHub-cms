@@ -9,6 +9,7 @@ import { ModuleEntry } from './types';
 import { logger } from '../server/logger';
 import { isZipEntryNameSafe, resolveSafeModulePath } from './path-safety';
 import { SiteLayoutRegistry } from '../site-layout/registry';
+import { analyzeZipManifest, validateZipIndexAtRoot } from './zip-manifest-analysis';
 
 export interface InstallResult {
   success: boolean;
@@ -96,10 +97,14 @@ export class ModuleInstaller {
       }
     }
 
-    const manifestEntry = entries.find((e) => e.entryName.endsWith('manifest.json'));
-    if (!manifestEntry) {
-      return { success: false, errors: ['manifest.json not found in archive'], warnings: [] };
+    const manifestAnalysis = analyzeZipManifest(entries);
+    if (!manifestAnalysis.manifestEntry) {
+      return { success: false, errors: manifestAnalysis.errors, warnings: [] };
     }
+    if (manifestAnalysis.errors.length > 0) {
+      return { success: false, errors: manifestAnalysis.errors, warnings: [] };
+    }
+    const manifestEntry = manifestAnalysis.manifestEntry;
 
     let rawManifest: unknown;
     try {
@@ -124,14 +129,11 @@ export class ModuleInstaller {
       };
     }
 
-    const hasIndex = entries.some((e) => {
-      const normalized = e.entryName.replace(/\\/g, '/');
-      return normalized === 'index.html' || normalized.endsWith('/index.html');
-    });
-    if (!hasIndex) {
+    const indexErrors = validateZipIndexAtRoot(entries, manifestAnalysis.rootPrefix);
+    if (indexErrors.length > 0) {
       return {
         success: false,
-        errors: ['standalone ZIP must include index.html at module root'],
+        errors: indexErrors,
         warnings: validation.warnings,
       };
     }

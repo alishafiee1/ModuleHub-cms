@@ -16,6 +16,8 @@ export interface AppConfig {
   standaloneModulesDir: string;
   dockerSocket: string;
   projectRoot: string;
+  /** When true, empty site-layout bootstrap includes built-in demo modules. */
+  bootstrapBuiltinLayout: boolean;
 }
 
 /**
@@ -36,5 +38,6 @@ export function loadConfig(): AppConfig {
     standaloneModulesDir: process.env.STANDALONE_MODULES_DIR ?? path.join(projectRoot, 'standalone-modules'),
     dockerSocket: process.env.DOCKER_SOCKET ?? 'unix:///var/run/docker.sock',
     projectRoot,
+    bootstrapBuiltinLayout: process.env.BOOTSTRAP_BUILTIN_LAYOUT === 'true',
   };
 }

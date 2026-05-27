@@ -77,4 +77,11 @@ describe('ModuleRegistry', () => {
     expect(registry.getById('a')).toBeUndefined();
     expect(registry.getById('b')).toBeDefined();
   });
+
+  it('rejects invalid modules.json schema on load', () => {
+    fs.writeFileSync(registryPath, JSON.stringify({ modules: [{ id: 'bad' }] }));
+    const registry = new ModuleRegistry(registryPath);
+    registry.load();
+    expect(registry.getAll()).toEqual([]);
+  });
 });

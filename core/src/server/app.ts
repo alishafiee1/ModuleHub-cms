@@ -44,7 +44,9 @@ export function createApp(): express.Express {
   const validator = new ManifestValidator();
   bootstrapExistingModules(config, registry, validator);
   migrateLegacyStaticGallery(registry, config);
-  layoutRegistry.bootstrapFromModules(registry.getAll());
+  layoutRegistry.bootstrapFromModules(registry.getAll(), {
+    includeBuiltinDemos: config.bootstrapBuiltinLayout,
+  });
 
   const dockerManager = new DockerManager(config.dockerSocket);
   const proxyManager = new ReverseProxyManager(registry);

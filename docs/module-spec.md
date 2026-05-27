@@ -31,7 +31,7 @@
 | `proxy.paths` | — | ✅ | پیش‌فرض `["api"]` — **فقط** این مسیرها proxy می‌شوند |
 | `github` | — | ✅ | `{ repo, branch }` |
 | `entryHtml` | — | ✅ | پیش‌فرض `index.html` |
-| `modulePasswordHash` | — | 🔜 | planned P4 |
+| `modulePasswordHash` | — | ✅ | bcrypt hash; set via Settings form (P4) |
 | `webhook` | — | 🔜 planned | `onInstall` / `onUninstall` — **not implemented** |
 
 ---
