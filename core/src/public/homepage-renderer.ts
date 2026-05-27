@@ -1,4 +1,5 @@
-import { SiteLayoutData } from '../site-layout/types';
+import { buildBreadcrumb, getChildFolders, getItemsForFolder } from '../site-layout/folder-navigation';
+import { SiteLayoutData, SiteLayoutFolder } from '../site-layout/types';
 import { ModuleEntry } from '../modules/types';
 import { canManageModule } from '../auth/session';
 
@@ -19,6 +20,7 @@ export interface HomepageRenderOptions {
   modules: ModuleEntry[];
   isAuthenticated: boolean;
   userRole?: string;
+  currentFolderId: string;
 }
 
 /**
@@ -31,10 +33,10 @@ function resolveStatusClass(module: ModuleEntry | undefined): string {
 }
 
 /**
- * Build homepage card HTML for one layout item.
+ * Build homepage card HTML for one module layout item.
  */
-function renderCard(
-  item: SiteLayoutData['items'][number],
+function renderModuleCard(
+  item: Extract<SiteLayoutData['items'][number], { kind: 'module' }>,
   module: ModuleEntry | undefined,
   options: HomepageRenderOptions,
 ): string {
@@ -72,13 +74,109 @@ function renderCard(
 }
 
 /**
- * Render full public homepage HTML.
+ * Render virtual folder navigation card.
+ */
+function renderFolderCard(folder: SiteLayoutFolder, parentPathSegments: string[]): string {
+  const pathSegments = [...parentPathSegments, folder.id];
+  const href = `/browse/${pathSegments.join('/')}/`;
+  return `<div class="card-wrap folder-card">
+    <a class="card-link" href="${escapeHtml(href)}">
+      <div class="card-icon"><i class="fas fa-folder"></i></div>
+      <h5 class="mb-2">${escapeHtml(folder.title)}</h5>
+      <div class="card-subtitle">پوشه</div>
+    </a>
+  </div>`;
+}
+
+/**
+ * Render folder shortcut item (kind folder in items[]).
+ */
+function renderFolderItemCard(
+  item: Extract<SiteLayoutData['items'][number], { kind: 'folder' }>,
+  layout: SiteLayoutData,
+): string {
+  const crumbs = buildBreadcrumb(layout, item.targetFolderId);
+  const href = crumbs[crumbs.length - 1]?.href ?? '/';
+  const iconMarkup = item.iconClass
+    ? `<div class="card-icon"><i class="${escapeHtml(item.iconClass)}"></i></div>`
+    : `<div class="card-icon"><i class="fas fa-folder-open"></i></div>`;
+  return `<div class="card-wrap folder-card">
+    <a class="card-link" href="${escapeHtml(href)}">
+      ${iconMarkup}
+      <h5 class="mb-2">${escapeHtml(item.title)}</h5>
+      <div class="card-subtitle">${escapeHtml(item.subtitle ?? 'پوشه')}</div>
+    </a>
+  </div>`;
+}
+
+/**
+ * Admin Add card tile.
+ */
+function renderAddCard(): string {
+  return `<div class="card-wrap">
+    <button type="button" class="card-add" onclick="openAddModal()" aria-label="افزودن">
+      <span class="card-add-icon">+</span>
+      <span>افزودن</span>
+    </button>
+  </div>`;
+}
+
+/**
+ * Breadcrumb navigation markup.
+ */
+function renderBreadcrumb(layout: SiteLayoutData, currentFolderId: string): string {
+  const crumbs = buildBreadcrumb(layout, currentFolderId);
+  if (crumbs.length <= 1 && currentFolderId === layout.rootFolderId) {
+    return '';
+  }
+  const links = crumbs
+    .map(
+      (crumb, index) =>
+        index === crumbs.length - 1
+          ? `<span class="breadcrumb-current">${escapeHtml(crumb.title)}</span>`
+          : `<a href="${escapeHtml(crumb.href)}">${escapeHtml(crumb.title)}</a>`,
+    )
+    .join('<span class="breadcrumb-sep"> › </span>');
+  return `<nav class="breadcrumb" aria-label="مسیر">${links}</nav>`;
+}
+
+/**
+ * Path segments for child folder links under current folder.
+ */
+function parentPathSegments(layout: SiteLayoutData, folderId: string): string[] {
+  const crumbs = buildBreadcrumb(layout, folderId);
+  return crumbs.slice(1).map((crumb) => crumb.folderId);
+}
+
+/**
+ * Render full public homepage / folder browse HTML.
  */
 export function renderHomepage(options: HomepageRenderOptions): string {
   const moduleMap = new Map(options.modules.map((mod) => [mod.id, mod]));
-  const cards = options.layout.items
-    .map((item) => renderCard(item, moduleMap.get(item.id), options))
+  const folderItems = getItemsForFolder(options.layout, options.currentFolderId);
+  const childFolders = getChildFolders(options.layout, options.currentFolderId);
+  const pathSegments = parentPathSegments(options.layout, options.currentFolderId);
+
+  const folderCards = childFolders
+    .map((folder) => renderFolderCard(folder, pathSegments))
     .join('\n');
+
+  const itemCards = folderItems
+    .map((item) => {
+      if (item.kind === 'folder') {
+        return renderFolderItemCard(item, options.layout);
+      }
+      if (item.kind === 'module') {
+        return renderModuleCard(item, moduleMap.get(item.id), options);
+      }
+      return '';
+    })
+    .join('\n');
+
+  const addCard = options.isAuthenticated ? renderAddCard() : '';
+  const cards = `${folderCards}\n${itemCards}\n${addCard}`;
+  const breadcrumb = renderBreadcrumb(options.layout, options.currentFolderId);
+  const addModal = options.isAuthenticated ? renderAddModal(options.currentFolderId) : '';
 
   return `<!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -100,8 +198,10 @@ export function renderHomepage(options: HomepageRenderOptions): string {
     </div>
   </section>
   <main class="container my-4">
+    ${breadcrumb}
     <div class="cards">${cards}</div>
   </main>
+  ${addModal}
   <footer class="footer">
     <div class="container">
       &copy; ${new Date().getFullYear()} ModuleHub CMS ·
@@ -109,6 +209,7 @@ export function renderHomepage(options: HomepageRenderOptions): string {
     </div>
   </footer>
   <script>
+    const CURRENT_FOLDER_ID = ${JSON.stringify(options.currentFolderId)};
     async function api(path, opts = {}) {
       const res = await fetch('/api' + path, { credentials: 'same-origin', ...opts });
       if (res.status === 401) throw new Error('auth');
@@ -137,7 +238,53 @@ export function renderHomepage(options: HomepageRenderOptions): string {
         if (stats) el.textContent = 'CPU: ' + stats.cpuPercent + ' · RAM: ' + stats.memoryUsage + '/' + stats.memoryLimit;
       } catch {}
     }
+    function openAddModal() {
+      document.getElementById('add-modal')?.classList.add('open');
+    }
+    function closeAddModal() {
+      document.getElementById('add-modal')?.classList.remove('open');
+    }
+    async function createNewFolder() {
+      const title = document.getElementById('new-folder-title')?.value?.trim();
+      if (!title) { alert('نام پوشه را وارد کنید'); return; }
+      try {
+        await api('/site-layout/folders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ parentId: CURRENT_FOLDER_ID, title }),
+        });
+        location.reload();
+      } catch (e) { alert('خطا — از /admin وارد شوید'); }
+    }
+    function goUploadZip() {
+      window.location.href = '/admin';
+    }
+    function showCatalogStub() {
+      alert('کتابخانهٔ آماده در فاز بعد (catalog-modules) فعال می‌شود.');
+    }
   </script>
 </body>
 </html>`;
+}
+
+/**
+ * Add modal markup for admin users.
+ */
+function renderAddModal(currentFolderId: string): string {
+  return `<div id="add-modal" class="add-modal" onclick="if(event.target===this) closeAddModal()">
+    <div class="add-modal-panel" role="dialog" aria-labelledby="add-modal-title">
+      <h2 id="add-modal-title">افزودن</h2>
+      <p class="add-modal-hint">پوشهٔ فعلی: ${escapeHtml(currentFolderId)}</p>
+      <div class="add-modal-actions">
+        <button type="button" onclick="createNewFolder()">پوشهٔ جدید</button>
+        <button type="button" onclick="goUploadZip()">آپلود ZIP</button>
+        <button type="button" class="secondary" onclick="showCatalogStub()">از آماده‌ها</button>
+        <button type="button" class="secondary" onclick="closeAddModal()">بستن</button>
+      </div>
+      <label class="add-modal-field">
+        نام پوشهٔ جدید
+        <input id="new-folder-title" type="text" placeholder="مثلاً نمونه‌کارها" />
+      </label>
+    </div>
+  </div>`;
 }

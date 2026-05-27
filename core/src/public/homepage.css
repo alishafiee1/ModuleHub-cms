@@ -136,3 +136,124 @@ body {
 .footer a:hover {
   text-decoration: underline;
 }
+
+.breadcrumb {
+  margin-bottom: 1rem;
+  color: #b0bec5;
+  font-size: 0.95rem;
+}
+
+.breadcrumb a {
+  color: #4fc3f7;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb-current {
+  color: #e0e0e0;
+}
+
+.breadcrumb-sep {
+  margin: 0 0.35rem;
+  opacity: 0.7;
+}
+
+.card-add {
+  width: 100%;
+  min-height: 160px;
+  border: 2px dashed rgba(79, 195, 247, 0.45);
+  border-radius: 16px;
+  background: rgba(38, 50, 56, 0.55);
+  color: #4fc3f7;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  transition: 0.2s;
+}
+
+.card-add:hover {
+  border-color: #4fc3f7;
+  background: rgba(38, 50, 56, 0.85);
+}
+
+.card-add-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.add-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.add-modal.open {
+  display: flex;
+}
+
+.add-modal-panel {
+  background: #263238;
+  border: 1px solid rgba(79, 195, 247, 0.25);
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: min(420px, 100%);
+  color: #e0e0e0;
+}
+
+.add-modal-panel h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.add-modal-hint {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.add-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.add-modal-actions button {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 0.45rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.add-modal-actions button.secondary {
+  background: #475569;
+}
+
+.add-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.add-modal-field input {
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  background: #1a1a2e;
+  color: #e0e0e0;
+}

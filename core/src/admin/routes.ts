@@ -59,6 +59,24 @@ export function createAdminRouter(deps: AdminRouterDeps): Router {
     res.json(layoutRegistry.getData());
   });
 
+  router.post('/site-layout/folders', requireAuth, (req: Request, res: Response) => {
+    const { parentId, title, id } = req.body as {
+      parentId?: string;
+      title?: string;
+      id?: string;
+    };
+    if (!parentId || !title?.trim()) {
+      res.status(400).json({ error: 'parentId and title are required' });
+      return;
+    }
+    const result = layoutRegistry.addFolder(parentId, title.trim(), id?.trim());
+    if (!result.success) {
+      res.status(400).json({ errors: result.errors });
+      return;
+    }
+    res.status(201).json({ folder: result.folder, layout: layoutRegistry.getData() });
+  });
+
   router.get('/modules', requireAuth, (req: Request, res: Response) => {
     const all = registry.getAll();
     const filtered = filterModulesByRole(all, req.session.role);

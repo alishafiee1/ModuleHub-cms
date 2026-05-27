@@ -34,17 +34,73 @@ describe('SiteLayoutRegistry', () => {
     ]);
     const data = registry.getData();
     expect(data.items).toHaveLength(1);
-    expect(data.items[0].route).toBe('/pages/sample-gallery/');
-    expect(data.siteTitle).toBe('ModuleHub CMS');
+    expect(data.items[0].kind).toBe('module');
+    if (data.items[0].kind === 'module') {
+      expect(data.items[0].route).toBe('/pages/sample-gallery/');
+    }
+    expect(data.items[0].folderId).toBe('root');
+    expect(data.folders[0].id).toBe('root');
   });
 
-  it('validates layout on setData', () => {
+  it('validates v3 layout on setData', () => {
     const result = registry.setData({
       siteTitle: 'Test',
       siteSubtitle: 'Sub',
-      items: [{ id: 'x', title: 'X', subtitle: 's', pageType: 'builtin', route: '/pages/x/', sortOrder: 0 }],
+      rootFolderId: 'root',
+      folders: [{ id: 'root', title: 'Home', parentId: null }],
+      items: [
+        {
+          id: 'x',
+          folderId: 'root',
+          kind: 'module',
+          title: 'X',
+          subtitle: 's',
+          pageType: 'builtin',
+          route: '/pages/x/',
+          sortOrder: 0,
+        },
+      ],
     });
     expect(result.success).toBe(true);
     expect(registry.getData().items[0].title).toBe('X');
+  });
+
+  it('adds folder under parent', () => {
+    registry.setData({
+      siteTitle: 'Test',
+      siteSubtitle: 'Sub',
+      rootFolderId: 'root',
+      folders: [{ id: 'root', title: 'Home', parentId: null }],
+      items: [],
+    });
+    const result = registry.addFolder('root', 'Portfolio', 'portfolio');
+    expect(result.success).toBe(true);
+    expect(registry.getData().folders.some((f) => f.id === 'portfolio')).toBe(true);
+  });
+
+  it('migrates v2 file on load', () => {
+    const layoutPath = path.join(tmpDir, 'site-layout.json');
+    fs.writeFileSync(
+      layoutPath,
+      JSON.stringify({
+        siteTitle: 'Legacy',
+        siteSubtitle: 'Old',
+        items: [
+          {
+            id: 'a',
+            title: 'A',
+            subtitle: 's',
+            pageType: 'builtin',
+            route: '/pages/a/',
+            sortOrder: 1,
+          },
+        ],
+      }),
+    );
+    const loaded = new SiteLayoutRegistry(layoutPath);
+    loaded.load();
+    const data = loaded.getData();
+    expect(data.rootFolderId).toBe('root');
+    expect(data.items[0].kind).toBe('module');
   });
 });

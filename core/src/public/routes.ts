@@ -4,7 +4,26 @@ import { Express, Request, Response } from 'express';
 import { AppConfig } from '../server/config';
 import { ModuleRegistry } from '../modules/registry';
 import { SiteLayoutRegistry } from '../site-layout/registry';
+import { resolveFolderPath } from '../site-layout/folder-navigation';
 import { renderHomepage } from './homepage-renderer';
+
+/**
+ * Build homepage render options from request session.
+ */
+function buildHomepageOptions(
+  req: Request,
+  layoutRegistry: SiteLayoutRegistry,
+  registry: ModuleRegistry,
+  currentFolderId: string,
+) {
+  return {
+    layout: layoutRegistry.getData(),
+    modules: registry.getAll(),
+    isAuthenticated: Boolean(req.session?.authenticated),
+    userRole: req.session?.role,
+    currentFolderId,
+  };
+}
 
 /**
  * Serve public homepage and static public assets.
@@ -25,13 +44,24 @@ export function mountPublicRoutes(
 
   app.get('/', (req: Request, res: Response) => {
     const layout = layoutRegistry.getData();
-    const modules = registry.getAll();
-    const html = renderHomepage({
-      layout,
-      modules,
-      isAuthenticated: Boolean(req.session?.authenticated),
-      userRole: req.session?.role,
-    });
+    const html = renderHomepage(
+      buildHomepageOptions(req, layoutRegistry, registry, layout.rootFolderId),
+    );
+    res.type('html').send(html);
+  });
+
+  app.get('/browse/*', (req: Request, res: Response) => {
+    const layout = layoutRegistry.getData();
+    const wildcard = req.params[0] ?? '';
+    const segments = wildcard.split('/').filter(Boolean);
+    const folderId = resolveFolderPath(layout, segments);
+    if (!folderId) {
+      res.status(404).type('html').send('<h1>پوشه یافت نشد</h1>');
+      return;
+    }
+    const html = renderHomepage(
+      buildHomepageOptions(req, layoutRegistry, registry, folderId),
+    );
     res.type('html').send(html);
   });
 }

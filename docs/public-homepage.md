@@ -9,7 +9,8 @@ pre, code { direction: ltr; text-align: left; }
 
 ## مسیر
 
-- **`/`** — homepage عمومی (بدون نیاز به login)
+- **`/`** — homepage عمومی (پوشه root)
+- **`/browse/<folder-id>/...`** — پیمایش پوشه‌های مجازی + breadcrumb
 - **`/admin`** — مدیریت سیستم
 
 ## دیزاین کارت‌ها
@@ -26,9 +27,16 @@ UI از الگوی [Ai_projects/main.html](../../Ai_projects/main.html) (RODI Do
 {
   "siteTitle": "ModuleHub CMS",
   "siteSubtitle": "ماژول‌ها و صفحات سایت",
+  "rootFolderId": "root",
+  "folders": [
+    { "id": "root", "title": "خانه", "parentId": null },
+    { "id": "portfolio", "title": "نمونه‌کارها", "parentId": "root" }
+  ],
   "items": [
     {
       "id": "sample-gallery",
+      "folderId": "root",
+      "kind": "module",
       "title": "گالری نمونه",
       "subtitle": "نمایش تصاویر",
       "iconClass": "fas fa-images",

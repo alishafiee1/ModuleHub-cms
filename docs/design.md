@@ -434,9 +434,9 @@ Auto-fill: read existing `manifest.json` + `site-layout.json` on edit.
 |------------|----------|---------------------|
 | Public homepage `/` | ✅ | ✅ |
 | Flat card list (root only) | ✅ | — |
-| Virtual nested folders (JSON) | ❌ | ✅ |
-| Add card at end of grid (admin) | ❌ | ✅ |
-| site-layout.json | ✅ flat | ✅ tree + folders |
+| Virtual nested folders (JSON) | ✅ | ✅ |
+| Add card at end of grid (admin) | ✅ | ✅ |
+| site-layout.json | ✅ tree + folders | ✅ tree + folders |
 | ZIP standalone install | ✅ | ✅ |
 | Docker Start/Stop/Stats | ✅ (Approve/Start دستی) | ✅ + settings mode پس از upload |
 | Built-in gallery/markdown | ✅ sample (fixed id) | ✅ per-instance copy |

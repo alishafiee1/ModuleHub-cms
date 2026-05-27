@@ -97,7 +97,7 @@ table td code, table th code { direction: ltr; text-align: left; display: inline
 
 | فاز | Change | محتوا |
 |-----|--------|--------|
-| P1 | `virtual-folder-tree-and-browse` | پوشه مجازی، browse، Add card |
+| P1 | `virtual-folder-tree-and-browse` | پوشه مجازی، browse، Add card ✅ |
 | P2a | `catalog-modules-and-instance-copy` | catalog + instance مستقل |
 | P2b | `standalone-settings-form-and-lifecycle` | Docker settings mode |
 | P2c | `homepage-gear-dialog-admin-actions` | دیالوگ ⚙ |
