@@ -18,6 +18,24 @@ export function sanitizeModuleId(name: string): string {
 }
 
 /**
+ * Validate GitHub repository URL format for manifest.github.repo.
+ */
+export function validateGithubRepoUrl(repoUrl: string): string | null {
+  try {
+    const url = new URL(repoUrl.trim());
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+      return 'github.repo must use http or https URL';
+    }
+    if (!url.hostname.includes('github.com')) {
+      return 'github.repo must be a github.com URL';
+    }
+    return null;
+  } catch {
+    return 'github.repo must be a valid URL';
+  }
+}
+
+/**
  * Validate manifest.json content and security constraints.
  */
 export class ManifestValidator {
@@ -68,6 +86,13 @@ export class ManifestValidator {
 
     if (manifest.type === 'builtin' && manifest.docker) {
       errors.push('builtin modules must not include docker section');
+    }
+
+    if (manifest.github?.repo) {
+      const repoError = validateGithubRepoUrl(manifest.github.repo);
+      if (repoError) {
+        errors.push(repoError);
+      }
     }
 
     const moduleId = sanitizeModuleId(manifest.name);

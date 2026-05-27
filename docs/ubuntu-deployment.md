@@ -14,6 +14,7 @@ pre, code { direction: ltr; text-align: left; }
 
 - Node.js 20+
 - Docker Engine + Compose plugin
+- **Git** (برای Git Pull از gear dialog — `sudo apt install git`)
 - UFW (اختیاری)
 
 ## نصب سریع

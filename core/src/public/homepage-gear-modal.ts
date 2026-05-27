@@ -56,6 +56,12 @@ export function renderGearModalMarkup(): string {
         <label class="gear-field">iconClass
           <input id="gear-settings-icon-class" type="text" dir="ltr" />
         </label>
+        <label class="gear-field">GitHub repo
+          <input id="gear-settings-github-repo" type="url" dir="ltr" placeholder="https://github.com/org/repo" />
+        </label>
+        <label class="gear-field">GitHub branch
+          <input id="gear-settings-github-branch" type="text" dir="ltr" placeholder="main" />
+        </label>
         <div class="gear-actions">
           <button type="button" onclick="gearSaveSettings()">ذخیره Settings</button>
         </div>
@@ -64,10 +70,12 @@ export function renderGearModalMarkup(): string {
       <section class="gear-section">
         <h3>پیشرفته</h3>
         <div class="gear-actions">
-          <button type="button" class="secondary disabled-stub" title="Coming in P3" disabled>Git Pull</button>
-          <button type="button" class="secondary disabled-stub" title="Coming in P3" disabled>Partial ZIP</button>
+          <button type="button" class="secondary" onclick="gearGitPull()">Git Pull</button>
+          <button type="button" class="secondary" onclick="gearPickPartialZip()">Partial ZIP</button>
+          <input id="gear-partial-zip" type="file" accept=".zip" class="hidden" onchange="gearPartialUpload(event)" />
         </div>
-        <p class="gear-hint">Git Pull و Partial ZIP در فاز P3 فعال می‌شوند.</p>
+        <p class="gear-hint">Git Pull نیاز به <code>manifest.github.repo</code> دارد. Partial ZIP حداکثر ۵۰ فایل.</p>
+        <p id="gear-advanced-msg" class="gear-msg"></p>
       </section>
     </div>
   </div>`;
@@ -155,6 +163,8 @@ export function renderGearModalScript(): string {
         document.getElementById('gear-settings-proxy-prefix').value = settings.proxyPrefix ?? '';
         document.getElementById('gear-settings-proxy-paths').value = (settings.proxyPaths || ['api']).join(', ');
         document.getElementById('gear-settings-icon-class').value = settings.layoutIconClass ?? '';
+        document.getElementById('gear-settings-github-repo').value = settings.github?.repo ?? '';
+        document.getElementById('gear-settings-github-branch').value = settings.github?.branch ?? '';
       } catch {
         document.getElementById('gear-settings-msg').textContent = 'خطا در بارگذاری Settings';
       }
@@ -164,12 +174,15 @@ export function renderGearModalScript(): string {
       if (!gearModuleId) return;
       const portsRaw = document.getElementById('gear-settings-ports').value.split(',').map(v => parseInt(v.trim(), 10)).filter(n => !Number.isNaN(n));
       const proxyPaths = document.getElementById('gear-settings-proxy-paths').value.split(',').map(v => v.trim()).filter(Boolean);
+      const githubRepo = document.getElementById('gear-settings-github-repo')?.value?.trim();
+      const githubBranch = document.getElementById('gear-settings-github-branch')?.value?.trim();
       const payload = {
         ports: portsRaw,
         internalPort: parseInt(document.getElementById('gear-settings-internal-port').value, 10),
         proxyPrefix: document.getElementById('gear-settings-proxy-prefix').value.trim(),
         proxyPaths: proxyPaths.length ? proxyPaths : ['api'],
         layoutIconClass: document.getElementById('gear-settings-icon-class').value.trim() || undefined,
+        github: githubRepo ? { repo: githubRepo, branch: githubBranch || undefined } : undefined,
       };
       try {
         await api('/modules/' + gearModuleId + '/settings', {
@@ -190,6 +203,46 @@ export function renderGearModalScript(): string {
         await api('/modules/' + gearModuleId, { method: 'DELETE' });
         location.reload();
       } catch { alert('خطا در Delete'); }
+    }
+
+    async function gearGitPull() {
+      if (!gearModuleId) return;
+      if (!confirm('Git Pull ممکن است فایل‌های محلی را بازنویسی کند. پوشه‌های images/markdown/uploads حفظ می‌شوند. ادامه؟')) return;
+      const msg = document.getElementById('gear-advanced-msg');
+      try {
+        const result = await api('/modules/' + gearModuleId + '/git-pull', { method: 'POST' });
+        if (msg) msg.textContent = result.output ? 'Pull OK' : 'Pull completed';
+        location.reload();
+      } catch (e) {
+        if (msg) msg.textContent = e.payload?.errors?.join(', ') || e.message;
+      }
+    }
+
+    function gearPickPartialZip() {
+      document.getElementById('gear-partial-zip')?.click();
+    }
+
+    async function gearPartialUpload(event) {
+      if (!gearModuleId) return;
+      const file = event.target?.files?.[0];
+      if (!file) return;
+      const msg = document.getElementById('gear-advanced-msg');
+      const fd = new FormData();
+      fd.append('partial', file);
+      try {
+        const res = await fetch('/api/modules/' + gearModuleId + '/partial-upload', {
+          method: 'POST',
+          body: fd,
+          credentials: 'same-origin',
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw Object.assign(new Error('upload failed'), { payload: data });
+        if (msg) msg.textContent = 'Updated: ' + (data.replacedFiles || []).join(', ');
+        event.target.value = '';
+        location.reload();
+      } catch (e) {
+        if (msg) msg.textContent = e.payload?.errors?.join(', ') || 'خطا در Partial ZIP';
+      }
     }
   `;
 }

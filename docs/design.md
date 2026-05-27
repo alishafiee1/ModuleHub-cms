@@ -406,7 +406,8 @@ ModuleHub-cms/
 | `POST /api/modules/upload` | ZIP install |
 | `POST /api/modules/:id/start` | docker compose up |
 | `GET /api/catalog` | list catalog templates (auth) |
-| `POST /api/instances` | copy catalog template → instance |
+| `POST /api/modules/:id/git-pull` | git sync into module dir (auth) |
+| `POST /api/modules/:id/partial-upload` | partial ZIP replace (auth) |
 
 ---
 
@@ -444,9 +445,9 @@ Auto-fill: read existing `manifest.json` + `site-layout.json` on edit.
 | Add dialog catalog | ❌ | ✅ catalog-modules |
 | Instance copy (gallery/md) | ❌ | ✅ |
 | Gear dialog | partial (homepage admin) | ✅ full dialog |
-| GitHub pull | ❌ | ✅ |
+| GitHub pull | ✅ P3 |
 | Module password | ❌ | ✅ |
-| Partial ZIP update | ❌ | ✅ |
+| Partial ZIP update | ✅ P3 |
 
 ---
 
@@ -456,7 +457,8 @@ Auto-fill: read existing `manifest.json` + `site-layout.json` on edit.
 |------|------------|
 | Catalog copy vs template drift | Single source in `catalog-modules`; tests per template |
 | instance-id collision | validate kebab-case + unique check |
-| Git pull overwrites local uploads | `.gitignore` user content dirs in instance; merge strategy doc |
+| Git pull overwrites local uploads | backup + restore `images/`, `markdown/`, `uploads/` before/after pull; confirm در UI |
+| Partial ZIP overwrite | path-safety + max 50 files; admin confirm via gear dialog |
 | module password bypass | hash + rate limit; separate from admin session (🔜 P4) |
 | Too many Docker modules on small VPS | default memory caps; warn on Start |
 | Docker settings mode vs public traffic | document which URLs open before Save; proxy gated until Running |

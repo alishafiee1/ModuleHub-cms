@@ -74,4 +74,19 @@ describe('ManifestValidator', () => {
   it('sanitizes module id', () => {
     expect(sanitizeModuleId('Hello World!')).toBe('hello-world');
   });
+
+  it('validates github repo URL', () => {
+    const result = validator.validate({
+      name: 'API',
+      type: 'standalone',
+      version: '1.0.0',
+      icon: 'a.png',
+      description: 'API',
+      github: { repo: 'not-a-url' },
+      docker: { composeFile: 'docker-compose.yml', ports: [3000] },
+      proxy: { prefix: '/modules/api/', internalPort: 3000 },
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((error) => error.includes('github.repo'))).toBe(true);
+  });
 });

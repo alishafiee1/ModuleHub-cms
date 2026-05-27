@@ -84,7 +84,7 @@ describe('homepage gear dialog', () => {
     expect(anonHtml).not.toContain('id="gear-modal"');
   });
 
-  it('gear modal script includes P3 disabled stubs', () => {
+  it('gear modal script includes git pull and partial upload', () => {
     const html = renderHomepage({
       layout: standaloneLayout,
       modules: [standaloneModule],
@@ -92,9 +92,10 @@ describe('homepage gear dialog', () => {
       userRole: 'admin',
       currentFolderId: 'root',
     });
-    expect(html).toContain('Coming in P3');
-    expect(html).toContain('Git Pull');
-    expect(html).toContain('Partial ZIP');
+    expect(html).toContain('gearGitPull');
+    expect(html).toContain('gearPartialUpload');
+    expect(html).toContain('/git-pull');
+    expect(html).toContain('/partial-upload');
   });
 
   it('gearStartModule calls fetch with start API URL', async () => {

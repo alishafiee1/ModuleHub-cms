@@ -14,6 +14,8 @@ import { ReverseProxyManager } from '../core/src/proxy/reverse-proxy-manager';
 import { mountStandaloneHostFiles } from '../core/src/public/routes';
 import { AppConfig } from '../core/src/server/config';
 import { SiteLayoutRegistry } from '../core/src/site-layout/registry';
+import { GitSyncService } from '../core/src/sync/git-sync-service';
+import { PartialUploadService } from '../core/src/modules/partial-upload-service';
 import { ModuleSettingsService } from '../core/src/modules/module-settings-service';
 
 function writeCatalogTemplate(catalogDir: string, templateId: string): void {
@@ -85,6 +87,8 @@ describe('catalog instances API', () => {
       dockerManager,
       proxyManager,
     );
+    const gitSyncService = new GitSyncService(registry);
+    const partialUploadService = new PartialUploadService(registry);
 
     const app = express();
     app.use(express.json());
@@ -114,6 +118,8 @@ describe('catalog instances API', () => {
         catalogService,
         catalogInstanceService,
         settingsService,
+        gitSyncService,
+        partialUploadService,
       }),
     );
 

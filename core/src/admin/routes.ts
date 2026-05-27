@@ -11,6 +11,8 @@ import { SiteLayoutRegistry } from '../site-layout/registry';
 import { CatalogService } from '../catalog/catalog-service';
 import { CatalogInstanceService } from '../catalog/catalog-instance-service';
 import { ModuleSettingsService } from '../modules/module-settings-service';
+import { GitSyncService } from '../sync/git-sync-service';
+import { PartialUploadService } from '../modules/partial-upload-service';
 import { filterModulesByRole, requireAuth, requireModuleAccess } from '../auth/session';
 import { logger } from '../server/logger';
 
@@ -26,6 +28,8 @@ export interface AdminRouterDeps {
   catalogService: CatalogService;
   catalogInstanceService: CatalogInstanceService;
   settingsService: ModuleSettingsService;
+  gitSyncService: GitSyncService;
+  partialUploadService: PartialUploadService;
 }
 
 /**
@@ -33,7 +37,7 @@ export interface AdminRouterDeps {
  */
 export function createAdminRouter(deps: AdminRouterDeps): Router {
   const router = Router();
-  const { config, registry, installer, dockerManager, proxyManager, layoutRegistry, catalogService, catalogInstanceService, settingsService } = deps;
+  const { config, registry, installer, dockerManager, proxyManager, layoutRegistry, catalogService, catalogInstanceService, settingsService, gitSyncService, partialUploadService } = deps;
 
   router.post('/login', (req: Request, res: Response) => {
     const { password } = req.body as { password?: string };
@@ -268,6 +272,36 @@ export function createAdminRouter(deps: AdminRouterDeps): Router {
     const stats = await dockerManager.getStats(mod.containerId);
     res.json({ stats });
   });
+
+  router.post('/modules/:id/git-pull', requireAuth, requireModuleAccess((id) => registry.getById(id)), async (req: Request, res: Response) => {
+    const result = await gitSyncService.pull(req.params.id);
+    if (!result.success) {
+      const status = result.gitMissing ? 503 : 400;
+      res.status(status).json({ errors: result.errors });
+      return;
+    }
+    logger.info('Git pull via API', { moduleId: req.params.id });
+    res.json({ ok: true, output: result.output });
+  });
+
+  router.post(
+    '/modules/:id/partial-upload',
+    requireAuth,
+    requireModuleAccess((id) => registry.getById(id)),
+    upload.single('partial'),
+    (req: Request, res: Response) => {
+      if (!req.file) {
+        res.status(400).json({ error: 'partial ZIP file required' });
+        return;
+      }
+      const result = partialUploadService.applyZip(req.params.id, req.file.buffer);
+      if (!result.success) {
+        res.status(400).json({ errors: result.errors, replacedFiles: result.replacedFiles });
+        return;
+      }
+      res.json({ ok: true, replacedFiles: result.replacedFiles });
+    },
+  );
 
   return router;
 }

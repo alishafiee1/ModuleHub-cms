@@ -120,8 +120,9 @@
         <button class="secondary" onclick="dashboardGearLogs()">Logs</button>
         <button class="secondary" onclick="dashboardGearSettings()">Settings</button>
         <button class="danger" onclick="dashboardGearDelete()">Delete</button>
-        <button class="secondary" disabled title="Coming in P3">Git Pull</button>
-        <button class="secondary" disabled title="Coming in P3">Partial ZIP</button>
+        <button class="secondary" onclick="dashboardGearPull()">Git Pull</button>
+        <button class="secondary" onclick="dashboardPickPartialZip()">Partial ZIP</button>
+        <input id="dashboard-partial-zip" type="file" accept=".zip" style="display:none" onchange="dashboardPartialUpload(event)" />
       </div>
       <pre id="gear-quick-logs" class="warn" style="max-height:120px;overflow:auto;direction:ltr;text-align:left"></pre>
       <button class="secondary" onclick="closeDashboardGear()">بستن</button>
@@ -224,6 +225,36 @@
       if (!dashboardGearModuleId) return;
       if (!confirm('حذف ماژول؟')) return;
       await api('/modules/' + dashboardGearModuleId, { method: 'DELETE' });
+      closeDashboardGear(); loadModules();
+    }
+
+    async function dashboardGearPull() {
+      if (!dashboardGearModuleId) return;
+      if (!confirm('Git Pull — فایل‌های محلی ممکن است بازنویسی شوند. ادامه؟')) return;
+      try {
+        await api('/modules/' + dashboardGearModuleId + '/git-pull', { method: 'POST' });
+        closeDashboardGear(); loadModules();
+      } catch (error) {
+        alert(error.payload?.errors?.join(', ') || error.message);
+      }
+    }
+
+    function dashboardPickPartialZip() {
+      document.getElementById('dashboard-partial-zip')?.click();
+    }
+
+    async function dashboardPartialUpload(event) {
+      if (!dashboardGearModuleId) return;
+      const file = event.target?.files?.[0];
+      if (!file) return;
+      const fd = new FormData();
+      fd.append('partial', file);
+      const res = await fetch('/api/modules/' + dashboardGearModuleId + '/partial-upload', {
+        method: 'POST', body: fd, credentials: 'same-origin',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { alert(data.errors?.join(', ') || 'خطا'); return; }
+      event.target.value = '';
       closeDashboardGear(); loadModules();
     }
 
