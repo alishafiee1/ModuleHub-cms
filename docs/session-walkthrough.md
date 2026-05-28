@@ -56,6 +56,19 @@ table th code,
 
 ## آخرین جلسات
 
+### 2026-05-29 — فاز ۷.۵ settings + deploy 334f9ac + logrotate
+- **درخواست:** opsx apply فاز ۷.۵ · `/sync-docs` · deploy روی سرور · «logrotate یعنی چی؟»
+- **نتیجه:** `system-settings/` + `/admin/settings` · ۱۰۲ unit test · deploy-full موفق (`334f9ac`) · logrotate نصب (`/etc/logrotate.d/modulehub-cms`)
+- **deploy-full پرسید:** logrotate [y] · nginx [y] · dev Super Admin [y] — همه y · health OK
+- **هشدار deploy:** تغییر محلی `scripts/` روی clone — push + deploy-full؛ نه SCP
+- **باقی:** تست دستی 9.9 (settings روی haderbash.ir) · فاز ۸ auth
+
+### 2026-05-29 — deploy-full + SCP/CRLF + discard clone
+- **درخواست:** `/sync-docs` · اسکریپت deploy یکپارچه · SCP به سرور · خطای `pipefail` و git pull
+- **نتیجه:** `deploy-full.sh` + `scripts/lib/*` · `.gitattributes` (`*.sh` LF) · discard = `reset --hard` + `clean -fd` (نه فقط WARN)
+- **علت pull fail:** SCP فایل untracked + تغییر محلی — git abort · clone با `reset --hard origin/main && git clean -fd` تمیز شد
+- **دستور:** `bash ~/ModuleHub-cms/scripts/deploy-full.sh` (ترجیحاً بدون SCP — push + deploy-full)
+
 ### 2026-05-29 — فاز ۷ versioning + log levels
 - **درخواست:** شروع فاز جدید بعد از مطالعه docs/openspec
 - **نتیجه:** `version-validator` (SemVer) · logrotate config · فیلتر سطح لاگ · GitHub sync → tag version · ۸۷ تست ✅

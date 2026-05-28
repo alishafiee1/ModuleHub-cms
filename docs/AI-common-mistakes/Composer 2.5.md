@@ -66,9 +66,24 @@
 - **درست:** بکاپ کل = `POST /admin/backup` · restore = `POST /admin/restore` · لیست = `GET /admin/backup/list` · ⚙ «پشتیبان ZIP» = فقط همان ماژول
 - **زمینه:** فاز ۶ · haderbash.ir · 2026-05-29
 
-### [OK-004] بکاپ/restore کامل — curl روی سرور
-- **راه‌حل:** `curl -X POST …/admin/backup` · `backup/list` · restore با `-F backup=@…/storage/backups/modulehub-full-….zip -F confirm=true`
-- **تأیید:** چند ZIP در list · تست دستی restore موفق
-- **زمینه:** فاز ۶ · ash@192.168.88.50
+### [DEPLOY-008] SCP اسکریپت + `git pull` — untracked overwrite
+- **اشتباه:** SCP `deploy-full.sh` به clone قبل از pull · فقط WARN در deploy قدیمی · انتظار discard خودکار
+- **درست:** `git push` + `deploy-full` (بدون SCP) · یا `reset --hard origin/main && git clean -fd` · deploy-full جدید: sync با reset+clean
+- **زمینه:** home clone · 2026-05-29
+
+### [DEPLOY-009] CRLF ویندوز — `set: pipefail: invalid option name`
+- **اشتباه:** SCP یا checkout با `\r\n` · اجرای `bash deploy-full.sh` روی Ubuntu
+- **درست:** `.gitattributes` (`*.sh eol=lf`) · قبل SCP: LF · روی سرور: `sed -i 's/\r$//' scripts/*.sh`
+- **زمینه:** ash@192.168.88.50 · 2026-05-29
+
+### [OK-005] deploy-full — fetch + reset clone + deploy
+- **راه‌حل:** `bash ~/ModuleHub-cms/scripts/deploy-full.sh` · broker برای restart · `--yes` برای non-interactive
+- **تأیید:** fetch از enp63s0 · `reset --hard` وقتی remote جلوتر · health OK · commit `334f9ac`
+- **زمینه:** 2026-05-29 · logrotate + nginx + dev admin با y
+
+### [DOC-003] تنظیمات سراسری — کجا باز می‌شود؟
+- **اشتباه:** جستجوی پنل جدا در Nginx یا فرض login واقعی (فاز ۸)
+- **درست:** `/admin/settings` · لینک «Super Admin» در هدر وقتی `isSuperAdmin:true` · تا فاز ۸: `enable-dev-admin-on-server.sh` یا y در deploy-full
+- **زمینه:** فاز ۷.۵ · haderbash.ir · 2026-05-29
 
 </div>

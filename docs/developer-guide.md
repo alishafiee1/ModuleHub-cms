@@ -12,7 +12,7 @@ table td code, table th code { direction: ltr; unicode-bidi: embed; text-align: 
 
 # راهنمای توسعه‌دهنده — ModuleHub CMS
 
-> **وضعیت:** هسته در `core/` — فاز ۰–۶ (layout + wizard + runtime + package-cache + backup-restore).  
+> **وضعیت:** هسته در `core/` — فاز ۰–۷.۵ (layout + wizard + runtime + package-cache + backup-restore + settings).  
 > ماژول بعد از wizard با `status: stopped` ثبت می‌شود؛ از ⚙ **Start** سپس `/modules/<id>/` باز می‌شود.  
 > deploy و توسعه: [`dev-workflow.md`](dev-workflow.md) · چک‌لیست: [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
 
@@ -219,6 +219,9 @@ npx serve . -l 8080
 | POST | `/admin/module/:id/stop` | توقف |
 | GET | `/admin/module/:id/backup` | ZIP تکی ماژول (⚙ در UI) |
 | GET | `/modules/:id/*` | محتوای ماژول (بعد از Start) |
+| GET | `/admin/settings` | صفحه تنظیمات سراسری (HTML) |
+| GET | `/admin/settings/data` | JSON تنظیمات + لیست NIC |
+| POST | `/admin/settings` | ذخیره partial settings (validation) |
 
 تا فاز ۸: `MODULEHUB_DEV_SUPER_ADMIN=1` در `.env` برای تست admin — [`dev-workflow.md` §۳](dev-workflow.md)
 

@@ -115,10 +115,38 @@ warn_dirty_worktree() {
   local dirty_lines=""
   dirty_lines="$(git -C "${home_clone}" status --porcelain 2>/dev/null || true)"
   if [[ -n "${dirty_lines}" ]]; then
-    log_warn "local changes in home clone (will be discarded on reset/pull):"
+    log_warn "local changes in home clone (will be discarded before sync to origin):"
     printf '%s\n' "${dirty_lines}" | sed 's/^/[deploy-full]   /'
-    log_warn "you usually do not edit code on the server — these changes will be ignored"
+    log_warn "you usually do not edit code on the server — SCP/untracked files block git pull"
   fi
+}
+
+confirm_discard_local_changes() {
+  local home_clone="$1"
+  if ! has_dirty_worktree "${home_clone}"; then
+    return 0
+  fi
+  if [[ "${DEPLOY_FLAG_FORCE_RESET}" == true || "${DEPLOY_AUTO_YES}" == true ]]; then
+    log_info "auto-discard local changes in home clone"
+    return 0
+  fi
+  confirm "Discard ALL local changes and untracked files in home clone?" false
+}
+
+sync_clone_to_origin() {
+  local home_clone="$1"
+  local branch="$2"
+  local origin_ref="origin/${branch}"
+
+  log_step "sync home clone to ${origin_ref} (reset --hard + clean)"
+  if [[ "${DEPLOY_DRY_RUN}" == true ]]; then
+    log_info "[dry-run] git reset --hard ${origin_ref} && git clean -fd"
+    return 0
+  fi
+
+  git -C "${home_clone}" reset --hard "${origin_ref}"
+  git -C "${home_clone}" clean -fd
+  log_ok "home clone matches ${origin_ref}"
 }
 
 compare_commits_and_plan() {
@@ -148,7 +176,7 @@ compare_commits_and_plan() {
 
   if git -C "${home_clone}" merge-base --is-ancestor "${head_sha}" "${origin_sha}" 2>/dev/null \
     && [[ "${head_sha}" != "${origin_sha}" ]]; then
-    log_info "remote is ahead — will pull"
+    log_info "remote is ahead — will sync to origin/${branch} (discard local if any)"
     DEPLOY_PLAN_PULL=true
   elif [[ "${head_sha}" == "${origin_sha}" ]]; then
     log_ok "home clone matches origin/${branch}"
@@ -197,14 +225,12 @@ run_git_sync() {
     return 0
   fi
 
-  if [[ "${DEPLOY_PLAN_RESET}" == true ]]; then
-    log_step "git reset --hard origin/${branch}"
-    if [[ "${DEPLOY_DRY_RUN}" != true ]]; then
-      git -C "${home_clone}" reset --hard "origin/${branch}"
+  if [[ "${DEPLOY_PLAN_RESET}" == true || "${DEPLOY_PLAN_PULL}" == true ]]; then
+    if ! confirm_discard_local_changes "${home_clone}"; then
+      log_error "deploy aborted — clean home clone manually or use --yes / --force-reset"
+      exit 1
     fi
-  elif [[ "${DEPLOY_PLAN_PULL}" == true ]]; then
-    log_step "git pull with WAN fallback"
-    git_pull_with_wan_fallback "${home_clone}"
+    sync_clone_to_origin "${home_clone}" "${branch}"
   fi
 }
 

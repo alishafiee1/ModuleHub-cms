@@ -39,7 +39,7 @@ table th code {
 
 > **پایان هر فاز:** unit test + `npm run lint` + JSDoc توابع public — [`code-rolls.md`](code-rolls.md)  
 > **TypeScript:** همهٔ `core/src/` — type برای IO ماژول‌ها، بدون `any`.  
-> **وضعیت (2026-05-29):** فاز **۰–۶** ✅ · فاز **۷** ✅ (کد) — تست دستی ۸.۶ ⏳ — جزئیات unit: [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
+> **وضعیت (2026-05-29):** فاز **۰–۷** ✅ · فاز **۷.۵** ✅ (کد) — تست دستی 9.9 ⏳ — جزئیات unit: [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
 
 | فاز | موضوع | وضعیت |
 |-----|--------|--------|
@@ -49,7 +49,9 @@ table th code {
 | ۴ | کش پکیج | ✅ 2026-05-28 |
 | ۵ | ⚙ مدیریت ماژول (gear) | ✅ 2026-05-28 |
 | ۶ | backup کامل | ✅ 2026-05-29 |
-| ۷+ | versioning · settings · auth · … | ⏳ |
+| ۷ | versioning + log levels | ✅ 2026-05-29 |
+| ۷.۵ | تنظیمات سراسری `/admin/settings` | ✅ کد 2026-05-29 · تست دستی ⏳ |
+| ۸+ | auth · integration · … | ⏳ |
 
 ## فاز ۰: آماده‌سازی زیرساخت (۱ روز) — ✅
 
@@ -162,7 +164,10 @@ table th code {
 
 ---
 
-## فاز ۷.۵: تنظیمات سراسری ادمین (۲ روز)
+## فاز ۷.۵: تنظیمات سراسری ادمین (۲ روز) — ✅ کد 2026-05-29
+
+> **UI:** `https://haderbash.ir/admin/settings` (یا لینک «Super Admin» در هدر) · تا فاز ۸: `MODULEHUB_DEV_SUPER_ADMIN=1`  
+> **API:** `GET /admin/settings/data` · `POST /admin/settings` · ماژول `core/src/modules/system-settings/`
 
 | # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |
 |---|-------|--------|------------------|----------|

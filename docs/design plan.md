@@ -413,6 +413,8 @@ request → session parser
 
 **رادیو باکس رابط شبکه** (فقط ≥۲ NIC فعال): لیست از `ip -o link show up` — انتخاب رابط برای عملیات نصب. CMS با `network-metric-toggler` موقتاً metric را عوض و **restore** می‌کند. مسیر دائمی Ubuntu از پنل وب عوض **نمی‌شود** (ریسک dual-WAN / Xray).
 
+**API (پیاده‌سازی 2026-05-29):** `GET /admin/settings` (صفحه) · `GET /admin/settings/data` · `POST /admin/settings` — `core/src/modules/system-settings/` · multer limit از `maxZipUploadMb` در هر upload.
+
 ---
 
 ## ۱۱. پشتیبان‌گیری و بازیابی (Backup & Restore) — ✅ فاز ۶

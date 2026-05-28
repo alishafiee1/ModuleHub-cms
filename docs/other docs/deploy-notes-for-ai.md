@@ -45,6 +45,16 @@ curl -sf http://127.0.0.1:4000/health
 | `--dry-run` | فقط چاپ مراحل |
 | `--no-restart` | build بدون restart |
 
+**سؤالات تعاملی deploy-full (پیش‌فرض N):**
+
+| سؤال | y یعنی |
+|------|--------|
+| Install/update logrotate config? | کپی `config/logrotate/modulehub-cms` → `/etc/logrotate.d/modulehub-cms` |
+| Restart nginx? | `nginx -t` + reload/restart |
+| Enable dev Super Admin? | `enable-dev-admin-on-server.sh` تا فاز ۸ |
+
+برای non-interactive: `--yes`
+
 ### env
 
 | متغیر | پیش‌فرض | کار |
@@ -56,11 +66,25 @@ curl -sf http://127.0.0.1:4000/health
 
 Marker: `/opt/modulehub-cms/storage/.deploy-commit`
 
-**بازیابی:** `export MODULEHUB_SKIP_WAN=1` + `git reset --hard origin/main` → همان deploy — [`dev-workflow.md` §۵](dev-workflow.md)
+**بازیابی / discard تغییرات clone home:**
+
+```bash
+cd ~/ModuleHub-cms
+git fetch origin
+git reset --hard origin/main
+git clean -fd
+bash scripts/deploy-full.sh
+```
+
+`deploy-full` بعد از fetch به‌جای `git pull` از **`reset --hard` + `clean -fd`** استفاده می‌کند تا فایل‌های SCP/untracked مانع نشوند.
+
+**SCP از ویندوز:** فایل‌های untracked روی clone با pull تداخل دارند — یا فقط از git استفاده کن، یا بعد از SCP حتماً `reset --hard` بزن.
 
 **ادمین موقت (تا فاز ۸):** `python3 ~/ModuleHub-cms/scripts/run_via_broker.py 'bash /home/ash/ModuleHub-cms/scripts/enable-dev-admin-on-server.sh'` → `isSuperAdmin:true`
 
 **`install-to-opt`:** `.env` در `/opt` را **overwrite نمی‌کند** (rsync `--exclude .env`)
+
+**logrotate (تأیید سرور 2026-05-29):** `logrotate 3.22.0` · `/etc/logrotate.d/modulehub-cms` — rotate 14 روز · daily · compress
 
 ---
 
@@ -78,6 +102,8 @@ Marker: `/opt/modulehub-cms/storage/.deploy-commit`
 | ویرایش `scripts/` روی سرور | لوکال + push |
 | metric toggler crash | `MODULEHUB_SKIP_WAN=1` + همگام‌سازی git |
 | `npm: not found` در package-cache (systemd) | `MODULEHUB_NPM_PATH` در `.env` یا auto از `~/.nvm/versions/node/` |
+| SCP اسکریپت به clone + pull | `git push` + `deploy-full` · یا `reset --hard && git clean -fd` |
+| CRLF در `.sh` از ویندوز | `.gitattributes` · `sed -i 's/\r$//'` · LF قبل از SCP |
 | restart بعد deploy بدون TTY | `deploy-full.sh` (broker داخلی) یا `run_via_broker.py` |
 | deploy دستی چند مرحله | `bash scripts/deploy-full.sh` |
 

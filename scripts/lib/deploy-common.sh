@@ -110,3 +110,8 @@ strip_crlf_from_scripts() {
   done
   shopt -u nullglob
 }
+
+has_dirty_worktree() {
+  local home_clone="$1"
+  [[ -n "$(git -C "${home_clone}" status --porcelain 2>/dev/null || true)" ]]
+}

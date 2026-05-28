@@ -157,11 +157,13 @@ bash ~/ModuleHub-cms/scripts/deploy-full.sh
 ```
 
 اسکریپت **`deploy-full.sh`** این کارها را خودکار می‌کند:
-- fetch/pull با fallback اینترفیس (dual-WAN)
-- هشدار تغییرات محلی در clone
-- مقایسه commit با GitHub و marker در `/opt`
+- fetch با fallback اینترفیس (dual-WAN)
+- **هم‌راستا با origin:** `reset --hard` + `clean -fd` روی clone home (تغییرات/SCP/untracked دور ریخته می‌شود)
+- مقایسه commit با marker در `/opt/storage/.deploy-commit`
 - rsync → build → restart (sudo broker یا پسورد)
 - health check + سؤالات اختیاری (logrotate، nginx، dev-admin)
+
+> **روی سرور کد ننویس** — دادهٔ واقعی در `/opt` است. SCP اسکript به clone معمولاً لازم نیست؛ `git push` + `deploy-full` کافی است.
 
 **flags:** `--yes` · `--force-reset` · `--force-rebuild` · `--skip-wan` · `--dry-run` · `--no-restart`
 
@@ -209,14 +211,14 @@ curl -sf http://127.0.0.1:4000/health
 
 ```bash
 # با sudo broker (پسورد یک‌بار در ترمینال broker):
-python3 ~/ModuleHub-cms/scripts/broker-sudo.py \
+python3 ~/ModuleHub-cms/scripts/run_via_broker.py \
   'bash /home/ash/ModuleHub-cms/scripts/enable-dev-admin-on-server.sh'
 ```
 
 یا دستی: در `/opt/modulehub-cms/.env` خط `MODULEHUB_DEV_SUPER_ADMIN=1` + restart:
 
 ```bash
-python3 ~/ModuleHub-cms/scripts/broker-sudo.py 'systemctl restart modulehub-cms'
+python3 ~/ModuleHub-cms/scripts/run_via_broker.py 'systemctl restart modulehub-cms'
 ```
 
 ### چک
@@ -234,9 +236,11 @@ curl -s http://127.0.0.1:4000/api/auth/status
 
 ## ۵. چرا روی سرور اغلب باید تغییرات Git را دور بریزی؟
 
-گاهی روی `~/ModuleHub-cms` فایلی **دستی** عوض شده (تست، ویرایش اشتباه، SCP جزئی). آنوقت `git pull` می‌گوید: *Would be overwritten*.
+گاهی روی `~/ModuleHub-cms` فایلی **دستی** عوض شده (تست، SCP، ویرایش اشتباه). آنوقت `git pull` می‌گوید: *Would be overwritten*.
 
-**روتین امن (دادهٔ سایت از بین نمی‌رود):**
+**ساده‌ترین راه:** `bash scripts/deploy-full.sh` — بعد از fetch خودش می‌پرسد و `reset --hard` + `clean -fd` می‌زند.
+
+**روتین دستی (دادهٔ سایت از بین نمی‌رود):**
 
 | محل | با `reset --hard` پاک می‌شود؟ |
 |-----|------------------------------|
@@ -251,13 +255,14 @@ export MODULEHUB_SKIP_WAN=1
 cd ~/ModuleHub-cms
 git fetch origin
 git reset --hard origin/main    # فقط clone home — نه opt و نه .env
+git clean -fd                 # untracked که با pull تداخل داشت (مثلاً بعد از SCP)
 
 bash scripts/install-to-opt.sh
 cd /opt/modulehub-cms
 bash scripts/deploy-on-server.sh --skip-pull
 
 # اگر ادمین قطع شد:
-python3 ~/ModuleHub-cms/scripts/broker-sudo.py \
+python3 ~/ModuleHub-cms/scripts/run_via_broker.py \
   'bash /home/ash/ModuleHub-cms/scripts/enable-dev-admin-on-server.sh'
 
 curl -sf http://127.0.0.1:4000/health
@@ -305,7 +310,7 @@ cd /opt/modulehub-cms
 bash scripts/install-systemd.sh
 bash scripts/deploy-on-server.sh --skip-pull
 
-python3 ~/ModuleHub-cms/scripts/broker-sudo.py \
+python3 ~/ModuleHub-cms/scripts/run_via_broker.py \
   'bash /home/ash/ModuleHub-cms/scripts/enable-dev-admin-on-server.sh'
 ```
 
@@ -331,7 +336,7 @@ scp public/script.js ash@192.168.88.50:~/ModuleHub-cms/public/
 
 ```bash
 bash ~/ModuleHub-cms/scripts/install-to-opt.sh
-python3 ~/ModuleHub-cms/scripts/broker-sudo.py 'systemctl restart modulehub-cms'
+python3 ~/ModuleHub-cms/scripts/run_via_broker.py 'systemctl restart modulehub-cms'
 ```
 
 ---

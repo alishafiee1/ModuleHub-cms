@@ -21,7 +21,7 @@ curl http://127.0.0.1:4000/health
 
 **Phase 6:** Full backup/restore — `POST /admin/backup`, `POST /admin/restore` (no UI yet; per-module ZIP in ⚙). See `docs/developer-guide.md` §9.1.
 
-**Phase 7.5:** Super Admin settings — `GET /admin/settings`, `GET/POST /admin/settings/data|settings` — upload limits, port range, defaults, auth TTL fields (consumed in phase 8).
+**Phase 7.5:** Super Admin settings — `GET /admin/settings`, `GET /admin/settings/data`, `POST /admin/settings` — upload limits, port range, defaults, auth TTL (phase 8). Deploy: `bash scripts/deploy-full.sh` (prompts: logrotate, nginx, dev admin).
 
 ## Scripts
 
@@ -42,7 +42,7 @@ source ~/.nvm/nvm.sh && nvm use 20
 bash ~/ModuleHub-cms/scripts/deploy-full.sh
 ```
 
-Manual steps: [docs/dev-workflow.md](docs/dev-workflow.md) §۲
+Manual steps: [docs/dev-workflow.md](docs/dev-workflow.md) §۲ · `.gitattributes` keeps `*.sh` as LF for Linux deploy
 
 - [docs/server-scripts.md](docs/server-scripts.md) — اسکریپت‌ها
 - [docs/other docs/deploy-notes-for-ai.md](docs/other%20docs/deploy-notes-for-ai.md) — خلاصه برای AI
