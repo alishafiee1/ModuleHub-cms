@@ -8,6 +8,7 @@ import { createLayoutRouter } from '../modules/home-layout';
 import { requestLoggingMiddleware } from '../modules/logger';
 import { createModuleManagementRouter } from '../modules/module-management';
 import { createModuleServingRouter } from '../modules/module-manager';
+import { createBackupRestoreRouter, createRestoreRouter } from '../modules/backup-restore';
 import { createUploadWizardRouter } from '../modules/module-upload-wizard';
 
 const DEFAULT_HOST = '127.0.0.1';
@@ -30,6 +31,8 @@ export function createApp(): Application {
   app.use('/modules', createModuleServingRouter());
   app.use('/admin', createAdminLoginRouter());
   app.use('/admin/module', createModuleManagementRouter());
+  app.use('/admin/backup', createBackupRestoreRouter());
+  app.use('/admin', createRestoreRouter());
   app.use('/admin', createUploadWizardRouter());
   app.use('/thumbnails', express.static(PATHS.thumbnailsDirectory));
   app.use(express.static(PATHS.publicDirectory));

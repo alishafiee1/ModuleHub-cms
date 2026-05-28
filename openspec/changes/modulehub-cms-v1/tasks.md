@@ -105,14 +105,14 @@
 
 ## 7. فاز ۶ — پشتیبان‌گیری (backup-restore)
 
-- [ ] 7.1 backup-restore module — ZIP کامل
-- [ ] 7.2 Backup endpoint + download
-- [ ] 7.3 Restore + pre-restore backup
-- [ ] 7.4 CLI backup
-- [ ] 7.5 **Unit:** `tests/unit/backup-restore/backup-manifest.test.ts` — لیست فایل‌های اجباری داخل ZIP
-- [ ] 7.6 **Unit:** `tests/unit/backup-restore/restore-validator.test.ts` — رد ZIP ناقص یا corrupt
+- [x] 7.1 backup-restore module — ZIP کامل
+- [x] 7.2 Backup endpoint + download — `POST /admin/backup`, `GET /admin/backup/list`, `GET /admin/backup/download/:fileName`
+- [x] 7.3 Restore + pre-restore backup — `POST /admin/restore` + `confirm=true`
+- [x] 7.4 CLI backup — `node scripts/cli.js backup --output <path>`
+- [x] 7.5 **Unit:** `tests/unit/backup-restore/backup-manifest.test.ts` — لیست فایل‌های اجباری داخل ZIP
+- [x] 7.6 **Unit:** `tests/unit/backup-restore/restore-validator.test.ts` — رد ZIP ناقص یا corrupt
 - [ ] 7.7 تست دستی: backup → حذف → restore
-- [ ] 7.8 **بستن فاز:** `npm run lint` + JSDoc برای `backup-restore`
+- [x] 7.8 **بستن فاز:** `npm run lint` + JSDoc برای `backup-restore` — 2026-05-28
 
 ## 8. فاز ۷ — نسخه‌گذاری و لاگ
 

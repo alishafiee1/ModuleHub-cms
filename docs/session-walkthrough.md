@@ -56,6 +56,10 @@ table th code,
 
 ## آخرین جلسات
 
+### 2026-05-28 — فاز ۶ backup-restore
+- **درخواست:** شروع فاز جدید (backup کامل)
+- **نتیجه:** `backup-restore/` · ۱۰ unit test · `POST /admin/backup` · `POST /admin/restore` · `scripts/cli.js backup` — تست دستی ۶.۳ باز
+
 ### 2026-05-28 — /sync-docs وابستگی‌ها + fixture تست
 - **درخواست (UTC):** توضیح «معمای وابستگی‌ها» + `/sync-docs` — `node_modules` لازم نیست؛ نصب موقع upload
 - **نتیجه:** `developer-guide.md` §۲.۱ · patch `proposal` · `module-hosting-guide` · fixture `phase4-cache-test` + اسکریپت build ZIP

@@ -135,13 +135,15 @@ table th code {
 
 ---
 
-## فاز ۶: پشتیبان‌گیری و بازیابی کامل (۲ روز)
+## فاز ۶: پشتیبان‌گیری و بازیابی کامل (۲ روز) — ✅ کد + unit 2026-05-28
+
+> dev: `MODULEHUB_DEV_SUPER_ADMIN=1` · API: `POST /admin/backup` · `GET /admin/backup/list` · `GET /admin/backup/download/:file` · `POST /admin/restore` (field `backup`, body `confirm=true`) · CLI: `node scripts/cli.js backup --output path.zip`
 
 | # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |
 |---|-------|--------|------------------|----------|
-| 6.1 | ایجاد backup کامل | فشرده‌سازی `site-layout.json`, `system-settings.json`, `standalone-modules`, `thumbnails` در یک ZIP | فایل با timestamp در `storage/backups/` | `ls storage/backups/` |
-| 6.2 | بازیابی از backup | آپلود ZIP، استخراج در دایرکتوری موقت، بازنویسی فایل‌ها، ری‌استارت سرویس | همه ماژول‌ها و تنظیمات به حالت قبل برگردند | مقایسه قبل و بعد |
-| 6.3 | تست بازیابی پس از حذف | یک ماژول را حذف کنید، سپس backup را restore | ماژول حذف شده برگردد و قابل اجرا باشد | بررسی لیست ماژول‌ها |
+| 6.1 | ایجاد backup کامل | `core/src/modules/backup-restore/` — manifest + ZIP | `modulehub-full-<timestamp>.zip` در `storage/backups/` | unit `backup-manifest` + `restore-validator` |
+| 6.2 | بازیابی از backup | pre-restore ZIP خودکار · stop running modules · extract | layout/settings/modules/thumbnails بازنویسی | `POST /admin/restore` |
+| 6.3 | تست بازیابی پس از حذف | — | ماژول حذف‌شده برگردد | **تست دستی** (باز) |
 
 ---
 
