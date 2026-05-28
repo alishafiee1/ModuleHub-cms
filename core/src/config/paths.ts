@@ -19,6 +19,18 @@ export const PATHS = {
   get standaloneModules(): string {
     return path.join(getAppRoot(), 'standalone-modules');
   },
+  get siteLayout(): string {
+    return path.join(getAppRoot(), 'storage', 'site-layout.json');
+  },
+  get siteLayoutSeed(): string {
+    return path.join(getAppRoot(), 'docs', 'site-layout.json');
+  },
+  get publicDirectory(): string {
+    return path.join(getAppRoot(), 'public');
+  },
+  get thumbnailsDirectory(): string {
+    return path.join(getAppRoot(), 'thumbnails');
+  },
   get cmsLogDirectory(): string {
     return path.join(getAppRoot(), 'storage', 'logs');
   },

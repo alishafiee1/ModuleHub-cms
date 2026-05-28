@@ -1,6 +1,9 @@
 import express, { type Application } from 'express';
 import http from 'http';
+import path from 'path';
 import { ensureRequiredDirectories } from '../bootstrap/ensure-directories';
+import { PATHS } from '../config/paths';
+import { createLayoutRouter } from '../modules/home-layout';
 import { requestLoggingMiddleware } from '../modules/logger';
 
 const DEFAULT_HOST = '127.0.0.1';
@@ -13,9 +16,20 @@ const DEFAULT_PORT = 4000;
 export function createApp(): Application {
   const app = express();
   app.use(requestLoggingMiddleware);
+  app.use(express.json());
+
   app.get('/health', (_request, response) => {
     response.status(200).json({ status: 'ok' });
   });
+
+  app.use('/api', createLayoutRouter());
+  app.use('/thumbnails', express.static(PATHS.thumbnailsDirectory));
+  app.use(express.static(PATHS.publicDirectory));
+
+  app.get('/', (_request, response) => {
+    response.sendFile(path.join(PATHS.publicDirectory, 'index.html'));
+  });
+
   return app;
 }
 
