@@ -2,7 +2,8 @@
 # purpose --- Deploy ModuleHub CMS on server after git pull: deps, build, systemd, health ---
 set -euo pipefail
 
-APP_DIR="${MODULEHUB_APP_DIR:-/opt/modulehub-cms}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR="${MODULEHUB_APP_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
 SERVICE_NAME="${MODULEHUB_SERVICE:-modulehub-cms}"
 SERVICE_FILE="${APP_DIR}/config/systemd/${SERVICE_NAME}.service"
 SYSTEMD_DEST="/etc/systemd/system/${SERVICE_NAME}.service"
@@ -105,8 +106,13 @@ if [[ ! -f .env ]]; then
   echo "[deploy] WARN: .env missing — copy from .env.example and set SESSION_SECRET / ADMIN_PASSWORD_HASH" >&2
 fi
 
-log "npm ci --omit=dev..."
-run npm ci --omit=dev
+if [[ -f package-lock.json ]]; then
+  log "npm ci --omit=dev..."
+  run npm ci --omit=dev
+else
+  log "WARN: package-lock.json missing — using npm install --omit=dev"
+  run npm install --omit=dev
+fi
 
 if [[ "$SKIP_BUILD" != true ]]; then
   if grep -q '"build"' package.json; then

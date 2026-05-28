@@ -39,7 +39,8 @@ table th code {
 
 > **مخزن عمومی:** [github.com/alishafiee1/ModuleHub-cms](https://github.com/alishafiee1/ModuleHub-cms)  
 > **سرور:** `ash@192.168.88.50` — مسیر نصب: `/opt/modulehub-cms`  
-> **اسکریپت deploy سرور:** `scripts/deploy-on-server.sh`
+> **اسکریپت deploy سرور:** `scripts/deploy-on-server.sh`  
+> **راهنمای اسکریپت‌ها:** [`server-scripts.md`](server-scripts.md)
 
 ---
 
@@ -90,8 +91,33 @@ cd /opt/modulehub-cms
 cp .env.example .env
 # ویرایش .env — SESSION_SECRET و ADMIN_PASSWORD_HASH
 
-chmod +x scripts/deploy-on-server.sh
+chmod +x scripts/*.sh
 ./scripts/deploy-on-server.sh
+```
+
+**اگر کپی به `/opt` خطای Permission داد** — یا مالکیت را درست کن، یا موقتاً از home اجرا کن:
+
+```bash
+# روش A — نصب در home (سریع)
+cd ~/ModuleHub-cms
+chmod +x scripts/*.sh    # یا: bash scripts/setup-server-dirs.sh
+bash scripts/setup-server-dirs.sh
+npm ci && npm run build
+cp .env.example .env      # SESSION_SECRET و ADMIN_PASSWORD_HASH
+bash scripts/install-systemd.sh   # مسیر home را خودکار می‌گیرد
+
+# روش B — انتقال به /opt
+bash scripts/install-to-opt.sh
+cd /opt/modulehub-cms
+npm ci && npm run build
+MODULEHUB_APP_DIR=/opt/modulehub-cms bash scripts/install-systemd.sh
+```
+
+```bash
+# مالکیت /opt برای clone مستقیم
+sudo mkdir -p /opt/modulehub-cms
+sudo chown ash:ash /opt/modulehub-cms
+git clone https://github.com/alishafiee1/ModuleHub-cms.git /opt/modulehub-cms
 ```
 
 دایرکتوری‌های داده (روی سرور، خارج از git):
