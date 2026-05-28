@@ -44,53 +44,76 @@ const ModuleHubApi = (function createModuleHubApi() {
   }
 
   /**
-   * Creates a virtual folder (Super Admin — phase 3).
+   * Creates a virtual folder (Super Admin).
    * @param {string} parentId - Parent folder id
    * @param {string} name - Folder display name
-   * @param {string} csrfToken - CSRF token
    * @returns {Promise<object>}
    */
-  async function createFolder(parentId, name, csrfToken) {
+  async function createFolder(parentId, name) {
     return requestJson('/admin/folder', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': csrfToken,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ parentId, name }),
+    });
+  }
+
+  /**
+   * Uploads a module ZIP archive.
+   * @param {File} zipFile - ZIP file from file input
+   * @returns {Promise<{ moduleId: string }>}
+   */
+  async function uploadZip(zipFile) {
+    const formData = new FormData();
+    formData.append('zipFile', zipFile);
+    const response = await fetch('/admin/upload', {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: formData,
+    });
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({}));
+      throw new Error(errorBody.error || `Upload failed (${response.status})`);
+    }
+    return response.json();
+  }
+
+  /**
+   * Completes wizard and registers module in site-layout.
+   * @param {object} payload - Wizard save body
+   * @returns {Promise<object>}
+   */
+  async function saveWizard(payload) {
+    return requestJson('/admin/wizard/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
     });
   }
 
   /**
    * Starts a module by id (auth required — phase 4).
    * @param {string} moduleId - Module id
-   * @param {string} csrfToken - CSRF token
    * @returns {Promise<object>}
    */
-  async function startModule(moduleId, csrfToken) {
-    return requestJson(`/admin/module/${moduleId}/start`, {
-      method: 'POST',
-      headers: { 'X-CSRF-Token': csrfToken },
-    });
+  async function startModule(moduleId) {
+    return requestJson(`/admin/module/${moduleId}/start`, { method: 'POST' });
   }
 
   /**
    * Stops a module by id (auth required — phase 4).
    * @param {string} moduleId - Module id
-   * @param {string} csrfToken - CSRF token
    * @returns {Promise<object>}
    */
-  async function stopModule(moduleId, csrfToken) {
-    return requestJson(`/admin/module/${moduleId}/stop`, {
-      method: 'POST',
-      headers: { 'X-CSRF-Token': csrfToken },
-    });
+  async function stopModule(moduleId) {
+    return requestJson(`/admin/module/${moduleId}/stop`, { method: 'POST' });
   }
 
   return {
     loadLayout,
     loadAuthStatus,
     createFolder,
+    uploadZip,
+    saveWizard,
     startModule,
     stopModule,
   };

@@ -239,7 +239,7 @@
 
     const addButton = document.getElementById('addNewCardBtn');
     if (addButton) {
-      addButton.addEventListener('click', openAddPlaceholder);
+      addButton.addEventListener('click', () => { void openAddMenu(); });
     }
   }
 
@@ -302,13 +302,99 @@
     }
   }
 
-  function openAddPlaceholder() {
-    Swal.fire({
+  async function openAddMenu() {
+    const choice = await Swal.fire({
       title: 'افزودن محتوا',
-      html: '<div style="text-align:right;"><p>«پوشه جدید» و «آپلود ZIP» در فاز ۳ فعال می‌شوند.</p></div>',
-      icon: 'info',
-      confirmButtonText: 'بستن',
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: 'آپلود ZIP',
+      denyButtonText: 'پوشه جدید',
+      cancelButtonText: 'انصراف',
     });
+
+    if (choice.isConfirmed) {
+      await runUploadWizard();
+    } else if (choice.isDenied) {
+      await runCreateFolderFlow();
+    }
+  }
+
+  async function runCreateFolderFlow() {
+    const { value: name } = await Swal.fire({
+      title: 'پوشه جدید',
+      input: 'text',
+      inputPlaceholder: 'نام پوشه',
+      showCancelButton: true,
+      confirmButtonText: 'ایجاد',
+      cancelButtonText: 'انصراف',
+    });
+    if (!name) {
+      return;
+    }
+    try {
+      await ModuleHubApi.createFolder(currentFolderId, name);
+      await refreshFromServer();
+      Swal.fire({ icon: 'success', title: 'پوشه ایجاد شد', timer: 1200, showConfirmButton: false });
+    } catch (error) {
+      Swal.fire({ icon: 'error', title: 'خطا', text: error.message });
+    }
+  }
+
+  async function runUploadWizard() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.zip,application/zip';
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) {
+        return;
+      }
+      try {
+        Swal.fire({ title: 'در حال آپلود...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        const uploadResult = await ModuleHubApi.uploadZip(file);
+        Swal.close();
+
+        const step1 = await ModuleDialogs.showWizardStep1Dialog();
+        if (!step1) {
+          return;
+        }
+
+        const step2 = await ModuleDialogs.showResourceAndIconDialog({ moduleName: file.name.replace(/\.zip$/i, '') });
+        if (!step2) {
+          return;
+        }
+
+        const needsProcess = step1.needsProcess;
+        const manualPort = step1.port ? parseInt(step1.port, 10) : null;
+
+        await ModuleHubApi.saveWizard({
+          moduleId: uploadResult.moduleId,
+          parentId: currentFolderId,
+          name: step2.moduleName || file.name,
+          changelog: step2.moduleDesc || 'نسخه اولیه',
+          docker: step1.docker,
+          port: needsProcess && manualPort ? manualPort : null,
+          permissions: step1.permissions,
+          needsProcess,
+          resources: {
+            cpu_limit: step2.cpu_limit,
+            ram_limit_mb: step2.ram_limit_mb,
+            swap_limit_mb: step2.swap_limit_mb,
+            disk_iops: 100,
+            net_mbps: 10,
+          },
+          icon: step2.icon,
+          thumbnail: '',
+        });
+
+        await refreshFromServer();
+        Swal.fire({ icon: 'success', title: 'ماژول ثبت شد', text: 'وضعیت: متوقف — runtime در فاز ۴', timer: 2500 });
+      } catch (error) {
+        Swal.fire({ icon: 'error', title: 'خطا', text: error.message });
+      }
+    };
   }
 
   function renderAll() {

@@ -1,5 +1,6 @@
 import type { Request, Response, Router } from 'express';
 import { Router as createRouter } from 'express';
+import { getAuthStatusPayload } from '../admin-auth';
 import { getCmsLogger } from '../logger';
 import { LayoutParseError } from './layout-parser';
 import { loadLayoutForApi } from './layout-store';
@@ -28,16 +29,13 @@ export async function getLayoutHandler(request: Request, response: Response): Pr
 }
 
 /**
- * Stub auth status until phase 8 — reports no active admin session.
+ * Returns auth status (dev Super Admin flag until phase 8 session login).
  * @param request - Express request
  * @param response - Express response
  */
 export function getAuthStatusHandler(request: Request, response: Response): void {
   void request;
-  response.status(200).json({
-    isSuperAdmin: false,
-    managedModuleIds: [] as string[],
-  });
+  response.status(200).json(getAuthStatusPayload());
 }
 
 /**

@@ -5,6 +5,7 @@ import { ensureRequiredDirectories } from '../bootstrap/ensure-directories';
 import { PATHS } from '../config/paths';
 import { createLayoutRouter } from '../modules/home-layout';
 import { requestLoggingMiddleware } from '../modules/logger';
+import { createUploadWizardRouter } from '../modules/module-upload-wizard';
 
 const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_PORT = 4000;
@@ -23,6 +24,7 @@ export function createApp(): Application {
   });
 
   app.use('/api', createLayoutRouter());
+  app.use('/admin', createUploadWizardRouter());
   app.use('/thumbnails', express.static(PATHS.thumbnailsDirectory));
   app.use(express.static(PATHS.publicDirectory));
 

@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { PATHS } from '../config/paths';
 import { seedSiteLayoutIfMissing } from '../modules/home-layout';
+import { seedSystemSettingsIfMissing } from '../modules/system-settings';
 
 /**
  * Ensures required runtime directories exist before the server accepts traffic.
@@ -13,5 +14,7 @@ export async function ensureRequiredDirectories(): Promise<void> {
   await fs.ensureDir(PATHS.standaloneModules);
   await fs.ensureDir(path.dirname(PATHS.siteLayout));
   await fs.ensureDir(PATHS.thumbnailsDirectory);
+  await fs.ensureDir(PATHS.uploadTempDirectory);
   await seedSiteLayoutIfMissing();
+  await seedSystemSettingsIfMissing();
 }

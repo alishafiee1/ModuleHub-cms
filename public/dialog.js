@@ -7,6 +7,43 @@ const ModuleDialogs = (function createModuleDialogs() {
   ];
 
   /**
+   * Wizard step 1 — Docker, port, permissions, static vs process.
+   * @returns {Promise<object|undefined>}
+   */
+  async function showWizardStep1Dialog() {
+    const { value: result } = await Swal.fire({
+      title: 'مرحله ۱: نوع اجرا و پورت',
+      html: `
+        <div style="text-align:right;">
+          <label><input type="checkbox" id="wiz-docker"> اجرا در Docker</label>
+          <label style="display:block; margin-top:8px;">
+            <input type="checkbox" id="wiz-needs-process" checked> نیاز به پروسه (Backend/Docker) — غیرفعال = Static/SPA
+          </label>
+          <label>پورت داخلی (خالی = خودکار ۴۱۰۰–۴۹۹۹)</label>
+          <input id="wiz-port" class="swal2-input" type="number" placeholder="مثلاً 4105 یا خالی">
+          <label>دسترسی‌ها</label>
+          <select id="wiz-permissions" class="swal2-input">
+            <option value="network">network</option>
+            <option value="network+volume">network+volume</option>
+            <option value="none">none</option>
+          </select>
+        </div>
+      `,
+      focusConfirm: false,
+      confirmButtonText: 'مرحله بعد',
+      cancelButtonText: 'انصراف',
+      showCancelButton: true,
+      preConfirm: () => ({
+        docker: document.getElementById('wiz-docker').checked,
+        needsProcess: document.getElementById('wiz-needs-process').checked,
+        port: document.getElementById('wiz-port').value.trim(),
+        permissions: document.getElementById('wiz-permissions').value,
+      }),
+    });
+    return result;
+  }
+
+  /**
    * Shows module resource and icon configuration dialog.
    * @param {object} [initialData] - Prefilled form values
    * @returns {Promise<object|undefined>}
@@ -173,6 +210,7 @@ const ModuleDialogs = (function createModuleDialogs() {
   }
 
   return {
+    showWizardStep1Dialog,
     showResourceAndIconDialog,
     showLogsDialog,
     showCacheInfoDialog,

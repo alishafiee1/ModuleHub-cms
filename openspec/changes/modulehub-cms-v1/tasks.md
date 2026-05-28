@@ -35,21 +35,21 @@
 
 ## 3. فاز ۲ — Add wizard (module-upload-wizard + virtual-folder)
 
-- [ ] 3.1 Endpoint `POST /admin/upload` — multer با limit از system-settings
-- [ ] 3.2 استخراج ZIP به `standalone-modules/<generated-id>/`
-- [ ] 3.3 Wizard مرحله ۱: Docker/Port/Permissions
-- [ ] 3.4 Wizard مرحله ۲: آیکون، thumbnail، sliders منابع
-- [ ] 3.5 Wizard مرحله ۳: ذخیره در site-layout (version=1.0.0, status=stopped)
-- [ ] 3.6 Port allocator — 4100–4999
-- [ ] 3.7 Frontend: کارت + → «پوشه جدید» / «آپلود ZIP»
-- [ ] 3.7.1 API `POST /admin/folder` — پوشه مجازی
-- [ ] 3.7.2 Frontend: فرم نام پوشه + refresh layout
-- [ ] 3.8 **Unit:** `tests/unit/module-upload-wizard/port-allocator.test.ts` — تخصیص پورت آزاد، محدوده، تداخل، پورت دستی نامعتبر
-- [ ] 3.9 **Unit:** `tests/unit/module-upload-wizard/upload-validator.test.ts` — رد non-ZIP، mock حجم > limit → 413
-- [ ] 3.10 **Unit:** `tests/unit/module-upload-wizard/wizard-save.test.ts` — ثبت ماژول با version=1.0.0 و status=stopped
-- [ ] 3.11 **Unit:** `tests/unit/virtual-folder/folder-creator.test.ts` — افزودن پوشه مجازی به layout بدون پوشه فیزیکی
+- [x] 3.1 Endpoint `POST /admin/upload` — multer با limit از system-settings
+- [x] 3.2 استخراج ZIP به `standalone-modules/<generated-id>/`
+- [x] 3.3 Wizard مرحله ۱: Docker/Port/Permissions
+- [x] 3.4 Wizard مرحله ۲: آیکون، thumbnail، sliders منابع
+- [x] 3.5 Wizard مرحله ۳: ذخیره در site-layout (version=1.0.0, status=stopped)
+- [x] 3.6 Port allocator — 4100–4999
+- [x] 3.7 Frontend: کارت + → «پوشه جدید» / «آپلود ZIP»
+- [x] 3.7.1 API `POST /admin/folder` — پوشه مجازی
+- [x] 3.7.2 Frontend: فرم نام پوشه + refresh layout
+- [x] 3.8 **Unit:** `tests/unit/module-upload-wizard/port-allocator.test.ts` — تخصیص پورت آزاد، محدوده، تداخل، پورت دستی نامعتبر
+- [x] 3.9 **Unit:** `tests/unit/module-upload-wizard/upload-validator.test.ts` — رد non-ZIP، mock حجم > limit → 413
+- [x] 3.10 **Unit:** `tests/unit/module-upload-wizard/wizard-save.test.ts` — ثبت ماژول با version=1.0.0 و status=stopped
+- [x] 3.11 **Unit:** `tests/unit/virtual-folder/folder-creator.test.ts` — افزودن پوشه مجازی به layout بدون پوشه فیزیکی
 - [ ] 3.12 تست دستی: ZIP کوچک | ZIP >200MB → 413 | فایل غیر ZIP → خطا
-- [ ] 3.13 **بستن فاز:** `npm run lint` + JSDoc برای `port-allocator`، `upload`، `virtual-folder`
+- [x] 3.13 **بستن فاز:** `npm run lint` + JSDoc برای `port-allocator`، `upload`، `virtual-folder`
 
 ## 4. فاز ۳ — اجرای ماژول (module-runtime)
 

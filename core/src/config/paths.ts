@@ -31,6 +31,15 @@ export const PATHS = {
   get thumbnailsDirectory(): string {
     return path.join(getAppRoot(), 'thumbnails');
   },
+  get systemSettings(): string {
+    return path.join(getAppRoot(), 'storage', 'system-settings.json');
+  },
+  get systemSettingsSeed(): string {
+    return path.join(getAppRoot(), 'docs', 'system-settings.example.json');
+  },
+  get uploadTempDirectory(): string {
+    return path.join(getAppRoot(), 'storage', 'upload-temp');
+  },
   get cmsLogDirectory(): string {
     return path.join(getAppRoot(), 'storage', 'logs');
   },

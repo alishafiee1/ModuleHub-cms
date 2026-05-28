@@ -92,3 +92,13 @@ export async function loadLayoutForApi(): Promise<LayoutApiResponse> {
   const layout = await readSiteLayout();
   return toLayoutApiResponse(layout);
 }
+
+/**
+ * Persists site-layout.json to storage.
+ * @param layout - Validated layout document
+ * @returns Promise resolved after write
+ */
+export async function writeSiteLayout(layout: SiteLayoutDocument): Promise<void> {
+  await fs.ensureDir(path.dirname(PATHS.siteLayout));
+  await fs.writeJson(PATHS.siteLayout, layout, { spaces: 2 });
+}

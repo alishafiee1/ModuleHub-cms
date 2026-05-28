@@ -12,6 +12,7 @@ export {
   seedSiteLayoutIfMissing,
   toLayoutApiResponse,
   toPublicModuleEntry,
+  writeSiteLayout,
 } from './layout-store';
 export { createLayoutRouter, getAuthStatusHandler, getLayoutHandler } from './layout-routes';
 export type {

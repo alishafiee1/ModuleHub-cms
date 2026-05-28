@@ -7,9 +7,13 @@ Modular CMS for [haderbash.ir](https://haderbash.ir) — add site modules via ZI
 ```bash
 npm install
 npm run build
+# Until phase 8 auth: enable admin UI locally
+set MODULEHUB_DEV_SUPER_ADMIN=1   # Windows CMD
 npm run dev
 curl http://127.0.0.1:4000/health
 ```
+
+**Phase 2:** `POST /admin/upload`, `POST /admin/wizard/save`, `POST /admin/folder` — ZIP wizard + virtual folders.
 
 ## Scripts
 
