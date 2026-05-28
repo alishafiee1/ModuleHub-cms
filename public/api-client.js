@@ -176,6 +176,27 @@ const ModuleHubApi = (function createModuleHubApi() {
     return requestJson(`/admin/module/${moduleId}/github-sync`, { method: 'POST' });
   }
 
+  /**
+   * Loads system settings for the admin settings page.
+   * @returns {Promise<{ settings: object, networkInterfaces: string[], showNicSelector: boolean }>}
+   */
+  async function loadSystemSettings() {
+    return requestJson('/admin/settings/data');
+  }
+
+  /**
+   * Saves partial system settings (Super Admin).
+   * @param {object} payload - Settings fields to update
+   * @returns {Promise<{ settings: object, message: string }>}
+   */
+  async function saveSystemSettings(payload) {
+    return requestJson('/admin/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
   return {
     loadLayout,
     loadAuthStatus,
@@ -191,5 +212,7 @@ const ModuleHubApi = (function createModuleHubApi() {
     deleteModule,
     downloadModuleBackup,
     syncModuleGitHub,
+    loadSystemSettings,
+    saveSystemSettings,
   };
 })();

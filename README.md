@@ -21,6 +21,8 @@ curl http://127.0.0.1:4000/health
 
 **Phase 6:** Full backup/restore — `POST /admin/backup`, `POST /admin/restore` (no UI yet; per-module ZIP in ⚙). See `docs/developer-guide.md` §9.1.
 
+**Phase 7.5:** Super Admin settings — `GET /admin/settings`, `GET/POST /admin/settings/data|settings` — upload limits, port range, defaults, auth TTL fields (consumed in phase 8).
+
 ## Scripts
 
 | Command | Description |
@@ -37,11 +39,10 @@ curl http://127.0.0.1:4000/health
 
 ```bash
 source ~/.nvm/nvm.sh && nvm use 20
-cd ~/ModuleHub-cms && bash scripts/run-with-free-wan.sh git pull origin main
-bash scripts/install-to-opt.sh
-cd /opt/modulehub-cms && bash scripts/deploy-on-server.sh --skip-pull
-curl -sf http://127.0.0.1:4000/health
+bash ~/ModuleHub-cms/scripts/deploy-full.sh
 ```
+
+Manual steps: [docs/dev-workflow.md](docs/dev-workflow.md) §۲
 
 - [docs/server-scripts.md](docs/server-scripts.md) — اسکریپت‌ها
 - [docs/other docs/deploy-notes-for-ai.md](docs/other%20docs/deploy-notes-for-ai.md) — خلاصه برای AI

@@ -4,7 +4,7 @@ import fs from 'fs-extra';
 import multer from 'multer';
 import { PATHS } from '../../config/paths';
 import { requireSuperAdminMiddleware } from '../admin-auth';
-import { loadSystemSettings } from '../system-settings';
+import { loadSystemSettings, createDynamicUploadMiddleware } from '../system-settings';
 import { isZipUpload, validateUploadSize } from '../upload-validator';
 import {
   assertSafeBackupFileName,
@@ -16,9 +16,10 @@ import { RestoreValidationError, restoreFullBackupFromZipBuffer } from './restor
 
 /**
  * Creates multer storage for restore ZIP uploads.
- * @returns Configured multer middleware
+ * @param maxBytes - Maximum upload size in bytes from system settings
+ * @returns Configured multer middleware for backup field
  */
-function createRestoreUploadMiddleware() {
+function createRestoreUploadMiddleware(maxBytes: number) {
   return multer({
     storage: multer.diskStorage({
       destination: async (_request, _file, callback) => {
@@ -29,11 +30,9 @@ function createRestoreUploadMiddleware() {
         callback(null, `restore-${Date.now()}.zip`);
       },
     }),
-    limits: { fileSize: 250 * 1024 * 1024 },
-  });
+    limits: { fileSize: maxBytes },
+  }).single('backup');
 }
-
-const restoreUpload = createRestoreUploadMiddleware().single('backup');
 
 /**
  * Handles POST /admin/backup — creates a full backup ZIP on disk.
@@ -181,17 +180,11 @@ export function createBackupRestoreRouter(): Router {
  */
 export function createRestoreRouter(): Router {
   const router = createRouter();
+  const restoreUpload = createDynamicUploadMiddleware(createRestoreUploadMiddleware);
 
   router.use(requireSuperAdminMiddleware);
-  router.post('/restore', (request, response) => {
-    restoreUpload(request, response, (uploadError: unknown) => {
-      if (uploadError) {
-        const message = uploadError instanceof Error ? uploadError.message : 'Upload failed';
-        response.status(400).json({ error: message });
-        return;
-      }
-      void postRestoreHandler(request, response);
-    });
+  router.post('/restore', restoreUpload, (request, response) => {
+    void postRestoreHandler(request, response);
   });
 
   return router;

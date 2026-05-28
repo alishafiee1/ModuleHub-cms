@@ -10,6 +10,7 @@ import { createModuleManagementRouter } from '../modules/module-management';
 import { createModuleServingRouter } from '../modules/module-manager';
 import { createBackupRestoreRouter, createRestoreRouter } from '../modules/backup-restore';
 import { createUploadWizardRouter } from '../modules/module-upload-wizard';
+import { createSystemSettingsRouter } from '../modules/system-settings';
 
 const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_PORT = 4000;
@@ -34,6 +35,7 @@ export function createApp(): Application {
   app.use('/admin/backup', createBackupRestoreRouter());
   app.use('/admin', createRestoreRouter());
   app.use('/admin', createUploadWizardRouter());
+  app.use('/admin', createSystemSettingsRouter());
   app.use('/thumbnails', express.static(PATHS.thumbnailsDirectory));
   app.use(express.static(PATHS.publicDirectory));
 

@@ -10,7 +10,7 @@ import { readSiteLayout, writeSiteLayout } from '../home-layout/layout-store';
 import type { ModuleResources } from '../home-layout/types';
 import { getCmsLogger } from '../logger';
 import { installModuleDependencies } from '../package-cache';
-import { loadSystemSettings } from '../system-settings';
+import { loadSystemSettings, createDynamicUploadMiddleware } from '../system-settings';
 import { isZipUpload, validateUploadSize } from '../upload-validator';
 import { createVirtualFolder } from '../virtual-folder';
 import { extractZipToModuleDirectory } from './zip-extractor';
@@ -18,9 +18,10 @@ import { generateModuleId, registerModuleInLayout, type WizardSaveInput } from '
 
 /**
  * Creates multer storage for ZIP uploads under storage/upload-temp.
- * @returns Configured multer instance
+ * @param maxBytes - Maximum upload size in bytes from system settings
+ * @returns Configured multer middleware for a single zipFile field
  */
-function createUploadMiddleware() {
+function createUploadMiddleware(maxBytes: number) {
   return multer({
     storage: multer.diskStorage({
       destination: async (_request, _file, callback) => {
@@ -32,8 +33,8 @@ function createUploadMiddleware() {
         callback(null, safeName);
       },
     }),
-    limits: { fileSize: 250 * 1024 * 1024 },
-  });
+    limits: { fileSize: maxBytes },
+  }).single('zipFile');
 }
 
 /**
@@ -175,11 +176,11 @@ export async function postFolderHandler(request: Request, response: Response): P
  */
 export function createUploadWizardRouter(): Router {
   const router = createRouter();
-  const upload = createUploadMiddleware();
+  const uploadWithLimit = createDynamicUploadMiddleware(createUploadMiddleware);
 
   router.use(requireSuperAdminMiddleware);
 
-  router.post('/upload', upload.single('zipFile'), (request, response) => {
+  router.post('/upload', uploadWithLimit, (request, response) => {
     void postUploadHandler(request, response);
   });
   router.post('/wizard/save', (request, response) => {

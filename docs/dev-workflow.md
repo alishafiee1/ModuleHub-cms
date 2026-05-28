@@ -149,13 +149,28 @@ git push origin main
 
 **push کن:** `package-lock.json` · کد · `public/` · `scripts/`
 
-### ب) روی سرور — معمولاً همین کافی است
+### ب) روی سرور — روش توصیه‌شده (یک دستور)
+
+```bash
+source ~/.nvm/nvm.sh && nvm use 20
+bash ~/ModuleHub-cms/scripts/deploy-full.sh
+```
+
+اسکریپت **`deploy-full.sh`** این کارها را خودکار می‌کند:
+- fetch/pull با fallback اینترفیس (dual-WAN)
+- هشدار تغییرات محلی در clone
+- مقایسه commit با GitHub و marker در `/opt`
+- rsync → build → restart (sudo broker یا پسورد)
+- health check + سؤالات اختیاری (logrotate، nginx، dev-admin)
+
+**flags:** `--yes` · `--force-reset` · `--force-rebuild` · `--skip-wan` · `--dry-run` · `--no-restart`
+
+### ب۲) روی سرور — دستی (مرحله‌به‌مرحله)
 
 ```bash
 source ~/.nvm/nvm.sh && nvm use 20
 cd ~/ModuleHub-cms
 
-# اگر pull خطای overwrite داد → §۵ (discard) را بزن اول
 bash scripts/run-with-free-wan.sh git pull origin main
 
 bash scripts/install-to-opt.sh
@@ -175,6 +190,7 @@ curl -sf http://127.0.0.1:4000/health
 |--------|---------|
 | `source ~/.nvm/nvm.sh && nvm use 20` | Node 20 را برای این ترمینال فعال می‌کند |
 | `git pull origin main` | آخرین کد GitHub را داخل `~/ModuleHub-cms` می‌آورد |
+| `bash scripts/deploy-full.sh` | **توصیه‌شده** — کل زنجیره deploy با WAN fallback و sudo broker |
 | `bash scripts/run-with-free-wan.sh ...` | موقت اینترنت آزاد (`enp63s0`) برای git/npm؛ بعد برمی‌گرداند |
 | `bash scripts/install-to-opt.sh` | rsync از home به `/opt` — **`.env` سرور پاک نمی‌شود** |
 | `bash scripts/deploy-on-server.sh --skip-pull` | در `/opt`: نصب پکیج → `tsc` build → حذف devDeps → restart سرویس |

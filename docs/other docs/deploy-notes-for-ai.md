@@ -16,6 +16,15 @@ th, td { text-align: right; padding: 0.35em 0.5em; }
 
 ## دستور استاندارد deploy (کپی)
 
+**توصیه‌شده:**
+
+```bash
+source ~/.nvm/nvm.sh && nvm use 20
+bash ~/ModuleHub-cms/scripts/deploy-full.sh
+```
+
+**دستی (مرحله‌به‌مرحله):**
+
 ```bash
 source ~/.nvm/nvm.sh && nvm use 20
 cd ~/ModuleHub-cms
@@ -24,6 +33,28 @@ bash scripts/install-to-opt.sh
 cd /opt/modulehub-cms && bash scripts/deploy-on-server.sh --skip-pull
 curl -sf http://127.0.0.1:4000/health
 ```
+
+### deploy-full flags
+
+| Flag | کار |
+|------|-----|
+| `--yes` | تأیید خودکار سؤالات |
+| `--force-reset` | reset به origin/main بدون سؤال |
+| `--force-rebuild` | build حتی وقتی marker برابر است |
+| `--skip-wan` | بدون metric toggle |
+| `--dry-run` | فقط چاپ مراحل |
+| `--no-restart` | build بدون restart |
+
+### env
+
+| متغیر | پیش‌فرض | کار |
+|--------|---------|-----|
+| `MODULEHUB_WAN_INTERFACES` | از settings + default routes | لیست NIC برای git/npm (comma-separated) |
+| `MODULEHUB_SKIP_WAN` | — | `1` = بدون toggler |
+| `MODULEHUB_SOURCE` | `~/ModuleHub-cms` | home clone |
+| `MODULEHUB_APP_DIR` | `/opt/modulehub-cms` | live app |
+
+Marker: `/opt/modulehub-cms/storage/.deploy-commit`
 
 **بازیابی:** `export MODULEHUB_SKIP_WAN=1` + `git reset --hard origin/main` → همان deploy — [`dev-workflow.md` §۵](dev-workflow.md)
 
@@ -47,7 +78,8 @@ curl -sf http://127.0.0.1:4000/health
 | ویرایش `scripts/` روی سرور | لوکال + push |
 | metric toggler crash | `MODULEHUB_SKIP_WAN=1` + همگام‌سازی git |
 | `npm: not found` در package-cache (systemd) | `MODULEHUB_NPM_PATH` در `.env` یا auto از `~/.nvm/versions/node/` |
-| restart بعد deploy بدون TTY | `python3 ~/ModuleHub-cms/scripts/run_via_broker.py 'systemctl restart modulehub-cms'` |
+| restart بعد deploy بدون TTY | `deploy-full.sh` (broker داخلی) یا `run_via_broker.py` |
+| deploy دستی چند مرحله | `bash scripts/deploy-full.sh` |
 
 ---
 

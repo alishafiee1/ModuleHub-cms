@@ -126,16 +126,16 @@
 
 ## 9. فاز ۷.۵ — تنظیمات سراسری (system-settings)
 
-- [ ] 9.1 Seed system-settings از example JSON (شامل auth fields)
-- [ ] 9.2 صفحه `/admin/settings` — Super Admin only
-- [ ] 9.3 Schema validation
-- [ ] 9.4 Radio NIC
-- [ ] 9.5 اتصال settings به upload/port/resources/auth TTL
-- [ ] 9.6 **Unit:** `tests/unit/system-settings/schema-validator.test.ts` — valid/invalid نسبت به `system-settings.example.json`
-- [ ] 9.7 **Unit:** `tests/unit/system-settings/settings-merge.test.ts` — merge پیش‌فرض + partial update
-- [ ] 9.8 **Unit:** `tests/unit/system-settings/nic-validator.test.ts` — رد interface ناموجود
+- [x] 9.1 Seed system-settings از example JSON (شامل auth fields)
+- [x] 9.2 صفحه `/admin/settings` — Super Admin only
+- [x] 9.3 Schema validation
+- [x] 9.4 Radio NIC
+- [x] 9.5 اتصال settings به upload/port/resources/auth TTL
+- [x] 9.6 **Unit:** `tests/unit/system-settings/schema-validator.test.ts` — valid/invalid نسبت به `system-settings.example.json`
+- [x] 9.7 **Unit:** `tests/unit/system-settings/settings-merge.test.ts` — merge پیش‌فرض + partial update
+- [x] 9.8 **Unit:** `tests/unit/system-settings/nic-validator.test.ts` — رد interface ناموجود
 - [ ] 9.9 تست دستی: maxZipUploadMb | NIC | sessionTtlHours
-- [ ] 9.10 **بستن فاز:** `npm run lint` + JSDoc برای `system-settings`
+- [x] 9.10 **بستن فاز:** `npm run lint` + JSDoc برای `system-settings` — 2026-05-29
 
 ## 10. فاز ۸ — احراز هویت (super-admin-auth + module-manager-auth)
 

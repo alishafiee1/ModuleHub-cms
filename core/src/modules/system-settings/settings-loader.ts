@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { PATHS } from '../../config/paths';
+import { mergeSystemSettings } from './settings-merge';
 import type { SystemSettings } from './types';
 
 /** Default settings when file is missing (mirrors docs/system-settings.example.json) */
@@ -56,5 +57,5 @@ export async function seedSystemSettingsIfMissing(): Promise<void> {
 export async function loadSystemSettings(): Promise<SystemSettings> {
   await seedSystemSettingsIfMissing();
   const raw = await fs.readJson(PATHS.systemSettings);
-  return { ...DEFAULT_SYSTEM_SETTINGS, ...(raw as Partial<SystemSettings>) };
+  return mergeSystemSettings(DEFAULT_SYSTEM_SETTINGS, raw as Partial<SystemSettings>);
 }

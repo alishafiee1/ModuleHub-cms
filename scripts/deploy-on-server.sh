@@ -10,6 +10,7 @@ SYSTEMD_DEST="/etc/systemd/system/${SERVICE_NAME}.service"
 HEALTH_URL="${MODULEHUB_HEALTH_URL:-http://127.0.0.1:4000/health}"
 SKIP_PULL=false
 SKIP_BUILD=false
+SKIP_RESTART=false
 SKIP_WAN=false
 DRY_RUN=false
 SUDO_KEEPALIVE_PID=""
@@ -22,9 +23,11 @@ Usage: deploy-on-server.sh [options]
 Run on the server inside /opt/modulehub-cms (or set MODULEHUB_APP_DIR).
 
 Options:
-  --skip-pull    Skip git pull (code already updated)
-  --skip-build   Skip npm run build
-  --dry-run      Print steps without executing
+  --skip-pull     Skip git pull (code already updated)
+  --skip-build    Skip npm run build
+  --skip-restart  Skip systemd install/restart and health check (orchestrator handles restart)
+  --skip-wan      Skip temporary route toggle for git/npm
+  --dry-run       Print steps without executing
   -h, --help     Show this help
 
 Environment:
@@ -90,6 +93,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --skip-pull) SKIP_PULL=true; shift ;;
     --skip-build) SKIP_BUILD=true; shift ;;
+    --skip-restart) SKIP_RESTART=true; shift ;;
     --skip-wan) SKIP_WAN=true; shift ;;
     --dry-run) DRY_RUN=true; shift ;;
     -h|--help) usage; exit 0 ;;
@@ -153,29 +157,33 @@ if [[ ! -f dist/core/src/server/index.js ]]; then
   exit 1
 fi
 
-ensure_sudo
+if [[ "$SKIP_RESTART" != true ]]; then
+  ensure_sudo
 
-if [[ -f "$SERVICE_FILE" ]]; then
-  log "Installing systemd unit..."
-  run sudo cp "$SERVICE_FILE" "$SYSTEMD_DEST"
-  run sudo systemctl daemon-reload
-  run sudo systemctl enable "$SERVICE_NAME"
-else
-  log "WARN: service file not found: $SERVICE_FILE"
-fi
-
-log "Restarting $SERVICE_NAME..."
-run sudo systemctl restart "$SERVICE_NAME"
-
-if [[ "$DRY_RUN" != true ]]; then
-  sleep 2
-  if curl -sf "$HEALTH_URL" >/dev/null; then
-    log "Health check OK: $HEALTH_URL"
+  if [[ -f "$SERVICE_FILE" ]]; then
+    log "Installing systemd unit..."
+    run sudo cp "$SERVICE_FILE" "$SYSTEMD_DEST"
+    run sudo systemctl daemon-reload
+    run sudo systemctl enable "$SERVICE_NAME"
   else
-    echo "[deploy] ERROR: health check failed: $HEALTH_URL" >&2
-    sudo systemctl status "$SERVICE_NAME" --no-pager || true
-    exit 1
+    log "WARN: service file not found: $SERVICE_FILE"
   fi
+
+  log "Restarting $SERVICE_NAME..."
+  run sudo systemctl restart "$SERVICE_NAME"
+
+  if [[ "$DRY_RUN" != true ]]; then
+    sleep 2
+    if curl -sf "$HEALTH_URL" >/dev/null; then
+      log "Health check OK: $HEALTH_URL"
+    else
+      echo "[deploy] ERROR: health check failed: $HEALTH_URL" >&2
+      sudo systemctl status "$SERVICE_NAME" --no-pager || true
+      exit 1
+    fi
+  fi
+else
+  log "Skipping systemd restart and health check (--skip-restart)"
 fi
 
 log "Deploy finished successfully."
