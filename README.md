@@ -42,6 +42,9 @@ curl -sf http://127.0.0.1:4000/health
 - [docs/server-scripts.md](docs/server-scripts.md) — اسکریپت‌ها
 - [docs/deploy-notes-for-ai.md](docs/deploy-notes-for-ai.md) — خلاصه برای AI
 - [docs/AI-common-mistakes/](docs/AI-common-mistakes/readme.md) — خطاهای ثبت‌شده deploy
+- [docs/session-walkthrough.md](docs/session-walkthrough.md) — گزارش جلسات (عامیانه)
+
+**Cursor:** `/sync-docs` — بروزرسانی docs بعد از کار
 
 ## Docs
 

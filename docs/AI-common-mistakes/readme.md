@@ -14,5 +14,6 @@
 
 - [`../deploy-notes-for-ai.md`](../deploy-notes-for-ai.md) — deploy خلاصه
 - [`../dev-workflow.md`](../dev-workflow.md) — جریان روزانه
+- [`../session-walkthrough.md`](../session-walkthrough.md) — گزارش جلسات · دستور **`/sync-docs`**
 
 </div>

@@ -1,4 +1,3 @@
-
 <style>
 body, p, h1, h2, h3, h4, h5, h6, li, ul, ol {
     font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
@@ -13,138 +12,77 @@ table td code, table th code { direction: ltr; unicode-bidi: embed; text-align: 
 
 <div dir="rtl" style="text-align:right;">
 
-# کار روزانه — لوکال، push، deploy
+# کار روزانه — از PC تا haderbash.ir
 
-> **مرجع عملیاتی** — برای چت/فاز جدید ابتدا همین فایل + [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)  
-> سرور: `ash@192.168.88.50` · اجرا: **`/opt/modulehub-cms`** · clone/pull: **`~/ModuleHub-cms`**  
-> AI: [`deploy-notes-for-ai.md`](deploy-notes-for-ai.md) · خطاهای ثبت‌شده: [`AI-common-mistakes/`](AI-common-mistakes/readme.md)
-
----
-
-## وضعیت پیاده‌سازی (خلاصه)
-
-| فاز | موضوع | وضعیت |
-|-----|--------|--------|
-| 0–1 | infra، layout، UI | ✅ |
-| 2 | ZIP wizard، پوشه مجازی | ✅ |
-| 3 | runtime (start/stop، `/modules/`) | ✅ |
-| 4+ | cache، auth، … | ⏳ بعدی |
-
-جزئیات: [`openspec/changes/modulehub-cms-v1/tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
+> سرور: `ash@192.168.88.50`  
+> **کد از Git:** `~/ModuleHub-cms`  
+> **برنامه واقعی:** `/opt/modulehub-cms` (systemd همین را اجرا می‌کند)  
+> چک‌لیست فازها: [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
 
 ---
 
-## نمای کلی
+## وضعیت فازها (خلاصه)
+
+| فاز | چه چیزی | وضعیت |
+|-----|---------|--------|
+| 0–1 | صفحه اصلی، کارت‌ها | ✅ |
+| 2 | آپلود ZIP، پوشه مجازی | ✅ |
+| 3 | Start/Stop، باز شدن `/modules/...` | ✅ |
+| 4+ | کش پکیج، login واقعی، … | ⏳ |
+
+بخش‌های قدیمی این فایل که فقط «فاز ۲» می‌گفتند، در **§۴ (ادمین موقت)** و **§۳ (deploy)** ادغام شده‌اند.
+
+---
+
+## ۱. دو پوشه روی سرور — حتماً بدان
+
+| مسیر | نقش | با git |
+|------|-----|--------|
+| `~/ModuleHub-cms` | کلون GitHub؛ اینجا `git pull` می‌زنی | بله |
+| `/opt/modulehub-cms` | جایی که Nginx و systemd سرویس را می‌بینند | خیر (کپی با rsync) |
+
+**نتیجه:** push از PC → روی سرور اول **home** به‌روز می‌شود → بعد اسکریپت همان را به **opt** می‌برد.
 
 ```
-[Windows] lint/test → commit → push
-    → [Server home] git pull → install-to-opt (rsync)
-    → [Server /opt] deploy-on-server (build + systemd) → health
+[ویندوز] تست → commit → push
+    ↓
+[سرور home] git pull (گاهی discard لازم)
+    ↓
+install-to-opt  →  کپی به /opt
+    ↓
+deploy-on-server  →  build + restart
+    ↓
+https://haderbash.ir
 ```
-
-**systemd** همیشه از `/opt/modulehub-cms` اجرا می‌شود — نه `npm start` دستی در SSH (مگر دیباگ موقت).
 
 ---
 
-## ۱. لوکال — ویندوز (توسعه)
+## ۲. روتین استاندارد (هر بار که روی PC push کردی)
+
+### الف) روی PC (ویندوز)
 
 ```powershell
 cd "...\ModuleHub-cms"
-npm install
 npm run lint
 npm run test
 npm run build
-
-# تا فاز ۸ — UI ادمین (کارت +)
-$env:MODULEHUB_DEV_SUPER_ADMIN="1"
-npm run dev
-```
-
-مرورگر: `http://127.0.0.1:4000/health` · `http://127.0.0.1:4000/`
-
-```powershell
 git add .
-git commit -m "feat: ..."
+git commit -m "feat: توضیح کوتاه"
 git push origin main
 ```
 
-- `package-lock.json` حتماً commit شود.
-- `.env` · `storage/` · `standalone-modules/` را push نکن.
+**push نکن:** `.env` · `storage/*` · `standalone-modules/*` · `thumbnails/*` (در `.gitignore` هستند).
 
----
+**push کن:** `package-lock.json` · کد · `public/` · `scripts/`
 
-## ۲. سرور — به‌روزرسانی استاندارد (بعد از هر push)
+### ب) روی سرور — معمولاً همین کافی است
 
 ```bash
 source ~/.nvm/nvm.sh && nvm use 20
 cd ~/ModuleHub-cms
 
-# اگر GitHub از ens4 نمی‌آید:
+# اگر pull خطای overwrite داد → §۵ (discard) را بزن اول
 bash scripts/run-with-free-wan.sh git pull origin main
-
-# اگر metric toggler خطا داد (ip route add) — بخش «بازیابی» پایین
-bash scripts/install-to-opt.sh
-cd /opt/modulehub-cms
-bash scripts/deploy-on-server.sh --skip-pull
-```
-
-`deploy-on-server.sh` انجام می‌دهد: `npm ci` (با dev) → `npm run build` → `npm prune --omit=dev` → restart systemd → health.
-
-### چک
-
-```bash
-curl -sf http://127.0.0.1:4000/health   # {"status":"ok"}
-sudo systemctl status modulehub-cms --no-pager
-```
-
-سایت: `https://haderbash.ir` (Nginx → `127.0.0.1:4000`). **پورت 4000 را در ufw باز نکن.**
-
----
-
-## ۳. تست فاز ۲ روی سرور (قبل از login واقعی)
-
-در **`/opt/modulehub-cms/.env`** (با nano ذخیره کن — خط `#` را در shell اجرا نکن):
-
-```env
-MODULEHUB_DEV_SUPER_ADMIN=1
-```
-
-```bash
-sudo systemctl restart modulehub-cms
-```
-
-در سایت: کارت **+** → «پوشه جدید» / «آپلود ZIP».  
-APIها: `POST /admin/upload` · `POST /admin/wizard/save` · `POST /admin/folder`
-
-> فاز ۸: این فلگ فقط dev — در production بعد از login حذف شود.
-
----
-
-## ۴. dual-WAN
-
-| NIC | نقش |
-|-----|-----|
-| `ens4` | فیلترشده (پیش‌فرض) |
-| `enp63s0` | آزاد — موقت برای `git` / `npm` |
-
-```bash
-bash scripts/run-with-free-wan.sh git pull origin main
-bash scripts/run-with-free-wan.sh npm ci
-```
-
-`install-to-opt` و `deploy-on-server` معمولاً خودکار از free WAN استفاده می‌کنند.
-
----
-
-## ۵. بازیابی — وقتی pull / WAN / build شکست خورد
-
-```bash
-source ~/.nvm/nvm.sh && nvm use 20
-export MODULEHUB_SKIP_WAN=1
-
-cd ~/ModuleHub-cms
-git fetch origin
-git reset --hard origin/main    # فقط اگر ویرایش محلی سرور مهم نیست
 
 bash scripts/install-to-opt.sh
 cd /opt/modulehub-cms
@@ -153,39 +91,117 @@ bash scripts/deploy-on-server.sh --skip-pull
 curl -sf http://127.0.0.1:4000/health
 ```
 
-| علامت | اقدام |
-|--------|--------|
-| `ip route add` / toggler crash | `MODULEHUB_SKIP_WAN=1` + `reset --hard` + deploy بالا |
-| `tsc: not found` | deploy قدیمی — حتماً اسکریپت جدید (build بعد از `npm ci` کامل) |
-| `tsx: not found` | `npm run dev` روی سرور ممنوع — از systemd / `npm start` |
-| health قطع بعد از `npm start` دستی | `Ctrl+C` → `sudo systemctl restart modulehub-cms` |
-| `$env:VAR` در Ubuntu | فقط PowerShell — روی سرور `export VAR=1` |
+در مرورگر: **Ctrl+Shift+R** روی `haderbash.ir`
 
 ---
 
-## ۶. عیب‌یابی سریع
+## ۳. هر دستور چه کار می‌کند؟ (ساده)
 
-| مشکل | کار |
+| دستور | یک جمله |
+|--------|---------|
+| `source ~/.nvm/nvm.sh && nvm use 20` | Node 20 را برای این ترمینال فعال می‌کند |
+| `git pull origin main` | آخرین کد GitHub را داخل `~/ModuleHub-cms` می‌آورد |
+| `bash scripts/run-with-free-wan.sh ...` | موقت اینترنت آزاد (`enp63s0`) برای git/npm؛ بعد برمی‌گرداند |
+| `bash scripts/install-to-opt.sh` | rsync از home به `/opt` — **`.env` سرور پاک نمی‌شود** |
+| `bash scripts/deploy-on-server.sh --skip-pull` | در `/opt`: نصب پکیج → `tsc` build → حذف devDeps → restart سرویس |
+| `--skip-pull` | یعنی pull را همین الان زدی؛ دوباره pull نزن |
+| `curl .../health` | اگر `{"status":"ok"}` → برنامه زنده است |
+
+**اجرا:** همیشه `bash scripts/....sh` — نه `./script.sh` (ممکن است از ویندوز CRLF داشته باشد).
+
+---
+
+## ۴. ادمین موقت (تا فاز ۸ — login واقعی)
+
+بدون این، پیام می‌گیری: `Super Admin session required` و کارت **+** / **Start** کار نمی‌کند.
+
+### یک‌بار (یا بعد از deploy عجیب)
+
+```bash
+# با sudo broker (پسورد یک‌بار در ترمینال broker):
+python3 ~/ModuleHub-cms/scripts/broker-sudo.py \
+  'bash /home/ash/ModuleHub-cms/scripts/enable-dev-admin-on-server.sh'
+```
+
+یا دستی: در `/opt/modulehub-cms/.env` خط `MODULEHUB_DEV_SUPER_ADMIN=1` + restart:
+
+```bash
+python3 ~/ModuleHub-cms/scripts/broker-sudo.py 'systemctl restart modulehub-cms'
+```
+
+### چک
+
+```bash
+curl -s http://127.0.0.1:4000/api/auth/status
+# باید: "isSuperAdmin":true
+```
+
+**روی سایت:** کارت **+** · ⚙ با **Start/Stop** · کلیک کارت → `/modules/<id>/` (بعد از Start)
+
+> فاز ۸: این حالت dev را در production حذف کن و login واقعی بگذار.
+
+---
+
+## ۵. چرا روی سرور اغلب باید تغییرات Git را دور بریزی؟
+
+گاهی روی `~/ModuleHub-cms` فایلی **دستی** عوض شده (تست، ویرایش اشتباه، SCP جزئی). آنوقت `git pull` می‌گوید: *Would be overwritten*.
+
+**روتین امن (دادهٔ سایت از بین نمی‌رود):**
+
+| محل | با `reset --hard` پاک می‌شود؟ |
+|-----|------------------------------|
+| `~/ModuleHub-cms` (clone) | بله — فقط کد clone |
+| `/opt/modulehub-cms/.env` | خیر — جداست + در rsync exclude |
+| `/opt/.../storage/` · `standalone-modules/` | خیر — در rsync exclude |
+
+```bash
+source ~/.nvm/nvm.sh && nvm use 20
+export MODULEHUB_SKIP_WAN=1
+
+cd ~/ModuleHub-cms
+git fetch origin
+git reset --hard origin/main    # فقط clone home — نه opt و نه .env
+
+bash scripts/install-to-opt.sh
+cd /opt/modulehub-cms
+bash scripts/deploy-on-server.sh --skip-pull
+
+# اگر ادمین قطع شد:
+python3 ~/ModuleHub-cms/scripts/broker-sudo.py \
+  'bash /home/ash/ModuleHub-cms/scripts/enable-dev-admin-on-server.sh'
+
+curl -sf http://127.0.0.1:4000/health
+curl -s http://127.0.0.1:4000/api/auth/status
+```
+
+**`git stash`** — اگر چیز محلی را نگه می‌داری: `git stash -u` → pull → `git stash pop` (ممکن است conflict بدهد).
+
+---
+
+## ۶. dual-WAN (خلاصه)
+
+| کارت | کار |
 |------|-----|
-| `pipefail: invalid option` | `bash scripts/...` یا `sed -i 's/\r$//' scripts/*.sh` |
-| `npm: command not found` | `source ~/.nvm/nvm.sh && nvm use 20` |
-| `Cannot find module 'express'` | `cd /opt/modulehub-cms && bash scripts/deploy-on-server.sh --skip-pull` |
-| `git pull` overwrite | فایل محلی سرور را بردار؛ `stash` یا `reset --hard` |
-| ویرایش `scripts/` روی سرور | ممنوع — فقط لوکال + push |
-| `sudo: terminal required` | SSH تعاملی با `-t` یا sudo broker |
-| `Failed to connect to github.com` | `run-with-free-wan.sh` یا `SKIP_WAN` + بررسی شبکه |
+| `ens4` | پیش‌فرض؛ ترافیک عادی سایت |
+| `enp63s0` | موقت برای `git pull` / `npm install` |
+
+اگر `run-with-free-wan` crash کرد (`ip route add`): همان deploy را با `MODULEHUB_SKIP_WAN=1` بزن (§۵).
 
 ---
 
-## ۷. روی سرور دست نزن (با git)
+## ۷. روی سرور دست نزن (با git جایگزین نمی‌شوند)
 
-`.env` · `storage/site-layout.json` · `storage/system-settings.json` · `standalone-modules/`
+- `/opt/modulehub-cms/.env` — رمز و `MODULEHUB_DEV_SUPER_ADMIN`
+- `storage/site-layout.json` — لیست ماژول‌ها و کارت‌ها
+- `storage/system-settings.json`
+- `standalone-modules/` — فایل‌های ZIP شده
+- `thumbnails/`
+
+ویرایش **اسکریپت** فقط روی PC → push → deploy.
 
 ---
 
 ## ۸. نصب اولیه (یک‌بار)
-
-SSH **تعاملی** (sudo):
 
 ```bash
 source ~/.nvm/nvm.sh && nvm use 20
@@ -198,20 +214,72 @@ bash scripts/install-to-opt.sh
 cd /opt/modulehub-cms
 bash scripts/install-systemd.sh
 bash scripts/deploy-on-server.sh --skip-pull
-curl -sf http://127.0.0.1:4000/health
+
+python3 ~/ModuleHub-cms/scripts/broker-sudo.py \
+  'bash /home/ash/ModuleHub-cms/scripts/enable-dev-admin-on-server.sh'
 ```
 
 ---
 
-## ۹. ارجاع
+## ۹. دستورهای جایگزین
+
+| به‌جای | استفاده کن وقتی |
+|--------|------------------|
+| `git pull` + deploy کامل | فقط یک فایل را با `scp` بردی → حتماً `install-to-opt` + restart |
+| `deploy-on-server.sh` | `--skip-build` اگر فقط `public/` عوض شده |
+| `deploy-on-server.sh` | `--skip-pull` همیشه وقتی تازه pull زدی |
+| `MODULEHUB_SKIP_WAN=1` | toggler شبکه خراب شد |
+| `enable-dev-admin-on-server.sh` | بعد از deploy ادمین / Start کار نکرد |
+| `npm run dev` | **فقط PC** — روی سرور ممنوع |
+| `ssh -t ash@...` | وقتی `sudo` می‌خواهد پسورد و broker نیست |
+
+**SCP سریع (مثال):**
+
+```powershell
+scp public/script.js ash@192.168.88.50:~/ModuleHub-cms/public/
+```
+
+```bash
+bash ~/ModuleHub-cms/scripts/install-to-opt.sh
+python3 ~/ModuleHub-cms/scripts/broker-sudo.py 'systemctl restart modulehub-cms'
+```
+
+---
+
+## ۱۰. دیباگ — علامت → کار
+
+| علامت | کار |
+|--------|-----|
+| `Super Admin session required` | §۴ — `enable-dev-admin-on-server.sh` |
+| `isSuperAdmin:false` در `/api/auth/status` | همان §۴ + restart |
+| فقط دکمه «بستن»، بدون Start | `script.js` قدیمی → install-to-opt + hard refresh |
+| `git pull` overwrite | §۵ — `reset --hard origin/main` روی **home** |
+| `ip route add` / toggler | `export MODULEHUB_SKIP_WAN=1` + §۵ |
+| `tsc: not found` | deploy قدیمی — `deploy-on-server.sh` جدید (اول `npm ci` کامل) |
+| `npm: command not found` | `source ~/.nvm/nvm.sh && nvm use 20` |
+| `Cannot find module 'express'` | `cd /opt/modulehub-cms && bash scripts/deploy-on-server.sh --skip-pull` |
+| `pipefail: invalid option` | `sed -i 's/\r$//' ~/ModuleHub-cms/scripts/*.sh` |
+| `sudo: terminal required` | `ssh -t` یا sudo broker |
+| health OK ولی سایت قدیمی | Ctrl+Shift+R · کش Nginx/CDN |
+| ماژول باز نمی‌شود | اول ⚙ **Start** · بعد کلیک کارت |
+| `$env:VAR` در SSH | اشتباه — روی Ubuntu: `export VAR=1` |
+
+**لاگ‌ها:**
+
+```bash
+journalctl -u modulehub-cms -n 50 --no-pager
+sudo systemctl status modulehub-cms --no-pager
+```
+
+---
+
+## ۱۱. ارجاع
 
 | موضوع | فایل |
 |--------|------|
-| چک‌لیست فازها | [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md) |
-| معماری | [`design plan.md`](design%20plan.md) |
-| قوانین کد | [`code-rolls.md`](code-rolls.md) |
 | اسکریپت‌ها | [`server-scripts.md`](server-scripts.md) |
+| AI کوتاه | [`deploy-notes-for-ai.md`](deploy-notes-for-ai.md) |
+| خطاهای تکراری | [`AI-common-mistakes/`](AI-common-mistakes/readme.md) |
 | سازنده ماژول | [`developer-guide.md`](developer-guide.md) |
-| AI deploy | [`deploy-notes-for-ai.md`](deploy-notes-for-ai.md) |
 
 </div>

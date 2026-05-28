@@ -26,4 +26,19 @@
 - **تأیید:** `Deploy finished successfully` · `curl http://127.0.0.1:4000/health`
 - **زمینه:** e47aa4e+
 
+### [DEPLOY-004] `install-to-opt` — خط DEV از `.env` می‌افتد
+- **اشتباه:** فرض `MODULEHUB_DEV_SUPER_ADMIN=1` بعد از هر install-to-opt
+- **درست:** `enable-dev-admin-on-server.sh` (drop-in systemd + `.env`) یا دستی خط را دوباره بگذار
+- **زمینه:** rsync `--exclude .env` · 2026-05-28
+
+### [DEPLOY-005] فرانت قدیمی در `/opt` — فقط backend deploy
+- **اشتباه:** فقط `dist/` یا core deploy؛ `public/script.js` در opt قدیمی می‌ماند
+- **درست:** `install-to-opt` + restart · یا SCP `public/*.js` سپس install-to-opt
+- **زمینه:** دکمه Start در UI · 2026-05-28
+
+### [OK-002] فعال‌سازی ادمین موقت
+- **راه‌حل:** `broker-sudo.py` + `enable-dev-admin-on-server.sh` → `curl /api/auth/status` → `"isSuperAdmin":true`
+- **تأیید:** کارت + و Start روی haderbash.ir
+- **زمینه:** تا فاز ۸
+
 </div>

@@ -2,7 +2,30 @@ node_modules/
 dist/
 data/
 .env
+.env.local
+.env.*.local
 *.log
 coverage/
+
+# Runtime storage (seed templates live in docs/)
+storage/logs/*
+!storage/logs/.gitkeep
+storage/backups/*
+!storage/backups/.gitkeep
+storage/upload-temp/
+storage/site-layout.json
+storage/system-settings.json
+
+# Uploaded / generated on server
+standalone-modules/*
+!standalone-modules/.gitkeep
+thumbnails/*
+!thumbnails/.gitkeep
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Local-only docs (server IPs / personal notes)
 docs/server condition.md
 docs/dev-workflow.md

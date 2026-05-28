@@ -33,6 +33,7 @@ log "Syncing ${SOURCE_DIR} -> ${TARGET_DIR} (rsync)..."
 rsync -a --delete \
   --exclude node_modules \
   --exclude .git \
+  --exclude .env \
   --exclude storage/logs \
   --exclude storage/backups \
   --exclude standalone-modules \

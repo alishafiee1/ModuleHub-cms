@@ -61,6 +61,7 @@ table td code, table th code {
 | `dev-workflow.md` | توسعه‌دهنده / AI | **عملی — مرجع deploy** | لوکال Windows vs سرور، فازها، بازیابی |
 | `server-scripts.md` | عملیات | **محاوره‌ای** | هر اسکریپت چه می‌کند |
 | `deploy-notes-for-ai.md` | **AI فقط** | **فشرده** | ارجاع به dev-workflow + جدول اشتباه |
+| `session-walkthrough.md` | تو + AI | **گزارش جلسه** | درخواست/نتیجه عامیانه · `/sync-docs` |
 | `AI-common-mistakes/` | AI | **لاگ خطا** | خطاهای مخصوص این repo |
 | `code-rolls.md` | AI هنگام کدنویسی | **قواعد کد** | TypeScript، امنیت، تست |
 
@@ -133,7 +134,12 @@ table td code, table th code {
 
 ---
 
-## وقتی کاربر درخواست «به‌روز docs» داد
+## وقتی کاربر `/sync-docs` یا «به‌روز docs» زد
+
+1. بخوان: `.cursor/rules/sync-docs-after-work.mdc` و `.cursor/commands/sync-docs.md`
+2. اول `session-walkthrough.md` (≤۵ خط) · بعد mistakes/deploy · بعد سایر docs در صورت نیاز
+
+## وقتی کاربر درخواست «به‌روز docs» داد (دستی)
 
 1. تعیین کن موضوع **روایی** است یا **فنی**
 2. روایی → `proposal.md` (خلاصه + ارجاع)

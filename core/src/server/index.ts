@@ -3,6 +3,7 @@ import http from 'http';
 import path from 'path';
 import { ensureRequiredDirectories } from '../bootstrap/ensure-directories';
 import { PATHS } from '../config/paths';
+import { createAdminLoginRouter } from '../modules/admin-auth';
 import { createLayoutRouter } from '../modules/home-layout';
 import { requestLoggingMiddleware } from '../modules/logger';
 import { createModuleManagementRouter, createModuleServingRouter } from '../modules/module-manager';
@@ -26,6 +27,7 @@ export function createApp(): Application {
 
   app.use('/api', createLayoutRouter());
   app.use('/modules', createModuleServingRouter());
+  app.use('/admin', createAdminLoginRouter());
   app.use('/admin/module', createModuleManagementRouter());
   app.use('/admin', createUploadWizardRouter());
   app.use('/thumbnails', express.static(PATHS.thumbnailsDirectory));
