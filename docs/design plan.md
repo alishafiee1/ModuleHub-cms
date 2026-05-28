@@ -414,12 +414,19 @@ request → session parser
 
 ## ۱۳. قوانین کدنویسی و مستندسازی (Code Standards & Documentation)
 
-### ۱۳.۱ قوانین کدنویسی برای هسته CMS (Node.js)
-- استفاده از **ESLint** با قواعد `Airbnb style guide` سفارشی شده برای راست‌چین.
-- نام‌گذاری فایل‌ها به صورت `kebab-case` برای ماژول‌ها و `camelCase` برای متغیرها/توابع.
-- هر تابع حداکثر ۴۰ خط، هر فایل حداکثر ۳۰۰ خط.
-- استفاده از `async/await` به جای callback.
-- خطاها با `try/catch` مدیریت شده و لاگ می‌شوند.
+### ۱۳.۱ قوانین کدنویسی برای هسته CMS (Node.js + TypeScript)
+
+**TypeScript + JSDoc** — جدول کامل: `docs/code-rolls.md`
+
+| قانون | جزئیات |
+|--------|--------|
+| TypeScript | `core/src/` — بدون `any` |
+| JSDoc | هر `export function` — `@param` + `@returns` |
+| ESLint | Airbnb — `npm run lint` پایان هر فاز |
+| نام‌گذاری | فایل `kebab-case`، متغیر/تابع `camelCase` |
+| حجم | فایل ≤۳۰۰ خط، تابع ≤۴۰ خط |
+| async | `async/await` به‌جای callback |
+| خطا | `try/catch` + logger |
 
 ### ۱۳.۲ قوانین برای فرانت‌اند (HTML/CSS/JS)
 - استفاده از **BEM** برای نام‌گذاری کلاس‌های CSS.

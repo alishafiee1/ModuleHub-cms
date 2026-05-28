@@ -40,11 +40,32 @@ table th code {
 
 ## 🤖 قوانین کدنویسی برای AI
 
+### TypeScript + JSDoc (خلاصه — منبع حقیقت)
+
+| قانون | جزئیات |
+|--------|--------|
+| **TypeScript** | همهٔ `core/src/` — کامپایل با `tsc`؛ بدون `any` |
+| **Types** | هر ماژول در `core/src/modules/` → `interface` ورودی/خروجی |
+| **JSDoc** | هر `export function` → `@param` + `@returns` + یک خط توضیح |
+| **Lint** | ESLint Airbnb — `npm run lint` پایان هر فاز |
+| **حجم** | فایل ≤۳۰۰ خط، تابع ≤۴۰ خط |
+
+```typescript
+/**
+ * Returns the next free port in the configured range.
+ * @param usedPorts - Ports already assigned in site-layout
+ * @returns First available port number
+ */
+export function assignNextPort(usedPorts: number[], rangeStart: number, rangeEnd: number): number {
+  // ...
+}
+```
+
 ### اجباری
-- **TypeScript** استفاده شود. از `any` اجتناب کنید؛ نوع‌ها را به درستی تعریف کنید.
-- **ماژول‌ها** (در core/src/modules) باید دارای اینترفیس ورودی/خروجی مشخص باشند.
-- **خطاها** را با try-catch گرفته و لاگ کنید (از `console.error` یا logger اختصاصی).
-- **همه توابع عمومی** مستندات JSDoc داشته باشند.
+- **TypeScript** — جزئیات در جدول بالا.
+- **ماژول‌ها** (در `core/src/modules`) باید دارای interface ورودی/خروجی مشخص باشند.
+- **خطاها** را با try-catch گرفته و لاگ کنید (logger اختصاصی، نه `console.log` در production).
+- **JSDoc** — برای همهٔ توابع public (جدول بالا).
 
 ### امنیت
 - هرگز کلیدها یا رمزها را در کد هاردکد نکنید. از `process.env` استفاده کنید (`SESSION_SECRET`, `ADMIN_PASSWORD_HASH`).

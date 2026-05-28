@@ -37,6 +37,9 @@ table th code {
 
 # چک‌لیست پیاده‌سازی و تست ModuleHub CMS
 
+> **پایان هر فاز:** unit test + `npm run lint` + JSDoc توابع public — [`code-rolls.md`](code-rolls.md)  
+> **TypeScript:** همهٔ `core/src/` — type برای IO ماژول‌ها، بدون `any`.
+
 ## فاز ۰: آماده‌سازی زیرساخت (۱ روز)
 
 | # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |

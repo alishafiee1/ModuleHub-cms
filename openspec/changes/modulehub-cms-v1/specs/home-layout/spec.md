@@ -27,3 +27,10 @@ Each module in the current folder SHALL render as a card with name, icon, thumbn
 #### Scenario: Cards rendered
 - **WHEN** home page loads with valid layout JSON
 - **THEN** cards for all children of current folder are displayed with correct status colors (running=green, stopped=gray, crashed=red)
+
+### Requirement: Module auth fields in schema
+Module entries in `site-layout.json` SHALL support optional `managementPasswordHash` and `managementPermissions` fields per `docs/site-layout.json`.
+
+#### Scenario: Schema includes auth fields
+- **WHEN** layout JSON is loaded for a module with `managementPasswordHash` set
+- **THEN** system recognizes the module as Module Manager-protected

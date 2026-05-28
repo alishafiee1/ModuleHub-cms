@@ -51,7 +51,8 @@ ModuleHub CMS باید به‌عنوان هستهٔ سایت نقاب `haderbash
 - **ذخیره‌سازی:** `storage/site-layout.json`، `storage/system-settings.json`، `storage/admin-users.json`
 - **سرور:** `/opt/modulehub-cms/`، `/var/log/modulehub/modules/`، `/var/cache/modulehub/pkg/`
 - **زیرساخت:** Nginx (`haderbash.ir`) — proxy بدون IP restrict؛ auth در CMS
-- **وابستگی‌ها:** Express، express-session، bcrypt، express-rate-limit، multer، adm-zip، winston، fs-extra
+- **وابستگی‌ها:** Express، TypeScript، Jest، ESLint، express-session، bcrypt، express-rate-limit، multer، adm-zip، winston، fs-extra
+- **استاندارد کد:** TypeScript + JSDoc — `design.md` §۱۲، `docs/code-rolls.md`
 - **امنیت:** HTTPS + Session + CSRF؛ Super Admin از اینترنت؛ Module Manager scoped؛ Docker `cap_drop: ALL`
 - **env:** `SESSION_SECRET`، `ADMIN_PASSWORD_HASH`
 - **مرجع UI:** `docs/Demo designe/index.html`، `script.js`، `dialog.js`، `style.css`

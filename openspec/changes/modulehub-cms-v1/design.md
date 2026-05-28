@@ -20,7 +20,8 @@ ModuleHub CMS یک پلتفرم greenfield است که روی سرور `ash@192.
 - بدون DB خارجی — JSON + session store (memory یا file)
 - endpointهای admin فقط با session معتبر
 - CMS روی `127.0.0.1` bind
-- TypeScript، ESLint Airbnb، فایل ≤۳۰۰ خط
+- **TypeScript + JSDoc** — جدول §۱۲؛ جزئیات `docs/code-rolls.md`
+- ESLint Airbnb، فایل ≤۳۰۰ خط
 
 ## Goals / Non-Goals
 
@@ -76,6 +77,23 @@ ModuleHub CMS یک پلتفرم greenfield است که روی سرور `ash@192.
 ### 11. Auto-restart on crash
 
 از `autoRestartOnCrash` / `autoRestartMaxAttemptsPerHour` — handler در module-runtime.
+
+### 12. TypeScript + JSDoc
+
+مرجع کامل: `docs/code-rolls.md`
+
+| قانون | جزئیات |
+|--------|--------|
+| TypeScript | `core/src/` — `tsc`؛ بدون `any` |
+| Types | `interface` IO برای هر ماژول در `core/src/modules/` |
+| JSDoc | هر `export function` — `@param` + `@returns` + یک خط |
+| Lint | `npm run lint` — gate پایان هر فاز + فاز ۹ |
+| Test | Jest unit test همان فاز — gate فاز ۹ |
+
+```typescript
+/** @param usedPorts - assigned ports @returns next free port */
+export function assignNextPort(usedPorts: number[], start: number, end: number): number
+```
 
 ## Risks / Trade-offs
 

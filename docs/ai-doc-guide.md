@@ -141,6 +141,7 @@ table td code, table th code {
 
 ## چک قبل از commit docs
 
+- [ ] TypeScript/JSDoc در `code-rolls.md` به‌روز است (اگر قانون کد عوض شد)؟
 - [ ] جدول تکراری بین proposal و design حذف یا ارجاع شد؟
 - [ ] مسیر `/var/` برای کش و لاگ ماژول درست است؟
 - [ ] پیش‌فرض عددی فقط در design + example JSON است؟

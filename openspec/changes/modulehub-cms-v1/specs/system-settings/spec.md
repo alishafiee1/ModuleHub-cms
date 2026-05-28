@@ -59,3 +59,14 @@ System settings SHALL include `autoRestartOnCrash` (default false) and `autoRest
 #### Scenario: Auto-restart toggled
 - **WHEN** admin enables `autoRestartOnCrash` and saves settings
 - **THEN** subsequent module crashes trigger automatic restart attempts within the hourly limit
+
+### Requirement: Auth session settings
+System settings SHALL include `sessionTtlHours` (8), `loginRateLimitPerMinute` (5), `moduleManagerSessionTtlHours` (4), `modulePasswordMaxAttempts` (5), and `modulePasswordLockoutMinutes` (15).
+
+#### Scenario: Session TTL configured
+- **WHEN** Super Admin sets `sessionTtlHours` to 4 and saves
+- **THEN** Super Admin sessions expire after 4 hours
+
+#### Scenario: Module lockout configured
+- **WHEN** `modulePasswordMaxAttempts` is 5 and user fails 5 times
+- **THEN** module auth is locked for `modulePasswordLockoutMinutes`
