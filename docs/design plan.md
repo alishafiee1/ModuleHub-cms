@@ -138,12 +138,15 @@ ModuleHub CMS پلتفرمی است که به شما امکان می‌دهد ب
 - دسترسی به اینترنت آزاد (موقت) برای `docker pull` و `npm install` از طریق اسکریپت `network-metric-toggler`
 
 ### ۴.۲ نصب هسته CMS
+
+راهنمای کامل deploy روزانه: **`docs/dev-workflow.md`**
+
 ```bash
-git clone https://git.local/modulehub-cms /opt/modulehub-cms
+git clone https://github.com/alishafiee1/ModuleHub-cms.git /opt/modulehub-cms
 cd /opt/modulehub-cms
-npm ci --only=production   # (با تغییر موقت مسیر پیش‌فرض به enp63s0 در صورت نیاز)
-sudo cp scripts/modulehub-cms.service /etc/systemd/system/
-sudo systemctl enable modulehub-cms --now
+cp .env.example .env   # SESSION_SECRET و ADMIN_PASSWORD_HASH
+chmod +x scripts/deploy-on-server.sh
+./scripts/deploy-on-server.sh
 ```
 
 ### ۴.۳ تنظیم Nginx (فایل `haderbash.ir`)
@@ -447,6 +450,7 @@ request → session parser
 | `server condition.md` | وضعیت زنده سرور — به‌روز دستی |
 | `module-hosting-guide.md` | Static vs Backend vs Docker — چالش سرور |
 | `developer-guide.md` | ZIP ماژول، wizard، base path — v0 spec |
+| `dev-workflow.md` | لوکال → git push → deploy روی سرور |
 | `code-rolls.md` | قواعد کد برای AI |
 
 **AI معمولاً این‌ها را رعایت نمی‌کند — ممنوع:**

@@ -58,6 +58,7 @@ table td code, table th code {
 | `server condition.md` | عملیات | **گزارش زنده** | IP، NIC، سرویس‌ها — به‌روز دستی |
 | `module-hosting-guide.md` | توسعه‌دهنده | **فنی** | Static/Backend/Docker، base path |
 | `developer-guide.md` | سازنده ماژول | **عملی** | ZIP، wizard، تست local — v0 |
+| `dev-workflow.md` | توسعه‌دهنده | **عملی** | لوکال → git push → deploy سرور |
 | `code-rolls.md` | AI هنگام کدنویسی | **قواعد کد** | TypeScript، امنیت، تست |
 
 ---

@@ -169,5 +169,5 @@
 - [ ] 11.7 Module Manager از WAN
 - [ ] 11.8 backup/restore
 - [ ] 11.9 ۵ ماژول همزمان
-- [ ] 11.10 Deploy `/opt/modulehub-cms`
+- [ ] 11.10 Deploy `/opt/modulehub-cms` — [`docs/dev-workflow.md`](../../../docs/dev-workflow.md) + `./scripts/deploy-on-server.sh`
 - [ ] 11.11 README + `test-results.log`
