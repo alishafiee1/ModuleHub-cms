@@ -53,24 +53,24 @@
 
 ## 4. فاز ۳ — اجرای ماژول (module-runtime)
 
-- [ ] 4.1 `core/src/modules/module-manager/` — start/stop/status
-- [ ] 4.2 Static/SPA handler + SPA fallback
-- [ ] 4.3 Backend runner — systemd-run با CPUQuota/MemoryMax/IOWeight
-- [ ] 4.4 Docker runner — cap_drop ALL
-- [ ] 4.4.1 `scripts/setup_net_limit.sh` — `tc` برای `net_mbps`
-- [ ] 4.5 Reverse proxy — http-proxy-middleware
-- [ ] 4.6 OOM detection → status=crashed
-- [ ] 4.6.1 `maxConcurrentRunningModules` قبل از start → 409
-- [ ] 4.6.2 Auto-restart handler
-- [ ] 4.7 resource-limiter
-- [ ] 4.8 Module logging → `/var/log/modulehub/modules/<id>.log`
-- [ ] 4.9 **Unit:** `tests/unit/module-runtime/concurrent-limit.test.ts` — رد start وقتی running ≥ max
-- [ ] 4.10 **Unit:** `tests/unit/module-runtime/status-tracker.test.ts` — running → stopped → crashed
-- [ ] 4.11 **Unit:** `tests/unit/module-runtime/spa-fallback.test.ts` — مسیر deep بدون فایل → index.html
-- [ ] 4.12 **Unit:** `tests/unit/module-runtime/auto-restart.test.ts` — شمارنده تلاش در پنجره یک ساعته
-- [ ] 4.13 **Unit:** `tests/unit/module-runtime/resource-limiter.test.ts` — ساخت args systemd-run/docker از resources
+- [x] 4.1 `core/src/modules/module-manager/` — start/stop/status
+- [x] 4.2 Static/SPA handler + SPA fallback
+- [x] 4.3 Backend runner — systemd-run با CPUQuota/MemoryMax/IOWeight
+- [x] 4.4 Docker runner — cap_drop ALL
+- [x] 4.4.1 `scripts/setup_net_limit.sh` — `tc` برای `net_mbps`
+- [x] 4.5 Reverse proxy — http-proxy-middleware
+- [x] 4.6 OOM detection → status=crashed
+- [x] 4.6.1 `maxConcurrentRunningModules` قبل از start → 409
+- [x] 4.6.2 Auto-restart handler
+- [x] 4.7 resource-limiter
+- [x] 4.8 Module logging → `/var/log/modulehub/modules/<id>.log` (یا `storage/logs/modules` لوکال)
+- [x] 4.9 **Unit:** `tests/unit/module-runtime/concurrent-limit.test.ts` — رد start وقتی running ≥ max
+- [x] 4.10 **Unit:** `tests/unit/module-runtime/status-tracker.test.ts` — running → stopped → crashed
+- [x] 4.11 **Unit:** `tests/unit/module-runtime/spa-fallback.test.ts` — مسیر deep بدون فایل → index.html
+- [x] 4.12 **Unit:** `tests/unit/module-runtime/auto-restart.test.ts` — شمارنده تلاش در پنجره یک ساعته
+- [x] 4.13 **Unit:** `tests/unit/module-runtime/resource-limiter.test.ts` — ساخت args systemd-run/docker از resources
 - [ ] 4.14 تست دستی: Static | Backend | Docker | net limit | concurrent limit
-- [ ] 4.15 **بستن فاز:** `npm run lint` + JSDoc برای `module-manager/` و `resource-limiter`
+- [x] 4.15 **بستن فاز:** `npm run lint` + JSDoc برای `module-manager/` و `resource-limiter`
 
 ## 5. فاز ۴ — کش پکیج (package-cache)
 

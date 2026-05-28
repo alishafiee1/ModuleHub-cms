@@ -43,5 +43,29 @@ export const PATHS = {
   get cmsLogDirectory(): string {
     return path.join(getAppRoot(), 'storage', 'logs');
   },
+  get moduleLogDirectory(): string {
+    if (process.env.MODULEHUB_MODULE_LOG_DIR) {
+      return process.env.MODULEHUB_MODULE_LOG_DIR;
+    }
+    return path.join(getAppRoot(), 'storage', 'logs', 'modules');
+  },
   cmsLogFileName: 'cms-%DATE%.log',
 } as const;
+
+/**
+ * Returns absolute path to a standalone module directory.
+ * @param moduleId - Module identifier
+ * @returns Path under standalone-modules
+ */
+export function getModuleDirectory(moduleId: string): string {
+  return path.join(PATHS.standaloneModules, moduleId);
+}
+
+/**
+ * Returns per-module log file path.
+ * @param moduleId - Module identifier
+ * @returns Log file path
+ */
+export function getModuleLogFilePath(moduleId: string): string {
+  return path.join(PATHS.moduleLogDirectory, `${moduleId}.log`);
+}

@@ -15,6 +15,8 @@ curl http://127.0.0.1:4000/health
 
 **Phase 2:** `POST /admin/upload`, `POST /admin/wizard/save`, `POST /admin/folder` — ZIP wizard + virtual folders.
 
+**Phase 3:** `POST /admin/module/:id/start|stop`, `GET /modules/<id>/` — Static/SPA serve + backend proxy (systemd-run / Docker).
+
 ## Scripts
 
 | Command | Description |
@@ -27,16 +29,19 @@ curl http://127.0.0.1:4000/health
 
 ## Server deploy
 
-- [docs/dev-workflow.md](docs/dev-workflow.md) — push و deploy
-- [docs/server-scripts.md](docs/server-scripts.md) — اسکریپت‌ها
-- [docs/deploy-notes-for-ai.md](docs/deploy-notes-for-ai.md) — نکات استقرار (AI)
+**مرجع:** [docs/dev-workflow.md](docs/dev-workflow.md) (لوکال + سرور + بازیابی)
 
 ```bash
 source ~/.nvm/nvm.sh && nvm use 20
-cd ~/ModuleHub-cms && bash scripts/run-with-free-wan.sh git pull
+cd ~/ModuleHub-cms && bash scripts/run-with-free-wan.sh git pull origin main
 bash scripts/install-to-opt.sh
 cd /opt/modulehub-cms && bash scripts/deploy-on-server.sh --skip-pull
+curl -sf http://127.0.0.1:4000/health
 ```
+
+- [docs/server-scripts.md](docs/server-scripts.md) — اسکریپت‌ها
+- [docs/deploy-notes-for-ai.md](docs/deploy-notes-for-ai.md) — خلاصه برای AI
+- [docs/AI-common-mistakes/](docs/AI-common-mistakes/readme.md) — خطاهای ثبت‌شده deploy
 
 ## Docs
 

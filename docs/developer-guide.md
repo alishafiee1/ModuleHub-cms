@@ -12,9 +12,9 @@ table td code, table th code { direction: ltr; unicode-bidi: embed; text-align: 
 
 # راهنمای توسعه‌دهنده — ModuleHub CMS
 
-> **وضعیت:** نسخه **v0 (spec)** — بر اساس `design plan.md` و `tasks.md`  
-> **هسته CMS هنوز پیاده‌سازی نشده** (`core/`، `package.json` در repo نیست).  
-> این راهنما برای **ساخت ZIP ماژول** همین الان قابل استفاده است؛ بخش API دقیق بعد از کد نهایی به‌روز می‌شود.
+> **وضعیت:** هسته در `core/` — فاز ۰–۳ (layout + wizard + runtime).  
+> ماژول بعد از wizard با `status: stopped` ثبت می‌شود؛ از ⚙ **Start** سپس `/modules/<id>/` باز می‌شود.  
+> deploy و توسعه: [`dev-workflow.md`](dev-workflow.md) · چک‌لیست: [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
 
 ---
 
@@ -128,9 +128,9 @@ my-app.zip
 | `POST /admin/upload` | آپلود ZIP | Super Admin |
 | `POST /admin/folder` | پوشه مجازی | Super Admin |
 | `POST /admin/module/:id/auth` | ورود با رمز ماژول | Module Manager |
-| `POST /admin/module/:id/start` | Start | Super Admin یا Module Manager |
-| `POST /admin/module/:id/stop` | Stop | Super Admin یا Module Manager |
-| `GET /modules/:id/*` | سرو Static یا پروکسی Backend | عمومی |
+| `POST /admin/module/:id/start` | Start | Super Admin (فاز ۸: Module Manager) |
+| `POST /admin/module/:id/stop` | Stop | Super Admin (فاز ۸: Module Manager) |
+| `GET /modules/:id/*` | سرو Static یا پروکسی Backend | عمومی (وقتی `running`) |
 
 **Module Manager:** Super Admin می‌تواند در edit ماژول `managementPasswordHash` تنظیم کند. توسعه‌دهنده با همان رمز — از اینترنت — فقط start/stop/log/edit **همان** ماژول را دارد. جزئیات: `design plan.md` §۶.۵.
 
@@ -169,16 +169,30 @@ npx serve . -l 8080
 
 ---
 
-## ۹. ارجاع
+## ۹. APIهای فعلی (فاز ۳)
+
+| متد | مسیر | توضیح |
+|-----|------|--------|
+| GET | `/api/layout` | درخت + ماژول‌ها |
+| GET | `/api/auth/status` | وضعیت session (فاز ۸ کامل می‌شود) |
+| POST | `/admin/upload` | ZIP → `standalone-modules/<id>/` |
+| POST | `/admin/wizard/save` | ثبت در `site-layout.json` |
+| POST | `/admin/folder` | پوشه مجازی |
+| POST | `/admin/module/:id/start` | استارت (Static/Backend/Docker) |
+| POST | `/admin/module/:id/stop` | توقف |
+| GET | `/modules/:id/*` | محتوای ماژول (بعد از Start) |
+
+تا فاز ۸: `MODULEHUB_DEV_SUPER_ADMIN=1` در `.env` برای تست admin — [`dev-workflow.md` §۳](dev-workflow.md)
+
+---
+
+## ۱۰. ارجاع
 
 | موضوع | فایل |
 |--------|------|
 | انواع ماژول و چالش سرور | `module-hosting-guide.md` |
 | معماری و تنظیمات | `design plan.md` |
-| چک‌لیست پیاده‌سازی | `tasks.md` |
+| چک‌لیست پیاده‌سازی | `openspec/changes/modulehub-cms-v1/tasks.md` |
 | نمونه JSON ماژول | `site-layout.json` |
+| deploy | `dev-workflow.md` |
 | معرفی ساده | `proposal.md` |
-
----
-
-**نگهداری:** با اتمام هر فاز در `tasks.md`، §۶ و endpointها را به‌روز کنید.

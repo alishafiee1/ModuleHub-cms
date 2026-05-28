@@ -218,14 +218,10 @@
           renderAll();
           return;
         }
-        Swal.fire({
-          icon: 'info',
-          title: 'ماژول',
-          text: 'محتوای ماژول در فاز runtime بارگذاری می‌شود.',
-          toast: true,
-          timer: 1500,
-          position: 'top-end',
-        });
+        const targetModuleId = card.getAttribute('data-module-id');
+        if (targetModuleId) {
+          window.location.href = `/modules/${targetModuleId}/`;
+        }
       });
 
       const gear = card.querySelector('.gear-icon');
@@ -276,16 +272,42 @@
     }
 
     const statusDisplay = getStatusDisplay(moduleMeta.status);
-    await Swal.fire({
+    const canStart = moduleMeta.status !== 'running';
+    const canStop = moduleMeta.status === 'running';
+
+    const result = await Swal.fire({
       title: `مدیریت · ${moduleMeta.name}`,
       html: `<div style="text-align:right;">
-        <p>وضعیت: ${statusDisplay.label}</p>
+        <p>وضعیت: <span class="${statusDisplay.cssClass}">${statusDisplay.label}</span></p>
         <p>نسخه: ${moduleMeta.version}</p>
         <p>CPU: ${moduleMeta.resources.cpu_limit} | RAM: ${moduleMeta.resources.ram_limit_mb} MB</p>
       </div>`,
       icon: 'info',
-      confirmButtonText: 'بستن',
+      showDenyButton: canStop,
+      showConfirmButton: canStart,
+      confirmButtonText: canStart ? 'Start' : 'بستن',
+      denyButtonText: 'Stop',
+      showCancelButton: true,
+      cancelButtonText: 'بستن',
     });
+
+    if (result.isConfirmed && canStart) {
+      try {
+        await ModuleHubApi.startModule(moduleId);
+        await refreshFromServer();
+        Swal.fire({ icon: 'success', title: 'ماژول استارت شد', timer: 1200, showConfirmButton: false });
+      } catch (error) {
+        Swal.fire({ icon: 'error', title: 'خطا', text: error.message });
+      }
+    } else if (result.isDenied && canStop) {
+      try {
+        await ModuleHubApi.stopModule(moduleId);
+        await refreshFromServer();
+        Swal.fire({ icon: 'success', title: 'ماژول متوقف شد', timer: 1200, showConfirmButton: false });
+      } catch (error) {
+        Swal.fire({ icon: 'error', title: 'خطا', text: error.message });
+      }
+    }
   }
 
   async function promptLogin() {
@@ -390,7 +412,7 @@
         });
 
         await refreshFromServer();
-        Swal.fire({ icon: 'success', title: 'ماژول ثبت شد', text: 'وضعیت: متوقف — runtime در فاز ۴', timer: 2500 });
+        Swal.fire({ icon: 'success', title: 'ماژول ثبت شد', text: 'وضعیت: متوقف — از ⚙ استارت کنید', timer: 2500 });
       } catch (error) {
         Swal.fire({ icon: 'error', title: 'خطا', text: error.message });
       }

@@ -5,6 +5,7 @@ import { ensureRequiredDirectories } from '../bootstrap/ensure-directories';
 import { PATHS } from '../config/paths';
 import { createLayoutRouter } from '../modules/home-layout';
 import { requestLoggingMiddleware } from '../modules/logger';
+import { createModuleManagementRouter, createModuleServingRouter } from '../modules/module-manager';
 import { createUploadWizardRouter } from '../modules/module-upload-wizard';
 
 const DEFAULT_HOST = '127.0.0.1';
@@ -24,6 +25,8 @@ export function createApp(): Application {
   });
 
   app.use('/api', createLayoutRouter());
+  app.use('/modules', createModuleServingRouter());
+  app.use('/admin/module', createModuleManagementRouter());
   app.use('/admin', createUploadWizardRouter());
   app.use('/thumbnails', express.static(PATHS.thumbnailsDirectory));
   app.use(express.static(PATHS.publicDirectory));

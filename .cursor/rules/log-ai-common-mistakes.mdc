@@ -1,0 +1,75 @@
+
+<style>
+body, p, h1, h2, h3, h4, h5, h6, li, ul, ol {
+  font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
+  direction: rtl;
+  text-align: right;
+}
+pre, code {
+  direction: ltr;
+  text-align: left;
+}
+
+/* جدول‌های markdown — RTL + راست‌چین همهٔ سلول‌ها (پیش‌نمایش VS Code / Cursor) */
+.markdown-body table,
+.markdown-preview-section table,
+table {
+  direction: rtl !important;
+  text-align: right !important;
+  width: 100%;
+  border-collapse: collapse;
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+}
+.markdown-body th,
+.markdown-body td,
+.markdown-preview-section th,
+.markdown-preview-section td,
+table thead th,
+table tbody td,
+table th,
+table td {
+  text-align: right !important;
+  direction: rtl;
+  vertical-align: top;
+  padding: 0.35em 0.5em;
+}
+/* نام فایل داخل سلول — LTR ولی چسبیده به راست سلول */
+table td code,
+table th code,
+.markdown-body table td code,
+.markdown-body table th code {
+  direction: ltr;
+  unicode-bidi: embed;
+  text-align: right !important;
+  display: inline-block;
+}
+</style>
+---
+description: ثبت خطاهای agent در AI common mistakes پس از اشتباه در کد یا نصب
+alwaysApply: true
+---
+
+# ثبت خطاهای AI
+
+اگر **تو** باعث شدی دستور نصب، deploy، یا پیشنهاد کد اشتباه باشد و کاربر اصلاح کند یا اجرا fail شود:
+
+1. ابتدا `AI learning docs/AI common mistakes/readme.md` را بخوان (دسته + قالب).
+2. در فایل مدل (مثلاً `Composer 2.5.md`) یک ورودی **کوتاه** با پیشوند `DEPLOY-` / `SHELL-` / `CODE-` / `DOC-` و شماره بعدی اضافه کن.
+3. هر ورودی فقط: **اشتباه** · **درست** · **زمینه** (اختیاری) — حداکثر ۳ bullet.
+
+ورودی تکراری ننویس. دسته جدید فقط با به‌روزرسانی جدول readme.
+
+## یادآوری ثابت (تکرار نشود)
+
+| موضوع | قانون |
+|--------|--------|
+| SSH Ubuntu | هرگز فقط سینتکس PowerShell (`$env:…`) نده — bash: `export VAR=1` |
+| سرور production | `npm start` / systemd / `.env` — نه `npm run dev` مگر devDeps نصب باشد |
+| راهنمای env | خط `.env` را **داخل nano** بنویس؛ کامنت `#` را در بلوک bash قابل اجرا نگذار |
+| dual-WAN / toggler crash | `export MODULEHUB_SKIP_WAN=1` + همگام‌سازی git (`reset --hard origin/main`) قبل از deploy دوباره |
+| تست UI | ویندوز و سرور را در دو بلوک جدا توضیح بده |
+
+## پس از موفقیت کامل deploy/نصب
+
+اگر کاربر گفت «درست شد» یا health OK شد: در همان فایل مدل یک ورودی **DEPLOY-OK-** یا bullet در آخرین خطا با **درستِ نهایی** که جواب داد (مثلاً `SKIP_WAN` + `deploy-on-server.sh`) — تا agent مسیر موفق را حفظ کند.

@@ -58,9 +58,10 @@ table td code, table th code {
 | `server condition.md` | عملیات | **گزارش زنده** | IP، NIC، سرویس‌ها — به‌روز دستی |
 | `module-hosting-guide.md` | توسعه‌دهنده | **فنی** | Static/Backend/Docker، base path |
 | `developer-guide.md` | سازنده ماژول | **عملی** | ZIP، wizard، تست local — v0 |
-| `dev-workflow.md` | توسعه‌دهنده | **عملی** | لوکال → git push → deploy سرور |
+| `dev-workflow.md` | توسعه‌دهنده / AI | **عملی — مرجع deploy** | لوکال Windows vs سرور، فازها، بازیابی |
 | `server-scripts.md` | عملیات | **محاوره‌ای** | هر اسکریپت چه می‌کند |
-| `deploy-notes-for-ai.md` | **AI فقط** | **فشرده** | اشتباهات استقرار — قبل از SSH/deploy بخوان |
+| `deploy-notes-for-ai.md` | **AI فقط** | **فشرده** | ارجاع به dev-workflow + جدول اشتباه |
+| `AI-common-mistakes/` | AI | **لاگ خطا** | خطاهای مخصوص این repo |
 | `code-rolls.md` | AI هنگام کدنویسی | **قواعد کد** | TypeScript، امنیت، تست |
 
 ---
@@ -144,10 +145,11 @@ table td code, table th code {
 
 ## استقرار سرور — AI قبل از پیشنهاد دستور
 
-1. بخوان: [`deploy-notes-for-ai.md`](deploy-notes-for-ai.md)
-2. هرگز deploy کامل را در SSH غیرتعاملی بدون `-t` / sudo broker پیشنهاد نده
-3. بعد از `install-to-opt` حتماً `npm ci` در **`/opt/modulehub-cms`** (اسکریپت خودکار است)
-4. اسکریپت `.sh` را با **`bash scripts/...`** پیشنهاد بده، نه فقط `./`
+1. بخوان: [`dev-workflow.md`](dev-workflow.md) (اصلی) · [`deploy-notes-for-ai.md`](deploy-notes-for-ai.md) (خلاصه)
+2. ویندوز: `$env:VAR` · سرور Linux: `export VAR` — هرگز مخلوط نکن
+3. سرور: `deploy-on-server.sh` — نه `npm run dev`
+4. SSH + systemd: `-t` / sudo broker · اسکریپت: `bash scripts/...`
+5. خطای تکراری → ثبت در [`AI-common-mistakes/`](AI-common-mistakes/readme.md)
 
 ---
 

@@ -15,140 +15,203 @@ table td code, table th code { direction: ltr; unicode-bidi: embed; text-align: 
 
 # کار روزانه — لوکال، push، deploy
 
-> سرور: `ash@192.168.88.50` · اجرا: **`/opt/modulehub-cms`** · pull: معمولاً **`~/ModuleHub-cms`**  
-> اسکریپت‌ها: [`server-scripts.md`](server-scripts.md) · برای AI: [`deploy-notes-for-ai.md`](deploy-notes-for-ai.md)
+> **مرجع عملیاتی** — برای چت/فاز جدید ابتدا همین فایل + [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)  
+> سرور: `ash@192.168.88.50` · اجرا: **`/opt/modulehub-cms`** · clone/pull: **`~/ModuleHub-cms`**  
+> AI: [`deploy-notes-for-ai.md`](deploy-notes-for-ai.md) · خطاهای ثبت‌شده: [`AI-common-mistakes/`](AI-common-mistakes/readme.md)
+
+---
+
+## وضعیت پیاده‌سازی (خلاصه)
+
+| فاز | موضوع | وضعیت |
+|-----|--------|--------|
+| 0–1 | infra، layout، UI | ✅ |
+| 2 | ZIP wizard، پوشه مجازی | ✅ |
+| 3 | runtime (start/stop، `/modules/`) | ✅ |
+| 4+ | cache، auth، … | ⏳ بعدی |
+
+جزئیات: [`openspec/changes/modulehub-cms-v1/tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
 
 ---
 
 ## نمای کلی
 
 ```
-[Windows] → git push → [GitHub] → git pull (home) → install-to-opt → deploy-on-server
+[Windows] lint/test → commit → push
+    → [Server home] git pull → install-to-opt (rsync)
+    → [Server /opt] deploy-on-server (build + systemd) → health
 ```
+
+**systemd** همیشه از `/opt/modulehub-cms` اجرا می‌شود — نه `npm start` دستی در SSH (مگر دیباگ موقت).
 
 ---
 
-## لوکال (قبل از push)
+## ۱. لوکال — ویندوز (توسعه)
 
 ```powershell
+cd "...\ModuleHub-cms"
+npm install
 npm run lint
 npm run test
+npm run build
+
+# تا فاز ۸ — UI ادمین (کارت +)
+$env:MODULEHUB_DEV_SUPER_ADMIN="1"
+npm run dev
+```
+
+مرورگر: `http://127.0.0.1:4000/health` · `http://127.0.0.1:4000/`
+
+```powershell
 git add .
 git commit -m "feat: ..."
 git push origin main
 ```
 
-**حتماً** `package-lock.json` در repo باشد. `.env` و `storage/` را push نکن.
+- `package-lock.json` حتماً commit شود.
+- `.env` · `storage/` · `standalone-modules/` را push نکن.
 
 ---
 
-## نصب اولیه سرور (یک‌بار)
-
-ترمینال SSH **تعاملی** (sudo broker روشن باشد):
+## ۲. سرور — به‌روزرسانی استاندارد (بعد از هر push)
 
 ```bash
-source ~/.nvm/nvm.sh
-nvm use 20
-
-git clone https://github.com/alishafiee1/ModuleHub-cms.git ~/ModuleHub-cms
+source ~/.nvm/nvm.sh && nvm use 20
 cd ~/ModuleHub-cms
-cp .env.example .env
-nano .env   # SESSION_SECRET + ADMIN_PASSWORD_HASH
 
-bash scripts/setup-server-dirs.sh    # sudo
-npm ci && npm run build
+# اگر GitHub از ens4 نمی‌آید:
+bash scripts/run-with-free-wan.sh git pull origin main
 
-bash scripts/install-to-opt.sh       # sync + npm ci در opt
+# اگر metric toggler خطا داد (ip route add) — بخش «بازیابی» پایین
+bash scripts/install-to-opt.sh
 cd /opt/modulehub-cms
-bash scripts/install-systemd.sh      # sudo
-curl http://127.0.0.1:4000/health
+bash scripts/deploy-on-server.sh --skip-pull
 ```
 
-اگر `/opt` خالی بود: `sudo mkdir -p /opt/modulehub-cms && sudo chown ash:ash /opt/modulehub-cms`
+`deploy-on-server.sh` انجام می‌دهد: `npm ci` (با dev) → `npm run build` → `npm prune --omit=dev` → restart systemd → health.
+
+### چک
+
+```bash
+curl -sf http://127.0.0.1:4000/health   # {"status":"ok"}
+sudo systemctl status modulehub-cms --no-pager
+```
+
+سایت: `https://haderbash.ir` (Nginx → `127.0.0.1:4000`). **پورت 4000 را در ufw باز نکن.**
 
 ---
 
-## dual-WAN — چرا `git pull` fail می‌شود؟
+## ۳. تست فاز ۲ روی سرور (قبل از login واقعی)
 
-سرور دو کارت دارد: `ens4` (فیلتر) و **`enp63s0` (آزاد)**.  
-`git pull` و `npm` باید موقت از کارت آزاد بروند — **بدون تغییر دائمی metric.**
+در **`/opt/modulehub-cms/.env`** (با nano ذخیره کن — خط `#` را در shell اجرا نکن):
 
-اسکریپت: `bash scripts/run-with-free-wan.sh <دستور>` → اجرا → **برگشت خودکار route**
+```env
+MODULEHUB_DEV_SUPER_ADMIN=1
+```
+
+```bash
+sudo systemctl restart modulehub-cms
+```
+
+در سایت: کارت **+** → «پوشه جدید» / «آپلود ZIP».  
+APIها: `POST /admin/upload` · `POST /admin/wizard/save` · `POST /admin/folder`
+
+> فاز ۸: این فلگ فقط dev — در production بعد از login حذف شود.
+
+---
+
+## ۴. dual-WAN
+
+| NIC | نقش |
+|-----|-----|
+| `ens4` | فیلترشده (پیش‌فرض) |
+| `enp63s0` | آزاد — موقت برای `git` / `npm` |
 
 ```bash
 bash scripts/run-with-free-wan.sh git pull origin main
 bash scripts/run-with-free-wan.sh npm ci
 ```
 
-`deploy-on-server.sh` و `install-to-opt.sh` همین کار را خودکار می‌کنند.
+`install-to-opt` و `deploy-on-server` معمولاً خودکار از free WAN استفاده می‌کنند.
 
 ---
 
-## به‌روزرسانی (هر بار بعد از push)
+## ۵. بازیابی — وقتی pull / WAN / build شکست خورد
 
 ```bash
 source ~/.nvm/nvm.sh && nvm use 20
-cd ~/ModuleHub-cms
-bash scripts/run-with-free-wan.sh git pull origin main
+export MODULEHUB_SKIP_WAN=1
 
-# اگر pull گفت untracked overwrite — فایل محلی سرور را پاک کن یا: git stash -u
+cd ~/ModuleHub-cms
+git fetch origin
+git reset --hard origin/main    # فقط اگر ویرایش محلی سرور مهم نیست
+
 bash scripts/install-to-opt.sh
 cd /opt/modulehub-cms
 bash scripts/deploy-on-server.sh --skip-pull
+
+curl -sf http://127.0.0.1:4000/health
 ```
 
-یا همه‌چیز در opt (اگر آنجا git داری):
-
-```bash
-source ~/.nvm/nvm.sh && nvm use 20
-cd /opt/modulehub-cms
-git pull
-bash scripts/deploy-on-server.sh --skip-pull
-```
-
-از Windows (با prompt sudo):
-
-```powershell
-ssh -t ash@192.168.88.50 "source ~/.nvm/nvm.sh && nvm use 20 && cd ~/ModuleHub-cms && git pull && bash scripts/install-to-opt.sh && cd /opt/modulehub-cms && bash scripts/deploy-on-server.sh --skip-pull"
-```
+| علامت | اقدام |
+|--------|--------|
+| `ip route add` / toggler crash | `MODULEHUB_SKIP_WAN=1` + `reset --hard` + deploy بالا |
+| `tsc: not found` | deploy قدیمی — حتماً اسکریپت جدید (build بعد از `npm ci` کامل) |
+| `tsx: not found` | `npm run dev` روی سرور ممنوع — از systemd / `npm start` |
+| health قطع بعد از `npm start` دستی | `Ctrl+C` → `sudo systemctl restart modulehub-cms` |
+| `$env:VAR` در Ubuntu | فقط PowerShell — روی سرور `export VAR=1` |
 
 ---
 
-## چک بعد از deploy
-
-```bash
-curl -s http://127.0.0.1:4000/health    # {"status":"ok"}
-sudo systemctl status modulehub-cms
-```
-
-سایت از بیرون: `https://haderbash.ir` (Nginx → localhost:4000). **باز کردن پورت 4000 در فایروال لازم نیست.**
-
----
-
-## عیب‌یابی سریع
+## ۶. عیب‌یابی سریع
 
 | مشکل | کار |
 |------|-----|
-| `pipefail: invalid option` | `sed -i 's/\r$//' scripts/*.sh` یا `bash scripts/...` |
-| `Permission denied` روی `./` | `bash scripts/foo.sh` |
-| `Cannot find module 'express'` | `cd /opt/modulehub-cms && npm ci --omit=dev` |
+| `pipefail: invalid option` | `bash scripts/...` یا `sed -i 's/\r$//' scripts/*.sh` |
 | `npm: command not found` | `source ~/.nvm/nvm.sh && nvm use 20` |
-| `sudo: terminal required` | SSH با `-t` یا sudo broker — نه از agent بدون TTY |
-| `git pull` overwrite | فایل‌های ویرایش‌شده روی سرور را بردار؛ فقط از git بیاید |
-| health قطع | `cd /opt/modulehub-cms && npm ci && npm run build && npm prune --omit=dev && sudo systemctl restart modulehub-cms` |
-| `tsc: not found` | deploy با `--omit=dev` قبل از build — `npm ci` کامل + `npm run build` + `npm prune --omit=dev` |
-| `Failed to connect to github.com` | `bash scripts/run-with-free-wan.sh git pull origin main` |
+| `Cannot find module 'express'` | `cd /opt/modulehub-cms && bash scripts/deploy-on-server.sh --skip-pull` |
+| `git pull` overwrite | فایل محلی سرور را بردار؛ `stash` یا `reset --hard` |
+| ویرایش `scripts/` روی سرور | ممنوع — فقط لوکال + push |
+| `sudo: terminal required` | SSH تعاملی با `-t` یا sudo broker |
+| `Failed to connect to github.com` | `run-with-free-wan.sh` یا `SKIP_WAN` + بررسی شبکه |
 
 ---
 
-## روی سرور دست نزن (با git)
+## ۷. روی سرور دست نزن (با git)
 
 `.env` · `storage/site-layout.json` · `storage/system-settings.json` · `standalone-modules/`
 
 ---
 
-## ارجاع
+## ۸. نصب اولیه (یک‌بار)
 
-[`design plan.md`](design%20plan.md) · [`code-rolls.md`](code-rolls.md) · [`tasks.md`](tasks.md)
+SSH **تعاملی** (sudo):
+
+```bash
+source ~/.nvm/nvm.sh && nvm use 20
+git clone https://github.com/alishafiee1/ModuleHub-cms.git ~/ModuleHub-cms
+cd ~/ModuleHub-cms
+cp .env.example .env && nano .env
+
+bash scripts/setup-server-dirs.sh
+bash scripts/install-to-opt.sh
+cd /opt/modulehub-cms
+bash scripts/install-systemd.sh
+bash scripts/deploy-on-server.sh --skip-pull
+curl -sf http://127.0.0.1:4000/health
+```
+
+---
+
+## ۹. ارجاع
+
+| موضوع | فایل |
+|--------|------|
+| چک‌لیست فازها | [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md) |
+| معماری | [`design plan.md`](design%20plan.md) |
+| قوانین کد | [`code-rolls.md`](code-rolls.md) |
+| اسکریپت‌ها | [`server-scripts.md`](server-scripts.md) |
+| سازنده ماژول | [`developer-guide.md`](developer-guide.md) |
+| AI deploy | [`deploy-notes-for-ai.md`](deploy-notes-for-ai.md) |
 
 </div>
