@@ -124,21 +124,28 @@ if [[ ! -f .env ]]; then
   echo "[deploy] WARN: .env missing — copy from .env.example and set SESSION_SECRET / ADMIN_PASSWORD_HASH" >&2
 fi
 
-if [[ -f package-lock.json ]]; then
-  log "npm ci --omit=dev (free WAN if needed)..."
-  run_with_free_wan npm ci --omit=dev
-else
-  log "WARN: package-lock.json missing — using npm install --omit=dev"
-  run_with_free_wan npm install --omit=dev
-fi
-
 if [[ "$SKIP_BUILD" != true ]]; then
+  if [[ -f package-lock.json ]]; then
+    log "npm ci (incl. dev — for tsc build, free WAN if needed)..."
+    run_with_free_wan npm ci
+  else
+    log "WARN: package-lock.json missing — using npm install"
+    run_with_free_wan npm install
+  fi
   if grep -q '"build"' package.json; then
     log "npm run build..."
     run npm run build
   else
     log "WARN: no npm run build script — skipping build"
   fi
+  log "npm prune --omit=dev (runtime only)..."
+  run npm prune --omit=dev
+elif [[ -f package-lock.json ]]; then
+  log "npm ci --omit=dev (free WAN if needed)..."
+  run_with_free_wan npm ci --omit=dev
+else
+  log "WARN: package-lock.json missing — using npm install --omit=dev"
+  run_with_free_wan npm install --omit=dev
 fi
 
 if [[ ! -f dist/core/src/server/index.js ]]; then

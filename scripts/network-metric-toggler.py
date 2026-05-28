@@ -84,47 +84,75 @@ def get_default_routes() -> List[DefaultRoute]:
     return parse_default_routes(result.stdout)
 
 
-def add_preferred_route(interface: str, metric: int = 50) -> Optional[str]:
+TEMP_PREFERRED_METRIC = 50
+TEMP_OTHER_METRIC = 500
+
+
+def change_default_route_metric(route: DefaultRoute, metric: int) -> None:
     """
-    Add a temporary default route via the given interface with lower metric.
+    Change metric on an existing default route (no add/delete).
 
     Args:
-        interface: NIC name (e.g. enp63s0)
-        metric: route metric (lower = preferred)
-
-    Returns:
-        Gateway IP used, or None if route could not be added
+        route: Parsed default route with via and dev
+        metric: New metric value
     """
-    link_result = run_command(["ip", "-4", "route", "show", "dev", interface], check=False)
-    gateway: Optional[str] = None
-    for line in link_result.stdout.splitlines():
-        via_match = re.search(r"\bvia\s+(\S+)", line)
-        if via_match:
-            gateway = via_match.group(1)
-            break
-    if gateway is None:
-        LOG.warning("No gateway found on %s — skipping temporary route", interface)
-        return None
-
+    if route.via is None:
+        return
     run_command(
-        ["ip", "route", "add", "default", "via", gateway, "dev", interface, "metric", str(metric)]
-    )
-    return gateway
-
-
-def remove_temporary_route(interface: str, gateway: str, metric: int = 50) -> None:
-    """
-    Remove the temporary default route added for installs.
-
-    Args:
-        interface: NIC name
-        gateway: gateway IP used when adding
-        metric: metric value used when adding
-    """
-    run_command(
-        ["ip", "route", "del", "default", "via", gateway, "dev", interface, "metric", str(metric)],
+        [
+            "ip",
+            "route",
+            "change",
+            "default",
+            "via",
+            route.via,
+            "dev",
+            route.dev,
+            "metric",
+            str(metric),
+        ],
         check=False,
     )
+
+
+def apply_interface_preference(preferred_interface: str) -> List[DefaultRoute]:
+    """
+    Temporarily prefer one NIC by lowering its default-route metric.
+
+    Args:
+        preferred_interface: Interface for outbound traffic (e.g. enp63s0)
+
+    Returns:
+        Snapshot of routes before changes (for restore)
+    """
+    snapshot = get_default_routes()
+    seen: set[tuple[str, str, Optional[int]]] = set()
+    for route in snapshot:
+        key = (route.dev, route.via or "", route.metric)
+        if key in seen or route.via is None:
+            continue
+        seen.add(key)
+        if route.dev == preferred_interface:
+            change_default_route_metric(route, TEMP_PREFERRED_METRIC)
+        else:
+            change_default_route_metric(route, TEMP_OTHER_METRIC)
+    return snapshot
+
+
+def restore_default_routes(snapshot: List[DefaultRoute]) -> None:
+    """
+    Restore original default-route metrics from snapshot.
+
+    Args:
+        snapshot: Routes captured before apply_interface_preference
+    """
+    seen: set[tuple[str, str, Optional[int]]] = set()
+    for route in snapshot:
+        key = (route.dev, route.via or "", route.metric)
+        if key in seen or route.via is None or route.metric is None:
+            continue
+        seen.add(key)
+        change_default_route_metric(route, route.metric)
 
 
 def run_with_metric_toggle(interface: str, shell_command: str) -> int:
@@ -141,7 +169,9 @@ def run_with_metric_toggle(interface: str, shell_command: str) -> int:
     before = get_default_routes()
     LOG.info("Default routes before: %s", [route.raw for route in before])
 
-    gateway = add_preferred_route(interface)
+    snapshot = apply_interface_preference(interface)
+    LOG.info("Temporary metrics: %s=%s, others=%s", interface, TEMP_PREFERRED_METRIC, TEMP_OTHER_METRIC)
+
     exit_code = 1
     try:
         result = subprocess.run(shell_command, shell=True, check=False)
@@ -149,8 +179,7 @@ def run_with_metric_toggle(interface: str, shell_command: str) -> int:
         if exit_code != 0:
             LOG.error("Command failed with exit code %s: %s", exit_code, shell_command)
     finally:
-        if gateway is not None:
-            remove_temporary_route(interface, gateway)
+        restore_default_routes(snapshot)
         after = get_default_routes()
         LOG.info("Default routes after restore: %s", [route.raw for route in after])
 

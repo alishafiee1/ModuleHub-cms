@@ -135,7 +135,8 @@ sudo systemctl status modulehub-cms
 | `npm: command not found` | `source ~/.nvm/nvm.sh && nvm use 20` |
 | `sudo: terminal required` | SSH با `-t` یا sudo broker — نه از agent بدون TTY |
 | `git pull` overwrite | فایل‌های ویرایش‌شده روی سرور را بردار؛ فقط از git بیاید |
-| health قطع | `cd /opt/modulehub-cms && npm ci --omit=dev && sudo systemctl restart modulehub-cms` |
+| health قطع | `cd /opt/modulehub-cms && npm ci && npm run build && npm prune --omit=dev && sudo systemctl restart modulehub-cms` |
+| `tsc: not found` | deploy با `--omit=dev` قبل از build — `npm ci` کامل + `npm run build` + `npm prune --omit=dev` |
 | `Failed to connect to github.com` | `bash scripts/run-with-free-wan.sh git pull origin main` |
 
 ---

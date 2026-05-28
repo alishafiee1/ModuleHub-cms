@@ -18,20 +18,20 @@
 
 ## 2. فاز ۱ — صفحه اصلی و layout (home-layout + admin-frontend)
 
-- [ ] 2.1 Port فایل‌های `docs/Demo designe/` به `public/` (index.html, style.css)
-- [ ] 2.1.1 بازنویسی `script.js` و `dialog.js` — fetch از `/api/layout` و endpointهای admin
-- [ ] 2.1.2 ماژول API client: `loadLayout()`, `createFolder()`, `startModule()`, `stopModule()`, ...
-- [ ] 2.2 API `GET /api/layout` — خواندن `storage/site-layout.json`
-- [ ] 2.3 Seed اولیه `storage/site-layout.json` از `docs/site-layout.json`
-- [ ] 2.4 Frontend: رندر کارت‌ها از API
-- [ ] 2.5 Frontend: breadcrumb navigation
-- [ ] 2.6 Frontend: dark/light theme toggle + localStorage
-- [ ] 2.7 Frontend: کارت + مخفی تا Super Admin login — ⚙ visible با auth flow
-- [ ] 2.8 **Unit:** `tests/unit/home-layout/layout-parser.test.ts` — parse معتبر، JSON نامعتبر، فیلدهای اجباری، breadcrumb path
-- [ ] 2.9 **Unit:** `tests/unit/home-layout/layout-tree.test.ts` — traverse پوشه مجازی، یافتن children، module vs folder
-- [ ] 2.10 **Unit:** `tests/unit/home-layout/layout-api.test.ts` — `GET /api/layout` با fixture (supertest)
-- [ ] 2.11 تست دستی: `/` — کارت‌ها + breadcrumb (داده از API)
-- [ ] 2.12 **بستن فاز:** `npm run lint` + JSDoc برای `home-layout/` و API client
+- [x] 2.1 Port فایل‌های `docs/Demo designe/` به `public/` (index.html, style.css)
+- [x] 2.1.1 بازنویسی `script.js` و `dialog.js` — fetch از `/api/layout` و endpointهای admin
+- [x] 2.1.2 ماژول API client: `loadLayout()`, `createFolder()`, `startModule()`, `stopModule()`, ...
+- [x] 2.2 API `GET /api/layout` — خواندن `storage/site-layout.json`
+- [x] 2.3 Seed اولیه `storage/site-layout.json` از `docs/site-layout.json`
+- [x] 2.4 Frontend: رندر کارت‌ها از API
+- [x] 2.5 Frontend: breadcrumb navigation
+- [x] 2.6 Frontend: dark/light theme toggle + localStorage
+- [x] 2.7 Frontend: کارت + مخفی تا Super Admin login — ⚙ visible با auth flow
+- [x] 2.8 **Unit:** `tests/unit/home-layout/layout-parser.test.ts` — parse معتبر، JSON نامعتبر، فیلدهای اجباری، breadcrumb path
+- [x] 2.9 **Unit:** `tests/unit/home-layout/layout-tree.test.ts` — traverse پوشه مجازی، یافتن children، module vs folder
+- [x] 2.10 **Unit:** `tests/unit/home-layout/layout-api.test.ts` — `GET /api/layout` با fixture (supertest)
+- [x] 2.11 تست دستی: `/` — کارت‌ها + breadcrumb (داده از API)
+- [x] 2.12 **بستن فاز:** `npm run lint` + JSDoc برای `home-layout/` و API client
 
 ## 3. فاز ۲ — Add wizard (module-upload-wizard + virtual-folder)
 
