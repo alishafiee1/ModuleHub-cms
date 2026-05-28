@@ -15,9 +15,19 @@ if [[ ! -d "${SOURCE_DIR}" ]]; then
   exit 1
 fi
 
-log "Creating ${TARGET_DIR}..."
-sudo mkdir -p "${TARGET_DIR}"
-sudo chown "${OWNER}:${OWNER}" "${TARGET_DIR}"
+if [[ ! -d "${TARGET_DIR}" ]]; then
+  log "Creating ${TARGET_DIR}..."
+  if sudo -n true 2>/dev/null; then
+    sudo mkdir -p "${TARGET_DIR}"
+    sudo chown "${OWNER}:${OWNER}" "${TARGET_DIR}"
+  else
+    echo "[install-to-opt] ERROR: ${TARGET_DIR} missing and sudo needs a terminal (run: sudo mkdir -p ${TARGET_DIR} && sudo chown ${OWNER}:${OWNER} ${TARGET_DIR})" >&2
+    exit 1
+  fi
+elif [[ ! -w "${TARGET_DIR}" ]]; then
+  log "Fixing ownership on ${TARGET_DIR}..."
+  sudo chown "${OWNER}:${OWNER}" "${TARGET_DIR}"
+fi
 
 log "Syncing ${SOURCE_DIR} -> ${TARGET_DIR} (rsync)..."
 rsync -a --delete \
@@ -28,8 +38,17 @@ rsync -a --delete \
   --exclude standalone-modules \
   "${SOURCE_DIR}/" "${TARGET_DIR}/"
 
+log "Installing production dependencies in ${TARGET_DIR}..."
+(
+  cd "${TARGET_DIR}"
+  if [[ -f package-lock.json ]]; then
+    npm ci --omit=dev
+  else
+    npm install --omit=dev
+  fi
+)
+
 log "Done. Next:"
 echo "  cd ${TARGET_DIR}"
-echo "  npm ci && npm run build"
-echo "  cp .env.example .env   # if needed"
-echo "  MODULEHUB_APP_DIR=${TARGET_DIR} bash scripts/install-systemd.sh"
+echo "  bash scripts/install-systemd.sh"
+echo "  sudo systemctl restart modulehub-cms"

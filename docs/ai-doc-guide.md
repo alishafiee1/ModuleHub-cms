@@ -59,6 +59,8 @@ table td code, table th code {
 | `module-hosting-guide.md` | توسعه‌دهنده | **فنی** | Static/Backend/Docker، base path |
 | `developer-guide.md` | سازنده ماژول | **عملی** | ZIP، wizard، تست local — v0 |
 | `dev-workflow.md` | توسعه‌دهنده | **عملی** | لوکال → git push → deploy سرور |
+| `server-scripts.md` | عملیات | **محاوره‌ای** | هر اسکریپت چه می‌کند |
+| `deploy-notes-for-ai.md` | **AI فقط** | **فشرده** | اشتباهات استقرار — قبل از SSH/deploy بخوان |
 | `code-rolls.md` | AI هنگام کدنویسی | **قواعد کد** | TypeScript، امنیت، تست |
 
 ---
@@ -137,6 +139,15 @@ table td code, table th code {
 3. فنی → `design plan.md` + در صورت عدد → `system-settings.example.json`
 4. تسک جدید → یک ردیف در `tasks.md`
 5. `proposal.md` را سنگین نکن
+
+---
+
+## استقرار سرور — AI قبل از پیشنهاد دستور
+
+1. بخوان: [`deploy-notes-for-ai.md`](deploy-notes-for-ai.md)
+2. هرگز deploy کامل را در SSH غیرتعاملی بدون `-t` / sudo broker پیشنهاد نده
+3. بعد از `install-to-opt` حتماً `npm ci` در **`/opt/modulehub-cms`** (اسکریپت خودکار است)
+4. اسکریپت `.sh` را با **`bash scripts/...`** پیشنهاد بده، نه فقط `./`
 
 ---
 

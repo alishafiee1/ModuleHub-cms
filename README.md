@@ -23,17 +23,15 @@ curl http://127.0.0.1:4000/health
 
 ## Server deploy
 
-- [docs/dev-workflow.md](docs/dev-workflow.md) — workflow روزانه
-- [docs/server-scripts.md](docs/server-scripts.md) — خلاصه اسکریپت‌های استقرار
+- [docs/dev-workflow.md](docs/dev-workflow.md) — push و deploy
+- [docs/server-scripts.md](docs/server-scripts.md) — اسکریپت‌ها
+- [docs/deploy-notes-for-ai.md](docs/deploy-notes-for-ai.md) — نکات استقرار (AI)
 
 ```bash
-# Permission denied on ./script.sh? Use bash or chmod:
-chmod +x scripts/*.sh
-bash scripts/setup-server-dirs.sh
-
-cd ~/ModuleHub-cms   # or /opt/modulehub-cms
-npm ci && npm run build
-bash scripts/install-systemd.sh
+source ~/.nvm/nvm.sh && nvm use 20
+cd ~/ModuleHub-cms && git pull
+bash scripts/install-to-opt.sh
+cd /opt/modulehub-cms && bash scripts/deploy-on-server.sh --skip-pull
 ```
 
 ## Docs

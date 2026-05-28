@@ -86,7 +86,7 @@ table th code,
 | `setup-server-dirs.sh` | پوشه‌های `/var/...` رو یک‌بار می‌سازه |
 | `install-systemd.sh` | CMS رو سرویس systemd می‌کنه که با روشن شدن سرور بالا بیاد |
 | `deploy-on-server.sh` | بعد از هر آپدیت کد: pull، build، restart، چک سلامت |
-| `install-to-opt.sh` | از home می‌برتت به `/opt` |
+| `install-to-opt.sh` | home → `/opt` + **`npm ci` در opt** |
 | `network-metric-toggler.py` | برای دو تا کارت شبکه — موقع npm install از اینترنت آزاد استفاده می‌کنه (بعداً) |
 
 ---
@@ -137,15 +137,15 @@ bash scripts/deploy-on-server.sh
 
 ## `install-to-opt.sh` — وقتی از home می‌خوای بری opt
 
-اول توی home کار کردی و حالا می‌خوای جای استاندارد؟ این اسکریپت sync می‌کنه به `/opt/modulehub-cms` (بدون `node_modules` و شلوغی اضافه).
+اول توی home کار کردی؟ این اسکریپت sync می‌کنه به `/opt` و **خودش `npm ci --omit=dev` در opt** می‌زنه (`node_modules` عمداً کپی نمی‌شود).
 
 ```bash
+source ~/.nvm/nvm.sh && nvm use 20
 cd ~/ModuleHub-cms
-dos2unix scripts/*.sh    # اگر خطای pipefail دیدی
+git pull
 bash scripts/install-to-opt.sh
 cd /opt/modulehub-cms
-npm ci && npm run build   # بدون lock: npm install && npm run build
-bash scripts/install-systemd.sh
+bash scripts/install-systemd.sh   # ترمینال با sudo
 ```
 
 ---
@@ -165,15 +165,15 @@ python3 scripts/network-metric-toggler.py --interface enp63s0 --command "npm ins
 ## از صفر تا بالا اومدن — همین ترتیب
 
 ```
-۱) کد بره /opt/modulehub-cms  (یا فعلاً ~/ModuleHub-cms)
-۲) .env رو درست پر کن
-۳) bash scripts/setup-server-dirs.sh
-۴) npm ci && npm run build
-۵) bash scripts/install-systemd.sh
-۶) curl http://127.0.0.1:4000/health   → باید {"status":"ok"} بده
+۱) clone در ~/ModuleHub-cms + .env
+۲) nvm use 20 + npm ci && npm run build (در home)
+۳) bash scripts/setup-server-dirs.sh   (sudo)
+۴) bash scripts/install-to-opt.sh    (opt + npm ci)
+۵) bash scripts/install-systemd.sh   (sudo)
+۶) curl http://127.0.0.1:4000/health
 ```
 
-همین. بعد از این هر بار کد عوض شد → `deploy-on-server.sh`.
+بعد از هر push: `git pull` در home → `install-to-opt` → `deploy-on-server.sh` در opt.
 
 ---
 
