@@ -3,7 +3,6 @@ import os from 'os';
 import path from 'path';
 import request from 'supertest';
 import validFixture from '../../fixtures/site-layout-valid.json';
-import { createApp } from '../../../core/src/server/index';
 import { resetCmsLoggerForTests } from '../../../core/src/modules/logger';
 
 describe('GET /api/layout', () => {
@@ -37,11 +36,14 @@ describe('GET /api/layout', () => {
     expect(response.body.modules['mod-2'].status).toBe('stopped');
   });
 
-  it('returns auth status stub', async () => {
-    const app = createApp();
+  it('returns auth status with csrf token', async () => {
+    const { createApp: createFreshApp } = await import('../../../core/src/server/index');
+    const app = createFreshApp();
     const response = await request(app).get('/api/auth/status');
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ isSuperAdmin: false, managedModuleIds: [] });
+    expect(response.body.isSuperAdmin).toBe(false);
+    expect(response.body.managedModuleIds).toEqual([]);
+    expect(typeof response.body.csrfToken).toBe('string');
   });
 });

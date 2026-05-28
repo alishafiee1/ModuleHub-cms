@@ -1,9 +1,9 @@
 import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
-import request from 'supertest';
 import { resetCmsLoggerForTests } from '../../../core/src/modules/logger';
 import { clearAllRuntimeHandlesForTests } from '../../../core/src/modules/module-manager/process-registry';
+import { createAgentWithCsrf } from '../../helpers/admin-test-agent';
 
 describe('POST /admin/module/:id/start', () => {
   let tempRoot: string;
@@ -64,7 +64,10 @@ describe('POST /admin/module/:id/start', () => {
   it('starts static module and returns running status', async () => {
     const { createApp: createFreshApp } = await import('../../../core/src/server/index');
     const app = createFreshApp();
-    const response = await request(app).post('/admin/module/mod-static/start');
+    const { agent, csrfToken } = await createAgentWithCsrf(app);
+    const response = await agent
+      .post('/admin/module/mod-static/start')
+      .set('X-CSRF-Token', csrfToken);
 
     expect(response.status).toBe(200);
     expect(response.body.status).toBe('running');
@@ -103,7 +106,10 @@ describe('POST /admin/module/:id/start', () => {
 
     const { createApp: createFreshApp } = await import('../../../core/src/server/index');
     const app = createFreshApp();
-    const response = await request(app).post('/admin/module/mod-static/start');
+    const { agent, csrfToken } = await createAgentWithCsrf(app);
+    const response = await agent
+      .post('/admin/module/mod-static/start')
+      .set('X-CSRF-Token', csrfToken);
     expect(response.status).toBe(409);
   });
 });

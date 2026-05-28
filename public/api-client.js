@@ -1,20 +1,63 @@
 /**
- * ModuleHub CMS frontend API client — fetch layout and admin actions.
+ * ModuleHub CMS frontend API client — fetch layout and admin actions with session + CSRF.
  */
 const ModuleHubApi = (function createModuleHubApi() {
+  let csrfToken = null;
+
   /**
-   * Performs JSON fetch with session cookies.
+   * Returns headers for mutating admin requests including CSRF when available.
+   * @param {Record<string, string>} [extraHeaders] - Additional headers
+   * @returns {Record<string, string>}
+   */
+  function buildHeaders(extraHeaders = {}) {
+    const headers = {
+      Accept: 'application/json',
+      ...extraHeaders,
+    };
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
+    }
+    return headers;
+  }
+
+  /**
+   * Loads or refreshes CSRF token from auth status or dedicated endpoint.
+   * @returns {Promise<string|null>}
+   */
+  async function ensureCsrfToken() {
+    const statusResponse = await fetch('/api/auth/status', { credentials: 'same-origin' });
+    if (statusResponse.ok) {
+      const statusBody = await statusResponse.json();
+      if (statusBody.csrfToken) {
+        csrfToken = statusBody.csrfToken;
+        return csrfToken;
+      }
+    }
+
+    const csrfResponse = await fetch('/api/auth/csrf-token', { credentials: 'same-origin' });
+    if (!csrfResponse.ok) {
+      throw new Error('Failed to load CSRF token');
+    }
+    const csrfBody = await csrfResponse.json();
+    csrfToken = csrfBody.csrfToken;
+    return csrfToken;
+  }
+
+  /**
+   * Performs JSON fetch with session cookies and CSRF for mutating methods.
    * @param {string} url - Request URL
    * @param {RequestInit} [options] - Fetch options
    * @returns {Promise<any>} Parsed JSON body
    */
   async function requestJson(url, options = {}) {
+    const method = (options.method || 'GET').toUpperCase();
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !csrfToken) {
+      await ensureCsrfToken();
+    }
+
     const response = await fetch(url, {
       credentials: 'same-origin',
-      headers: {
-        Accept: 'application/json',
-        ...(options.headers || {}),
-      },
+      headers: buildHeaders(options.headers || {}),
       ...options,
     });
 
@@ -36,11 +79,51 @@ const ModuleHubApi = (function createModuleHubApi() {
   }
 
   /**
-   * Loads current auth session status.
-   * @returns {Promise<{ isSuperAdmin: boolean, managedModuleIds: string[] }>}
+   * Loads current auth session status and caches CSRF token.
+   * @returns {Promise<{ isSuperAdmin: boolean, managedModuleIds: string[], csrfToken?: string }>}
    */
   async function loadAuthStatus() {
-    return requestJson('/api/auth/status');
+    const status = await requestJson('/api/auth/status');
+    if (status.csrfToken) {
+      csrfToken = status.csrfToken;
+    }
+    return status;
+  }
+
+  /**
+   * Logs in as Super Admin.
+   * @param {string} username - Admin username
+   * @param {string} password - Admin password
+   * @returns {Promise<{ redirect?: string, message: string }>}
+   */
+  async function loginSuperAdmin(username, password) {
+    return requestJson('/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+  }
+
+  /**
+   * Logs out current session.
+   * @returns {Promise<{ message: string }>}
+   */
+  async function logoutSuperAdmin() {
+    return requestJson('/admin/logout', { method: 'POST' });
+  }
+
+  /**
+   * Authenticates Module Manager for a specific module.
+   * @param {string} moduleId - Module id
+   * @param {string} password - Module management password
+   * @returns {Promise<{ moduleId: string, message: string }>}
+   */
+  async function authenticateModule(moduleId, password) {
+    return requestJson(`/admin/module/${moduleId}/auth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    });
   }
 
   /**
@@ -63,11 +146,15 @@ const ModuleHubApi = (function createModuleHubApi() {
    * @returns {Promise<{ moduleId: string }>}
    */
   async function uploadZip(zipFile) {
+    if (!csrfToken) {
+      await ensureCsrfToken();
+    }
     const formData = new FormData();
     formData.append('zipFile', zipFile);
     const response = await fetch('/admin/upload', {
       method: 'POST',
       credentials: 'same-origin',
+      headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
       body: formData,
     });
     if (!response.ok) {
@@ -91,7 +178,7 @@ const ModuleHubApi = (function createModuleHubApi() {
   }
 
   /**
-   * Starts a module by id (auth required — phase 4).
+   * Starts a module by id.
    * @param {string} moduleId - Module id
    * @returns {Promise<object>}
    */
@@ -100,7 +187,7 @@ const ModuleHubApi = (function createModuleHubApi() {
   }
 
   /**
-   * Stops a module by id (auth required).
+   * Stops a module by id.
    * @param {string} moduleId - Module id
    * @returns {Promise<object>}
    */
@@ -137,7 +224,7 @@ const ModuleHubApi = (function createModuleHubApi() {
   }
 
   /**
-   * Updates module settings (Super Admin).
+   * Updates module settings.
    * @param {string} moduleId - Module id
    * @param {object} payload - PATCH body
    * @returns {Promise<object>}
@@ -198,8 +285,12 @@ const ModuleHubApi = (function createModuleHubApi() {
   }
 
   return {
+    ensureCsrfToken,
     loadLayout,
     loadAuthStatus,
+    loginSuperAdmin,
+    logoutSuperAdmin,
+    authenticateModule,
     createFolder,
     uploadZip,
     saveWizard,

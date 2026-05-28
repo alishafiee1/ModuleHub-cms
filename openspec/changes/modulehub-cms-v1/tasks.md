@@ -139,24 +139,24 @@
 
 ## 10. فاز ۸ — احراز هویت (super-admin-auth + module-manager-auth)
 
-- [ ] 10.1 `GET/POST /admin/login` — bcrypt + express-session
-- [ ] 10.2 Auth middleware — Super Admin یا Module Manager scoped
-- [ ] 10.3 Rate limit login — `loginRateLimitPerMinute`
-- [ ] 10.4 CSRF token — همه POST admin
-- [ ] 10.5 `POST /admin/logout`
-- [ ] 10.6 Seed Super Admin — `ADMIN_PASSWORD_HASH` یا admin-users.json
-- [ ] 10.7 `POST /admin/module/:id/auth` — Module Manager
-- [ ] 10.8 Module Manager limits — delete/settings/add → 403
-- [ ] 10.9 Lockout — `modulePasswordMaxAttempts` + `modulePasswordLockoutMinutes`
-- [ ] 10.10 UI: login page + SweetAlert رمز ⚙ + مخفی +
-- [ ] 10.11 **Unit:** `tests/unit/super-admin-auth/bcrypt-verify.test.ts` — hash صحیح/غلط، cost ≥ 12
-- [ ] 10.12 **Unit:** `tests/unit/super-admin-auth/session-middleware.test.ts` — بدون session → 401، با session → pass
-- [ ] 10.13 **Unit:** `tests/unit/super-admin-auth/csrf.test.ts` — POST بدون token → 403
-- [ ] 10.14 **Unit:** `tests/unit/super-admin-auth/rate-limit.test.ts` — بیش از N تلاش → 429
-- [ ] 10.15 **Unit:** `tests/unit/module-manager-auth/scope-check.test.ts` — Module Manager فقط moduleId خودش
-- [ ] 10.16 **Unit:** `tests/unit/module-manager-auth/lockout.test.ts` — N تلاش اشتباه → block تا lockoutMinutes
+- [x] 10.1 `GET/POST /admin/login` — bcrypt + express-session
+- [x] 10.2 Auth middleware — Super Admin یا Module Manager scoped
+- [x] 10.3 Rate limit login — `loginRateLimitPerMinute`
+- [x] 10.4 CSRF token — همه POST admin
+- [x] 10.5 `POST /admin/logout`
+- [x] 10.6 Seed Super Admin — `ADMIN_PASSWORD_HASH` یا admin-users.json
+- [x] 10.7 `POST /admin/module/:id/auth` — Module Manager
+- [x] 10.8 Module Manager limits — delete/settings/add → 403
+- [x] 10.9 Lockout — `modulePasswordMaxAttempts` + `modulePasswordLockoutMinutes`
+- [x] 10.10 UI: login page + SweetAlert رمز ⚙ + مخفی +
+- [x] 10.11 **Unit:** `tests/unit/super-admin-auth/bcrypt-verify.test.ts` — hash صحیح/غلط، cost ≥ 12
+- [x] 10.12 **Unit:** `tests/unit/super-admin-auth/session-middleware.test.ts` — بدون session → 401، با session → pass
+- [x] 10.13 **Unit:** `tests/unit/super-admin-auth/csrf.test.ts` — POST بدون token → 403
+- [x] 10.14 **Unit:** `tests/unit/super-admin-auth/rate-limit.test.ts` — بیش از N تلاش → 429
+- [x] 10.15 **Unit:** `tests/unit/module-manager-auth/scope-check.test.ts` — Module Manager فقط moduleId خودش
+- [x] 10.16 **Unit:** `tests/unit/module-manager-auth/lockout.test.ts` — N تلاش اشتباه → block تا lockoutMinutes
 - [ ] 10.17 تست دستی: login از WAN | Module Manager از WAN | brute-force lockout
-- [ ] 10.18 **بستن فاز:** `npm run lint` + JSDoc برای auth middleware و handlers
+- [x] 10.18 **بستن فاز:** `npm run lint` + JSDoc برای auth middleware و handlers — 2026-05-29
 
 ## 11. فاز ۹ — تست یکپارچگی و استقرار
 

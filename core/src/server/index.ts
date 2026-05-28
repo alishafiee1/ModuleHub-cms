@@ -3,7 +3,13 @@ import http from 'http';
 import path from 'path';
 import { ensureRequiredDirectories } from '../bootstrap/ensure-directories';
 import { PATHS } from '../config/paths';
-import { createAdminLoginRouter } from '../modules/admin-auth';
+import {
+  createAdminLoginRouter,
+  createModuleAuthRouter,
+  getCsrfTokenHandler,
+  registerSessionMiddleware,
+  requireCsrfMiddleware,
+} from '../modules/admin-auth';
 import { createLayoutRouter } from '../modules/home-layout';
 import { requestLoggingMiddleware } from '../modules/logger';
 import { createModuleManagementRouter } from '../modules/module-management';
@@ -16,21 +22,42 @@ const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_PORT = 4000;
 
 /**
+ * Applies CSRF protection to mutating /admin requests (except login POST handled separately).
+ * @returns Express middleware
+ */
+function createAdminCsrfProtectionMiddleware() {
+  return (request: express.Request, response: express.Response, next: express.NextFunction) => {
+    const method = request.method.toUpperCase();
+    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+      next();
+      return;
+    }
+    requireCsrfMiddleware(request, response, next);
+  };
+}
+
+/**
  * Builds the Express application with health check and request logging.
  * @returns Configured Express app (not listening)
  */
 export function createApp(): Application {
   const app = express();
+  registerSessionMiddleware(app);
   app.use(requestLoggingMiddleware);
   app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
 
   app.get('/health', (_request, response) => {
     response.status(200).json({ status: 'ok' });
   });
 
+  app.get('/api/auth/csrf-token', getCsrfTokenHandler);
+
   app.use('/api', createLayoutRouter());
   app.use('/modules', createModuleServingRouter());
+  app.use('/admin', createAdminCsrfProtectionMiddleware());
   app.use('/admin', createAdminLoginRouter());
+  app.use('/admin/module', createModuleAuthRouter());
   app.use('/admin/module', createModuleManagementRouter());
   app.use('/admin/backup', createBackupRestoreRouter());
   app.use('/admin', createRestoreRouter());

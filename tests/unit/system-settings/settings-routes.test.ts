@@ -4,6 +4,7 @@ import path from 'path';
 import request from 'supertest';
 import exampleSettings from '../../../docs/system-settings.example.json';
 import { resetCmsLoggerForTests } from '../../../core/src/modules/logger';
+import { createAgentWithCsrf } from '../../helpers/admin-test-agent';
 
 describe('system-settings admin routes', () => {
   let tempRoot: string;
@@ -41,8 +42,10 @@ describe('system-settings admin routes', () => {
   it('POST /admin/settings persists validated partial update', async () => {
     const { createApp } = await import('../../../core/src/server/index');
     const app = createApp();
-    const response = await request(app)
+    const { agent, csrfToken } = await createAgentWithCsrf(app);
+    const response = await agent
       .post('/admin/settings')
+      .set('X-CSRF-Token', csrfToken)
       .send({ maxZipUploadMb: 100, sessionTtlHours: 4 });
 
     expect(response.status).toBe(200);
@@ -54,13 +57,13 @@ describe('system-settings admin routes', () => {
     expect(saved.sessionTtlHours).toBe(4);
   });
 
-  it('returns 403 without dev Super Admin flag', async () => {
+  it('returns 401 without Super Admin session', async () => {
     process.env.MODULEHUB_DEV_SUPER_ADMIN = '0';
     jest.resetModules();
     resetCmsLoggerForTests();
     const { createApp } = await import('../../../core/src/server/index');
     const app = createApp();
     const response = await request(app).get('/admin/settings/data');
-    expect(response.status).toBe(403);
+    expect(response.status).toBe(401);
   });
 });

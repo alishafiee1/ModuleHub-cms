@@ -1,6 +1,10 @@
 import type { Request, Response, Router } from 'express';
 import { Router as createRouter } from 'express';
-import { requireSuperAdminMiddleware } from '../admin-auth';
+import {
+  isSuperAdminSession,
+  requireModuleAccessMiddleware,
+  requireSuperAdminOnlyMiddleware,
+} from '../admin-auth';
 import { readSiteLayout, writeSiteLayout } from '../home-layout/layout-store';
 import { startModuleById, stopModuleById } from '../module-manager/module-manager-service';
 import { loadSystemSettings } from '../system-settings';
@@ -165,6 +169,14 @@ export async function patchModuleHandler(request: Request, response: Response): 
   try {
     const layout = await readSiteLayout();
     const body = request.body as ModuleEditInput;
+
+    if (!isSuperAdminSession(request)) {
+      if (body.managementPasswordPlain || body.clearManagementPassword || body.gitRepo !== undefined) {
+        response.status(403).json({ error: 'Super Admin required for password or git settings' });
+        return;
+      }
+    }
+
     const updated = await applyModuleEdit(layout, moduleId, body);
     await writeSiteLayout(updated);
     response.status(200).json({
@@ -283,33 +295,31 @@ export async function postModuleGitHubSyncHandler(
 export function createModuleManagementRouter(): Router {
   const router = createRouter({ mergeParams: true });
 
-  router.use(requireSuperAdminMiddleware);
-
-  router.post('/:id/start', (request, response) => {
+  router.post('/:id/start', requireModuleAccessMiddleware, (request, response) => {
     void postModuleStartHandler(request, response);
   });
-  router.post('/:id/stop', (request, response) => {
+  router.post('/:id/stop', requireModuleAccessMiddleware, (request, response) => {
     void postModuleStopHandler(request, response);
   });
-  router.post('/:id/restart', (request, response) => {
+  router.post('/:id/restart', requireModuleAccessMiddleware, (request, response) => {
     void postModuleRestartHandler(request, response);
   });
-  router.get('/:id/logs/download', (request, response) => {
+  router.get('/:id/logs/download', requireModuleAccessMiddleware, (request, response) => {
     void getModuleLogsDownloadHandler(request, response);
   });
-  router.get('/:id/logs', (request, response) => {
+  router.get('/:id/logs', requireModuleAccessMiddleware, (request, response) => {
     void getModuleLogsHandler(request, response);
   });
-  router.get('/:id/backup', (request, response) => {
+  router.get('/:id/backup', requireModuleAccessMiddleware, (request, response) => {
     void getModuleBackupHandler(request, response);
   });
-  router.post('/:id/github-sync', (request, response) => {
+  router.post('/:id/github-sync', requireSuperAdminOnlyMiddleware, (request, response) => {
     void postModuleGitHubSyncHandler(request, response);
   });
-  router.patch('/:id', (request, response) => {
+  router.patch('/:id', requireModuleAccessMiddleware, (request, response) => {
     void patchModuleHandler(request, response);
   });
-  router.delete('/:id', (request, response) => {
+  router.delete('/:id', requireSuperAdminOnlyMiddleware, (request, response) => {
     void deleteModuleHandler(request, response);
   });
 

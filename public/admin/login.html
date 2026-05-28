@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود Super Admin | ModuleHub CMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .login-page { max-width: 420px; margin: 4rem auto; padding: 1.5rem; }
+        .login-card { padding: 1.5rem; border-radius: 16px; background: var(--card-bg, #fff); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+        .login-card h1 { margin-top: 0; font-size: 1.4rem; }
+        .login-field { margin-bottom: 1rem; }
+        .login-field label { display: block; margin-bottom: 0.35rem; }
+        .login-field input { width: 100%; padding: 0.65rem; border-radius: 10px; border: 1px solid #ccc; }
+        .login-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.25rem; }
+        .login-actions button, .login-actions a { padding: 0.65rem 1.2rem; border-radius: 10px; border: none; cursor: pointer; text-decoration: none; }
+        .btn-primary { background: #2563eb; color: #fff; }
+        .btn-secondary { background: #64748b; color: #fff; display: inline-flex; align-items: center; }
+        .login-error { color: #dc2626; margin-top: 0.75rem; min-height: 1.25rem; }
+    </style>
+</head>
+<body class="rtl-container">
+<div class="login-page demo-container">
+    <div class="login-card">
+        <h1><i class="fas fa-user-shield"></i> ورود Super Admin</h1>
+        <p>برای مدیریت کامل CMS و افزودن محتوا وارد شوید.</p>
+        <form id="loginForm">
+            <div class="login-field">
+                <label for="username">نام کاربری</label>
+                <input id="username" name="username" type="text" autocomplete="username" required>
+            </div>
+            <div class="login-field">
+                <label for="password">رمز عبور</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" required>
+            </div>
+            <div class="login-actions">
+                <button type="submit" class="btn-primary">ورود</button>
+                <a href="/" class="btn-secondary"><i class="fas fa-home"></i> بازگشت</a>
+            </div>
+            <div id="loginError" class="login-error" role="alert"></div>
+        </form>
+    </div>
+</div>
+<script src="/api-client.js"></script>
+<script src="/admin/login.js"></script>
+</body>
+</html>

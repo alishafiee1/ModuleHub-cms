@@ -29,13 +29,13 @@ export async function getLayoutHandler(request: Request, response: Response): Pr
 }
 
 /**
- * Returns auth status (dev Super Admin flag until phase 8 session login).
+ * Returns auth status from the current session.
  * @param request - Express request
  * @param response - Express response
  */
-export function getAuthStatusHandler(request: Request, response: Response): void {
-  void request;
-  response.status(200).json(getAuthStatusPayload());
+export async function getAuthStatusHandler(request: Request, response: Response): Promise<void> {
+  const payload = await getAuthStatusPayload(request);
+  response.status(200).json(payload);
 }
 
 /**
@@ -47,6 +47,8 @@ export function createLayoutRouter(): Router {
   router.get('/layout', (request, response) => {
     void getLayoutHandler(request, response);
   });
-  router.get('/auth/status', getAuthStatusHandler);
+  router.get('/auth/status', (request, response) => {
+    void getAuthStatusHandler(request, response);
+  });
   return router;
 }

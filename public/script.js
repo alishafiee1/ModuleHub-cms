@@ -102,9 +102,11 @@
     if (authStatus.isSuperAdmin) {
       link.innerHTML = '<i class="fas fa-user-check"></i> Super Admin';
       link.href = '/admin/settings';
+      link.onclick = null;
     } else {
       link.innerHTML = '<i class="fas fa-user-shield"></i> ورود ادمین';
       link.href = '/admin/login';
+      link.onclick = null;
     }
   }
 
@@ -262,11 +264,24 @@
       if (action === 'login') {
         window.location.href = '/admin/login';
       } else if (action === 'module-password') {
-        Swal.fire({
-          icon: 'info',
-          title: 'رمز ماژول',
-          text: 'احراز هویت Module Manager در فاز ۸ پیاده‌سازی می‌شود.',
+        const { value: modulePassword } = await Swal.fire({
+          title: 'رمز Module Manager',
+          input: 'password',
+          inputPlaceholder: 'رمز مدیریت ماژول',
+          showCancelButton: true,
+          confirmButtonText: 'ورود',
+          cancelButtonText: 'انصراف',
         });
+        if (!modulePassword) {
+          return;
+        }
+        try {
+          await ModuleHubApi.authenticateModule(moduleId, modulePassword);
+          await refreshFromServer();
+          await openGearMenu(cardElement);
+        } catch (error) {
+          Swal.fire({ icon: 'error', title: 'خطا', text: error.message });
+        }
       }
       return;
     }

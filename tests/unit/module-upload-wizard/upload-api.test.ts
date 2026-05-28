@@ -2,9 +2,9 @@ import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
 import AdmZip from 'adm-zip';
-import request from 'supertest';
 import validFixture from '../../fixtures/site-layout-valid.json';
 import { resetCmsLoggerForTests } from '../../../core/src/modules/logger';
+import { createAgentWithCsrf } from '../../helpers/admin-test-agent';
 
 describe('POST /admin/folder and upload', () => {
   let tempRoot: string;
@@ -30,8 +30,10 @@ describe('POST /admin/folder and upload', () => {
   it('creates virtual folder via API', async () => {
     const { createApp: createFreshApp } = await import('../../../core/src/server/index');
     const app = createFreshApp();
-    const response = await request(app)
+    const { agent, csrfToken } = await createAgentWithCsrf(app);
+    const response = await agent
       .post('/admin/folder')
+      .set('X-CSRF-Token', csrfToken)
       .send({ parentId: 'root', name: 'API Folder' });
 
     expect(response.status).toBe(201);
@@ -45,8 +47,10 @@ describe('POST /admin/folder and upload', () => {
   it('rejects non-ZIP upload', async () => {
     const { createApp: createFreshApp } = await import('../../../core/src/server/index');
     const app = createFreshApp();
-    const response = await request(app)
+    const { agent, csrfToken } = await createAgentWithCsrf(app);
+    const response = await agent
       .post('/admin/upload')
+      .set('X-CSRF-Token', csrfToken)
       .attach('zipFile', Buffer.from('not a zip'), 'readme.txt');
 
     expect(response.status).toBe(400);
@@ -60,8 +64,10 @@ describe('POST /admin/folder and upload', () => {
 
     const { createApp: createFreshApp } = await import('../../../core/src/server/index');
     const app = createFreshApp();
-    const response = await request(app)
+    const { agent, csrfToken } = await createAgentWithCsrf(app);
+    const response = await agent
       .post('/admin/upload')
+      .set('X-CSRF-Token', csrfToken)
       .attach('zipFile', zipPath);
 
     expect(response.status).toBe(201);

@@ -37,6 +37,9 @@ export const PATHS = {
   get systemSettingsSeed(): string {
     return path.join(getAppRoot(), 'docs', 'system-settings.example.json');
   },
+  get adminUsers(): string {
+    return path.join(getAppRoot(), 'storage', 'admin-users.json');
+  },
   get uploadTempDirectory(): string {
     return path.join(getAppRoot(), 'storage', 'upload-temp');
   },
