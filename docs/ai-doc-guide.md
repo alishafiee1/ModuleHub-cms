@@ -57,6 +57,7 @@ table td code, table th code {
 | `site-layout.json` | کد | **نمونه schema** | ساختار ماژول در JSON |
 | `server condition.md` | عملیات | **گزارش زنده** | IP، NIC، سرویس‌ها — به‌روز دستی |
 | `module-hosting-guide.md` | توسعه‌دهنده | **فنی** | Static/Backend/Docker، base path |
+| `developer-guide.md` | سازنده ماژول | **عملی** | ZIP، wizard، تست local — v0 |
 | `code-rolls.md` | AI هنگام کدنویسی | **قواعد کد** | TypeScript، امنیت، تست |
 
 ---

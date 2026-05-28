@@ -168,7 +168,7 @@ table th code {
 - [ ] `README.md` – نصب و راه‌اندازی سریع
 - [ ] `docs/ai-doc-guide.md` – قواعد نقش هر سند برای AI
 - [ ] `docs/system-settings.example.json` – نمونه تنظیمات سراسری
-- [ ] `docs/admin-guide.md` – راهنمای تصویری برای ادمین
+- [ ] `docs/developer-guide.md` – ساخت ZIP ماژول (v0 — §۶ پس از کد به‌روز شود)
 - [ ] `docs/developer-guide.md` – ساختار ZIP، وابستگی‌ها
 - [ ] `docs/backup-restore.md` – روش پشتیبان‌گیری
 - [ ] `docs/network-config.md` – نحوه مدیریت dual‑WAN

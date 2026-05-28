@@ -337,6 +337,7 @@ node scripts/cli.js --help
 | `site-layout.json` | نمونه schema ماژول |
 | `server condition.md` | وضعیت زنده سرور — به‌روز دستی |
 | `module-hosting-guide.md` | Static vs Backend vs Docker — چالش سرور |
+| `developer-guide.md` | ZIP ماژول، wizard، base path — v0 spec |
 | `code-rolls.md` | قواعد کد برای AI |
 
 **AI معمولاً این‌ها را رعایت نمی‌کند — ممنوع:**
