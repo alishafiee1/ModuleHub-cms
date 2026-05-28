@@ -49,6 +49,15 @@ export const PATHS = {
     }
     return path.join(getAppRoot(), 'storage', 'logs', 'modules');
   },
+  get packageCacheDirectory(): string {
+    if (process.env.MODULEHUB_PACKAGE_CACHE_DIR) {
+      return process.env.MODULEHUB_PACKAGE_CACHE_DIR;
+    }
+    if (process.platform !== 'win32') {
+      return '/var/cache/modulehub/pkg';
+    }
+    return path.join(getAppRoot(), 'storage', 'cache', 'pkg');
+  },
   cmsLogFileName: 'cms-%DATE%.log',
 } as const;
 

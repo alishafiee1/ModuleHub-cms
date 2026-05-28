@@ -56,6 +56,15 @@ table th code,
 
 ## آخرین جلسات
 
+### 2026-05-28 — /sync-docs (فاز ۴ بسته شد)
+- **درخواست (17:30 UTC):** `/sync-docs` بعد از فاز ۴ و سؤال design plan
+- **نتیجه (17:35 UTC):** walk-through یکپارچه · mistakes (npm/systemd، SCP) · deploy-notes · README · server-scripts
+
+### 2026-05-28 — فاز ۴ کش پکیج
+- **درخواست (13:00 سرور):** شروع فاز بعدی — openspec + `design plan.md` §۸
+- **نتیجه (13:45 سرور):** `package-cache` · ۵۶ تست unit · deploy `/opt` · تست دستی: upload1 ~۴s `installed:true` · upload2 ~۰s cache hit
+- **دستور تست:** `bash scripts/test-package-cache-manual.sh` (روی سرور؛ ZIP flat — نه پوشهٔ `mod/` داخل zip)
+
 ### 2026-05-28 — فاز ۳ runtime + deploy سایت
 - **درخواست (~صبح):** شروع فاز ۳؛ اجرای ماژول، Start/Stop، باز شدن `/modules/`
 - **نتیجه (~ظهر):** کد runtime، تست ۴۵/۴۵، deploy روی `192.168.88.50`؛ health سبز

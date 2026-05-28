@@ -41,4 +41,19 @@
 - **تأیید:** کارت + و Start روی haderbash.ir
 - **زمینه:** تا فاز ۸
 
+### [DEPLOY-006] package-cache — `npm: not found` تحت systemd
+- **اشتباه:** فرض `npm` در PATH سرویس (`ExecStart=/usr/bin/node` بدون nvm)
+- **درست:** کد `resolveNpmExecutablePath()` از `~/.nvm/versions/node/` یا `MODULEHUB_NPM_PATH` در `.env`
+- **زمینه:** POST `/admin/upload` · 2026-05-28
+
+### [DEPLOY-007] SCP چند فایل — مسیر اشتباه
+- **اشتباه:** `scp file1 file2 user@host:~/.../bootstrap/` — همه در یک پوشه
+- **درست:** هر فایل جدا به مسیر target: `.../config/paths.ts` · `.../module-upload-wizard/upload-routes.ts`
+- **زمینه:** deploy فاز ۴ · tsc error در bootstrap
+
+### [OK-003] smoke کش پکیج روی سرور
+- **راه‌حل:** `deploy-on-server.sh --skip-pull` + `broker-sudo.py systemctl restart` + `bash scripts/test-package-cache-manual.sh`
+- **تأیید:** upload2 → `"message":"Linked from package cache"` · `/var/cache/modulehub/pkg/<hash>/`
+- **زمینه:** openspec 5.11 · 2026-05-28
+
 </div>

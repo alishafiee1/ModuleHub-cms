@@ -46,6 +46,16 @@ curl -sf http://127.0.0.1:4000/health
 | SSH + `sudo systemctl` بدون TTY | `ssh -t` یا sudo broker |
 | ویرایش `scripts/` روی سرور | لوکال + push |
 | metric toggler crash | `MODULEHUB_SKIP_WAN=1` + همگام‌سازی git |
+| `npm: not found` در package-cache (systemd) | `MODULEHUB_NPM_PATH` در `.env` یا auto از `~/.nvm/versions/node/` |
+| restart بعد deploy بدون TTY | `python3 ~/ModuleHub-cms/scripts/broker-sudo.py 'systemctl restart modulehub-cms'` |
+
+---
+
+## package-cache (فاز ۴)
+
+- کش: `/var/cache/modulehub/pkg/<hash>/` — symlink به `node_modules` / `venv` / `vendor`
+- smoke: `bash scripts/test-package-cache-manual.sh` (ZIP باید `package.json` در **ریشه** zip باشد، نه داخل `mod/`)
+- اسکریپت از ویندوز → قبل از اجرا: `sed -i 's/\r$//' scripts/test-package-cache-manual.sh`
 
 ---
 

@@ -9,6 +9,7 @@ import { requireSuperAdminMiddleware } from '../admin-auth';
 import { readSiteLayout, writeSiteLayout } from '../home-layout/layout-store';
 import type { ModuleResources } from '../home-layout/types';
 import { getCmsLogger } from '../logger';
+import { installModuleDependencies } from '../package-cache';
 import { loadSystemSettings } from '../system-settings';
 import { isZipUpload, validateUploadSize } from '../upload-validator';
 import { createVirtualFolder } from '../virtual-folder';
@@ -67,9 +68,19 @@ export async function postUploadHandler(request: Request, response: Response): P
     await extractZipToModuleDirectory(file.path, moduleDirectory);
     await fs.remove(file.path);
 
+    const dependencyResult = await installModuleDependencies(moduleDirectory, settings);
+    const logger = getCmsLogger();
+    logger.info('Module dependencies resolved after upload', {
+      moduleId,
+      hash: dependencyResult.hash,
+      installed: dependencyResult.installed,
+      linkedTargets: dependencyResult.linkedTargets,
+    });
+
     response.status(201).json({
       moduleId,
       message: 'ZIP extracted successfully. Complete the wizard to register the module.',
+      dependencies: dependencyResult,
     });
   } catch (error: unknown) {
     const logger = getCmsLogger();

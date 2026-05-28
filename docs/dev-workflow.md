@@ -28,7 +28,8 @@ table td code, table th code { direction: ltr; unicode-bidi: embed; text-align: 
 | 0–1 | صفحه اصلی، کارت‌ها | ✅ |
 | 2 | آپلود ZIP، پوشه مجازی | ✅ |
 | 3 | Start/Stop، باز شدن `/modules/...` | ✅ |
-| 4+ | کش پکیج، login واقعی، … | ⏳ |
+| 4 | کش پکیج (npm/pip/composer) | ✅ |
+| 5+ | gear dialog، login واقعی، … | ⏳ |
 
 بخش‌های قدیمی این فایل که فقط «فاز ۲» می‌گفتند، در **§۴ (ادمین موقت)** و **§۳ (deploy)** ادغام شده‌اند.
 

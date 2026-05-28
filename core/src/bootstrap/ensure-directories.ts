@@ -16,6 +16,7 @@ export async function ensureRequiredDirectories(): Promise<void> {
   await fs.ensureDir(PATHS.thumbnailsDirectory);
   await fs.ensureDir(PATHS.uploadTempDirectory);
   await fs.ensureDir(PATHS.moduleLogDirectory);
+  await fs.ensureDir(PATHS.packageCacheDirectory);
   await seedSiteLayoutIfMissing();
   await seedSystemSettingsIfMissing();
 }

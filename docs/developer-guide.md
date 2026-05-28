@@ -12,7 +12,7 @@ table td code, table th code { direction: ltr; unicode-bidi: embed; text-align: 
 
 # راهنمای توسعه‌دهنده — ModuleHub CMS
 
-> **وضعیت:** هسته در `core/` — فاز ۰–۳ (layout + wizard + runtime).  
+> **وضعیت:** هسته در `core/` — فاز ۰–۴ (layout + wizard + runtime + package-cache).  
 > ماژول بعد از wizard با `status: stopped` ثبت می‌شود؛ از ⚙ **Start** سپس `/modules/<id>/` باز می‌شود.  
 > deploy و توسعه: [`dev-workflow.md`](dev-workflow.md) · چک‌لیست: [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
 
@@ -30,7 +30,7 @@ table td code, table th code { direction: ltr; unicode-bidi: embed; text-align: 
 ## ۱. خلاصه: چطور ماژول اضافه می‌شود؟
 
 ```
-ZIP → آپلود در پنل → wizard (Docker / پورت / منابع) → standalone-modules/<id>/ → کارت در سایت
+ZIP → آپلود در پنل → (اگر package.json/requirements.txt/composer.json باشد: نصب/لینک از کش) → wizard → standalone-modules/<id>/ → کارت در سایت
 ```
 
 - **نیازی به `manifest.json` دستی نیست** — تنظیمات در `site-layout.json` ذخیره می‌شود.

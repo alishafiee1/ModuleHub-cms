@@ -74,18 +74,18 @@
 
 ## 5. فاز ۴ — کش پکیج (package-cache)
 
-- [ ] 5.1 cache-manager — scan manifests
-- [ ] 5.2 SHA256 hash
-- [ ] 5.3 Cache lookup `/var/cache/modulehub/pkg/<hash>/`
-- [ ] 5.4 Cache miss — install + symlink
-- [ ] 5.5 network-install toggler
-- [ ] 5.6 LRU eviction
-- [ ] 5.7 **Unit:** `tests/unit/package-cache/hash.test.ts` — SHA256 یکسان برای manifest یکسان
-- [ ] 5.8 **Unit:** `tests/unit/package-cache/cache-lookup.test.ts` — hit → symlink، miss → install
-- [ ] 5.9 **Unit:** `tests/unit/package-cache/manifest-scanner.test.ts` — شناسایی package.json / requirements.txt / composer.json
-- [ ] 5.10 **Unit:** `tests/unit/package-cache/lru-eviction.test.ts` — حذف قدیمی‌ترین وقتی > maxPackageCacheGb
-- [ ] 5.11 تست دستی: دو ماژول یکسان — بار دوم instant
-- [ ] 5.12 **بستن فاز:** `npm run lint` + JSDoc برای `cache-manager`
+- [x] 5.1 cache-manager — scan manifests
+- [x] 5.2 SHA256 hash
+- [x] 5.3 Cache lookup `/var/cache/modulehub/pkg/<hash>/`
+- [x] 5.4 Cache miss — install + symlink
+- [x] 5.5 network-install toggler
+- [x] 5.6 LRU eviction
+- [x] 5.7 **Unit:** `tests/unit/package-cache/hash.test.ts` — SHA256 یکسان برای manifest یکسان
+- [x] 5.8 **Unit:** `tests/unit/package-cache/cache-lookup.test.ts` — hit → symlink، miss → install
+- [x] 5.9 **Unit:** `tests/unit/package-cache/manifest-scanner.test.ts` — شناسایی package.json / requirements.txt / composer.json
+- [x] 5.10 **Unit:** `tests/unit/package-cache/lru-eviction.test.ts` — حذف قدیمی‌ترین وقتی > maxPackageCacheGb
+- [x] 5.11 تست دستی: دو ماژول یکسان — بار دوم instant
+- [x] 5.12 **بستن فاز:** `npm run lint` + JSDoc برای `cache-manager`
 
 ## 6. فاز ۵ — مدیریت ماژول (module-management)
 
