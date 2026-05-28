@@ -1,0 +1,17 @@
+# ModuleHub CMS — log rotation (14 days retention)
+# Install: bash scripts/install-logrotate.sh
+
+/opt/modulehub-cms/storage/logs/cms-*.log
+/var/log/modulehub/modules/*.log
+/opt/modulehub-cms/storage/logs/modules/*.log {
+    daily
+    rotate 14
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    dateext
+    dateformat -%Y%m%d
+    su ash ash
+}

@@ -39,7 +39,7 @@ table th code {
 
 > **پایان هر فاز:** unit test + `npm run lint` + JSDoc توابع public — [`code-rolls.md`](code-rolls.md)  
 > **TypeScript:** همهٔ `core/src/` — type برای IO ماژول‌ها، بدون `any`.  
-> **وضعیت (2026-05-28):** فاز **۰–۵** ✅ در کد و openspec · فاز **۶+** ⏳ — جزئیات unit: [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
+> **وضعیت (2026-05-29):** فاز **۰–۶** ✅ · فاز **۷** ✅ (کد) — تست دستی ۸.۶ ⏳ — جزئیات unit: [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
 
 | فاز | موضوع | وضعیت |
 |-----|--------|--------|
@@ -48,7 +48,8 @@ table th code {
 | ۳ | runtime Start/Stop + `/modules/` | ✅ |
 | ۴ | کش پکیج | ✅ 2026-05-28 |
 | ۵ | ⚙ مدیریت ماژول (gear) | ✅ 2026-05-28 |
-| ۶+ | backup کامل · auth · … | ⏳ |
+| ۶ | backup کامل | ✅ 2026-05-29 |
+| ۷+ | versioning · settings · auth · … | ⏳ |
 
 ## فاز ۰: آماده‌سازی زیرساخت (۱ روز) — ✅
 
@@ -135,26 +136,29 @@ table th code {
 
 ---
 
-## فاز ۶: پشتیبان‌گیری و بازیابی کامل (۲ روز) — ✅ کد + unit 2026-05-28
+## فاز ۶: پشتیبان‌گیری و بازیابی کامل (۲ روز) — ✅ انجام شد 2026-05-29
 
-> dev: `MODULEHUB_DEV_SUPER_ADMIN=1` · API: `POST /admin/backup` · `GET /admin/backup/list` · `GET /admin/backup/download/:file` · `POST /admin/restore` (field `backup`, body `confirm=true`) · CLI: `node scripts/cli.js backup --output path.zip`
+> **UI:** دکمهٔ بکاپ کل در صفحه نیست — فقط API/CLI. بکاپ **تکی** ماژول: ⚙ → «پشتیبان ZIP».  
+> dev: `MODULEHUB_DEV_SUPER_ADMIN=1` · مسیر بکاپ روی سرور: `/opt/modulehub-cms/storage/backups/`
 
 | # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |
 |---|-------|--------|------------------|----------|
-| 6.1 | ایجاد backup کامل | `core/src/modules/backup-restore/` — manifest + ZIP | `modulehub-full-<timestamp>.zip` در `storage/backups/` | unit `backup-manifest` + `restore-validator` |
-| 6.2 | بازیابی از backup | pre-restore ZIP خودکار · stop running modules · extract | layout/settings/modules/thumbnails بازنویسی | `POST /admin/restore` |
-| 6.3 | تست بازیابی پس از حذف | — | ماژول حذف‌شده برگردد | **تست دستی** (باز) |
+| 6.1 | ایجاد backup کامل | `POST /admin/backup` یا CLI | `modulehub-full-<timestamp>.zip` | `curl -X POST …/admin/backup` · `backup/list` |
+| 6.2 | بازیابی از backup | pre-restore خودکار · `confirm=true` | وضعیت قبل از restore برگردد | `curl -F backup=@… -F confirm=true …/admin/restore` |
+| 6.3 | تست بازیابی پس از حذف | — | ماژول/تنظیمات برگردد | ✅ تست دستی سرور (ash) |
 
 ---
 
-## فاز ۷: نسخه‌گذاری و بهبود لاگ (۲ روز)
+## فاز ۷: نسخه‌گذاری و بهبود لاگ (۲ روز) — ✅ کد 2026-05-29
+
+> SemVer در edit/parse · فیلتر سطح لاگ در ⚙ → «مشاهده لاگ» · logrotate: `bash scripts/install-logrotate.sh`
 
 | # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |
 |---|-------|--------|------------------|----------|
 | 7.1 | افزودن فیلد version به `site-layout.json` | هنگام ایجاد ماژول، version=1.0.0 | فیلد وجود داشته باشد | `jq '.modules["<id>"].version'` |
-| 7.2 | قابلیت به‌روزرسانی نسخه | در دیالوگ چرخ‌دنده، امکان تغییر نسخه و وارد کردن changelog | نسخه در JSON تغییر کند | بررسی بعد از ذخیره |
-| 7.3 | چرخش لاگ خودکار | cron daily برای `logrotate` با نگهداری ۱۴ روز | فایل‌های قدیمی حذف/فشرده شوند | `logrotate -d /etc/logrotate.d/modulehub` |
-| 7.4 | نمایش لاگ با سطح (info, error, debug) | هر رویداد مهم با سطح مناسب ثبت شود | فیلتر در نمایش لاگ امکان‌پذیر است | تست با خطای عمدی |
+| 7.2 | قابلیت به‌روزرسانی نسخه | در دیالوگ چرخ‌دنده، امکان تغییر نسخه و وارد کردن changelog | نسخه در JSON تغییر کند · SemVer نامعتبر → خطا | ⚙ → ویرایش → `2.0.0` |
+| 7.3 | چرخش لاگ خودکار | `config/logrotate/modulehub-cms` + install script | فایل‌های قدیمی حذف/فشرده شوند | `sudo logrotate -d /etc/logrotate.d/modulehub-cms` |
+| 7.4 | نمایش لاگ با سطح (info, error, debug) | `?level=` در API + picker در UI | فیلتر در نمایش لاگ | ⚙ → لاگ → انتخاب سطح |
 
 ---
 

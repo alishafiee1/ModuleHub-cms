@@ -111,18 +111,18 @@
 - [x] 7.4 CLI backup — `node scripts/cli.js backup --output <path>`
 - [x] 7.5 **Unit:** `tests/unit/backup-restore/backup-manifest.test.ts` — لیست فایل‌های اجباری داخل ZIP
 - [x] 7.6 **Unit:** `tests/unit/backup-restore/restore-validator.test.ts` — رد ZIP ناقص یا corrupt
-- [ ] 7.7 تست دستی: backup → حذف → restore
+- [x] 7.7 تست دستی: backup → حذف → restore — 2026-05-29
 - [x] 7.8 **بستن فاز:** `npm run lint` + JSDoc برای `backup-restore` — 2026-05-28
 
 ## 8. فاز ۷ — نسخه‌گذاری و لاگ
 
-- [ ] 8.1 version + changelog در site-layout
-- [ ] 8.2 UI edit version
-- [ ] 8.3 logrotate
-- [ ] 8.4 Log levels Winston
-- [ ] 8.5 **Unit:** `tests/unit/home-layout/version-validator.test.ts` — semver معتبر/نامعتبر، changelog اختیاری
+- [x] 8.1 version + changelog در site-layout
+- [x] 8.2 UI edit version
+- [x] 8.3 logrotate
+- [x] 8.4 Log levels Winston
+- [x] 8.5 **Unit:** `tests/unit/home-layout/version-validator.test.ts` — semver معتبر/نامعتبر، changelog اختیاری
 - [ ] 8.6 تست دستی: version update
-- [ ] 8.7 **بستن فاز:** `npm run lint` + JSDoc برای version handler
+- [x] 8.7 **بستن فاز:** `npm run lint` + JSDoc برای version handler — 2026-05-29
 
 ## 9. فاز ۷.۵ — تنظیمات سراسری (system-settings)
 

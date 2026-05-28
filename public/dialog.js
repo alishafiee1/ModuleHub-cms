@@ -118,13 +118,40 @@ const ModuleDialogs = (function createModuleDialogs() {
   }
 
   /**
+   * Prompts for optional log level filter before viewing module logs.
+   * @returns {Promise<string|null>} Selected level or null for all
+   */
+  async function showLogLevelPickerDialog() {
+    const { value: level } = await Swal.fire({
+      title: 'فیلتر سطح لاگ',
+      input: 'select',
+      inputOptions: {
+        '': 'همه سطوح',
+        info: 'info',
+        error: 'error',
+        debug: 'debug',
+      },
+      inputValue: '',
+      showCancelButton: true,
+      confirmButtonText: 'نمایش',
+      cancelButtonText: 'انصراف',
+    });
+    if (level === undefined) {
+      return undefined;
+    }
+    return level || null;
+  }
+
+  /**
    * Shows module log viewer dialog.
    * @param {string} moduleName - Display name
    * @param {string} logsContent - Log text
+   * @param {string|null} levelFilter - Active level filter label
    */
-  async function showLogsDialog(moduleName, logsContent) {
+  async function showLogsDialog(moduleName, logsContent, levelFilter = null) {
+    const levelLabel = levelFilter ? ` · ${levelFilter}` : '';
     await Swal.fire({
-      title: `لاگ‌های ماژول: ${moduleName}`,
+      title: `لاگ‌های ماژول: ${moduleName}${levelLabel}`,
       html: `<pre style="text-align:left; direction:ltr; background:#1e1e2f; color:#f0f0f0; padding:12px; border-radius:12px; max-height:400px; overflow:auto;">${escapeHtml(logsContent)}</pre>`,
       icon: 'info',
       confirmButtonText: 'بستن',
@@ -346,6 +373,7 @@ const ModuleDialogs = (function createModuleDialogs() {
   return {
     showWizardStep1Dialog,
     showResourceAndIconDialog,
+    showLogLevelPickerDialog,
     showLogsDialog,
     showCacheInfoDialog,
     showAuthRequiredDialog,

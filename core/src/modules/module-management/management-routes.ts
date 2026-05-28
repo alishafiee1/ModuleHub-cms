@@ -116,10 +116,14 @@ export async function getModuleLogsHandler(request: Request, response: Response)
   }
 
   const settings = await loadSystemSettings();
-  const content = await readModuleLogTail(moduleId, settings.logViewerMaxLines);
+  const rawLevel = typeof request.query.level === 'string' ? request.query.level.toLowerCase() : null;
+  const levelFilter =
+    rawLevel === 'debug' || rawLevel === 'info' || rawLevel === 'error' ? rawLevel : null;
+  const content = await readModuleLogTail(moduleId, settings.logViewerMaxLines, levelFilter);
   response.status(200).json({
     moduleId,
     maxLines: settings.logViewerMaxLines,
+    level: levelFilter,
     content,
   });
 }
@@ -247,10 +251,24 @@ export async function postModuleGitHubSyncHandler(
       return;
     }
     const result = await syncModuleFromGitHub(moduleId, entry.gitRepo);
+    let updatedEntry = entry;
+    if (result.versionFromTag && result.versionFromTag !== entry.version) {
+      const layout = await readSiteLayout();
+      const synced = await applyModuleEdit(layout, moduleId, {
+        version: result.versionFromTag,
+        changelog: entry.changelog
+          ? `${entry.changelog}\nGit sync → ${result.versionFromTag}`
+          : `Git sync → ${result.versionFromTag}`,
+      });
+      await writeSiteLayout(synced);
+      updatedEntry = synced.modules[moduleId];
+    }
     response.status(200).json({
       moduleId,
       gitOutput: result.gitOutput,
       dependencies: result.dependencies,
+      versionFromTag: result.versionFromTag,
+      entry: updatedEntry,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'GitHub sync failed';

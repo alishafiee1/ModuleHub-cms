@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import type { ModuleResources, SiteLayoutDocument } from '../home-layout/types';
+import { assertValidSemver, normalizeChangelog } from '../home-layout/version-validator';
 import { renameModuleTreeNode } from './layout-tree-removal';
 
 const BCRYPT_COST = 12;
@@ -59,15 +60,11 @@ export async function applyModuleEdit(
   }
 
   if (input.changelog !== undefined) {
-    entry.changelog = input.changelog;
+    entry.changelog = normalizeChangelog(input.changelog);
   }
 
   if (input.version !== undefined) {
-    const version = input.version.trim();
-    if (!version) {
-      throw new Error('Version is required');
-    }
-    entry.version = version;
+    entry.version = assertValidSemver(input.version);
   }
 
   if (input.gitRepo !== undefined) {

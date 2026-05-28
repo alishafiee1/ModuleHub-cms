@@ -19,6 +19,8 @@ curl http://127.0.0.1:4000/health
 
 **Phase 4:** After ZIP upload — dependency cache at `/var/cache/modulehub/pkg/<hash>/` (SHA256 manifest, symlink, LRU). Smoke: `bash scripts/test-package-cache-manual.sh` on server.
 
+**Phase 6:** Full backup/restore — `POST /admin/backup`, `POST /admin/restore` (no UI yet; per-module ZIP in ⚙). See `docs/developer-guide.md` §9.1.
+
 ## Scripts
 
 | Command | Description |
@@ -42,7 +44,7 @@ curl -sf http://127.0.0.1:4000/health
 ```
 
 - [docs/server-scripts.md](docs/server-scripts.md) — اسکریپت‌ها
-- [docs/deploy-notes-for-ai.md](docs/deploy-notes-for-ai.md) — خلاصه برای AI
+- [docs/other docs/deploy-notes-for-ai.md](docs/other%20docs/deploy-notes-for-ai.md) — خلاصه برای AI
 - [docs/AI-common-mistakes/](docs/AI-common-mistakes/readme.md) — خطاهای ثبت‌شده deploy
 - [docs/session-walkthrough.md](docs/session-walkthrough.md) — گزارش جلسات (عامیانه)
 

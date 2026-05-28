@@ -5,11 +5,13 @@ import { installModuleDependencies } from '../package-cache';
 import { runShellCommand } from '../package-cache/network-install';
 import { loadSystemSettings } from '../system-settings';
 import type { DependencyInstallResult } from '../package-cache/types';
+import { resolveLatestGitTagVersion } from './git-version-resolver';
 
 /** Result of git pull + dependency reinstall */
 export interface GitHubSyncResult {
   gitOutput: string;
   dependencies: DependencyInstallResult;
+  versionFromTag: string | null;
 }
 
 /**
@@ -66,6 +68,10 @@ export async function syncModuleFromGitHub(
     settings.dependencyInstallTimeoutSec,
   );
   const dependencies = await installModuleDependencies(moduleDirectory, settings);
+  const versionFromTag = await resolveLatestGitTagVersion(
+    moduleDirectory,
+    settings.dependencyInstallTimeoutSec,
+  );
 
-  return { gitOutput, dependencies };
+  return { gitOutput, dependencies, versionFromTag };
 }

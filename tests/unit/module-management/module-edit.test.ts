@@ -32,6 +32,13 @@ describe('module-edit', () => {
     expect(hash).toMatch(/^\$2[aby]\$/);
   });
 
+  it('throws when version is invalid semver', async () => {
+    const layout = parseSiteLayout(validFixture);
+    await expect(
+      applyModuleEdit(layout, 'mod-1', { version: 'not-a-version' }),
+    ).rejects.toThrow('Invalid version');
+  });
+
   it('throws when module id is missing from layout', async () => {
     const layout = parseSiteLayout(validFixture);
     await expect(

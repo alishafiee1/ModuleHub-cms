@@ -27,7 +27,7 @@ curl -sf http://127.0.0.1:4000/health
 
 **بازیابی:** `export MODULEHUB_SKIP_WAN=1` + `git reset --hard origin/main` → همان deploy — [`dev-workflow.md` §۵](dev-workflow.md)
 
-**ادمین موقت (تا فاز ۸):** `python3 ~/ModuleHub-cms/scripts/broker-sudo.py 'bash .../enable-dev-admin-on-server.sh'` → `isSuperAdmin:true`
+**ادمین موقت (تا فاز ۸):** `python3 ~/ModuleHub-cms/scripts/run_via_broker.py 'bash /home/ash/ModuleHub-cms/scripts/enable-dev-admin-on-server.sh'` → `isSuperAdmin:true`
 
 **`install-to-opt`:** `.env` در `/opt` را **overwrite نمی‌کند** (rsync `--exclude .env`)
 
@@ -47,7 +47,16 @@ curl -sf http://127.0.0.1:4000/health
 | ویرایش `scripts/` روی سرور | لوکال + push |
 | metric toggler crash | `MODULEHUB_SKIP_WAN=1` + همگام‌سازی git |
 | `npm: not found` در package-cache (systemd) | `MODULEHUB_NPM_PATH` در `.env` یا auto از `~/.nvm/versions/node/` |
-| restart بعد deploy بدون TTY | `python3 ~/ModuleHub-cms/scripts/broker-sudo.py 'systemctl restart modulehub-cms'` |
+| restart بعد deploy بدون TTY | `python3 ~/ModuleHub-cms/scripts/run_via_broker.py 'systemctl restart modulehub-cms'` |
+
+---
+
+## backup-restore (فاز ۶)
+
+- مسیر: `/opt/modulehub-cms/storage/backups/` — هر `POST /admin/backup` یک فایل جدید
+- لیست: `curl -s http://127.0.0.1:4000/admin/backup/list`
+- restore: `curl -X POST …/admin/restore -F backup=@…/modulehub-full-….zip -F confirm=true` (pre-restore خودکار)
+- **UI:** دکمهٔ بکاپ کل نیست — ⚙ «پشتیبان ZIP» = تکی
 
 ---
 

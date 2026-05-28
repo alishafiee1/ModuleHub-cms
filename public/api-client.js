@@ -120,10 +120,12 @@ const ModuleHubApi = (function createModuleHubApi() {
   /**
    * Fetches tail of module log lines.
    * @param {string} moduleId - Module id
-   * @returns {Promise<{ content: string, maxLines: number }>}
+   * @param {string|null} level - Optional level filter: debug | info | error
+   * @returns {Promise<{ content: string, maxLines: number, level: string|null }>}
    */
-  async function fetchModuleLogs(moduleId) {
-    return requestJson(`/admin/module/${moduleId}/logs`);
+  async function fetchModuleLogs(moduleId, level = null) {
+    const query = level ? `?level=${encodeURIComponent(level)}` : '';
+    return requestJson(`/admin/module/${moduleId}/logs${query}`);
   }
 
   /**

@@ -56,9 +56,19 @@ table th code,
 
 ## آخرین جلسات
 
-### 2026-05-28 — فاز ۶ backup-restore
+### 2026-05-29 — فاز ۷ versioning + log levels
+- **درخواست:** شروع فاز جدید بعد از مطالعه docs/openspec
+- **نتیجه:** `version-validator` (SemVer) · logrotate config · فیلتر سطح لاگ · GitHub sync → tag version · ۸۷ تست ✅
+- **تست دستی باقی:** ⚙ → ویرایش نسخه · ⚙ → لاگ با فیلتر · `bash scripts/install-logrotate.sh` روی سرور
+
+### 2026-05-29 — /sync-docs فاز ۶ بسته (تست دستی OK)
+- **درخواست (UTC):** `/sync-docs` — کاربر: backup/restore با curl درست کار کرد
+- **نتیجه:** فاز ۶ ✅ در `docs/tasks` و openspec · دکمهٔ «بکاپ کل» در UI نیست (فقط API + ⚙ «پشتیبان ZIP» تکی)
+- **دستور کلیدی restore:** `curl -X POST …/admin/restore -F backup=@…/storage/backups/modulehub-full-….zip -F confirm=true`
+
+### 2026-05-28 — فاز ۶ backup-restore (پیاده‌سازی)
 - **درخواست:** شروع فاز جدید (backup کامل)
-- **نتیجه:** `backup-restore/` · ۱۰ unit test · `POST /admin/backup` · `POST /admin/restore` · `scripts/cli.js backup` — تست دستی ۶.۳ باز
+- **نتیجه:** `backup-restore/` · deploy `535e27b` · API/CLI — UI بکاپ کل بعداً
 
 ### 2026-05-28 — /sync-docs وابستگی‌ها + fixture تست
 - **درخواست (UTC):** توضیح «معمای وابستگی‌ها» + `/sync-docs` — `node_modules` لازم نیست؛ نصب موقع upload

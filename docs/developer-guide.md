@@ -12,7 +12,7 @@ table td code, table th code { direction: ltr; unicode-bidi: embed; text-align: 
 
 # راهنمای توسعه‌دهنده — ModuleHub CMS
 
-> **وضعیت:** هسته در `core/` — فاز ۰–۴ (layout + wizard + runtime + package-cache).  
+> **وضعیت:** هسته در `core/` — فاز ۰–۶ (layout + wizard + runtime + package-cache + backup-restore).  
 > ماژول بعد از wizard با `status: stopped` ثبت می‌شود؛ از ⚙ **Start** سپس `/modules/<id>/` باز می‌شود.  
 > deploy و توسعه: [`dev-workflow.md`](dev-workflow.md) · چک‌لیست: [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
 
@@ -206,7 +206,7 @@ npx serve . -l 8080
 
 ---
 
-## ۹. APIهای فعلی (فاز ۳)
+## ۹. APIهای فعلی
 
 | متد | مسیر | توضیح |
 |-----|------|--------|
@@ -217,9 +217,28 @@ npx serve . -l 8080
 | POST | `/admin/folder` | پوشه مجازی |
 | POST | `/admin/module/:id/start` | استارت (Static/Backend/Docker) |
 | POST | `/admin/module/:id/stop` | توقف |
+| GET | `/admin/module/:id/backup` | ZIP تکی ماژول (⚙ در UI) |
 | GET | `/modules/:id/*` | محتوای ماژول (بعد از Start) |
 
 تا فاز ۸: `MODULEHUB_DEV_SUPER_ADMIN=1` در `.env` برای تست admin — [`dev-workflow.md` §۳](dev-workflow.md)
+
+### ۹.۱ بکاپ و restore کامل (فاز ۶ — بدون UI)
+
+روی سرور (`/opt/modulehub-cms`):
+
+```bash
+# ایجاد بکاپ
+curl -X POST http://127.0.0.1:4000/admin/backup
+curl -s http://127.0.0.1:4000/admin/backup/list
+ls -lh storage/backups/
+
+# بازیابی (قبلش pre-restore خودکار)
+curl -X POST http://127.0.0.1:4000/admin/restore \
+  -F "backup=@/opt/modulehub-cms/storage/backups/modulehub-full-YYYY-MM-DDTHH-mm-ss.zip" \
+  -F "confirm=true"
+```
+
+CLI: `node scripts/cli.js backup --output /tmp/full.zip`
 
 ---
 

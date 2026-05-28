@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import { getModuleLogFilePath } from '../../config/paths';
+import { filterLogLinesByLevel, type ModuleLogLevel } from './log-level-filter';
 
 /**
  * Returns the last N lines from multiline log text.
@@ -19,16 +20,22 @@ export function readLogTailFromText(logText: string, maxLines: number): string {
  * Reads the last N lines of a module log file.
  * @param moduleId - Module identifier
  * @param maxLines - Maximum lines (from system-settings logViewerMaxLines)
+ * @param levelFilter - Optional level filter applied before tailing
  * @returns Log tail text or empty string when file is missing
  */
-export async function readModuleLogTail(moduleId: string, maxLines: number): Promise<string> {
+export async function readModuleLogTail(
+  moduleId: string,
+  maxLines: number,
+  levelFilter: ModuleLogLevel | null = null,
+): Promise<string> {
   const logPath = getModuleLogFilePath(moduleId);
   const exists = await fs.pathExists(logPath);
   if (!exists) {
     return '';
   }
   const content = await fs.readFile(logPath, 'utf8');
-  return readLogTailFromText(content, maxLines);
+  const filtered = filterLogLinesByLevel(content, levelFilter);
+  return readLogTailFromText(filtered, maxLines);
 }
 
 /**

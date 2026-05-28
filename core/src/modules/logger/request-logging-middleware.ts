@@ -19,7 +19,16 @@ export function requestLoggingMiddleware(
       path: request.originalUrl || request.url,
       status: response.statusCode,
     };
-    getCmsLogger().info('http_request', fields);
+    const logger = getCmsLogger();
+    if (response.statusCode >= 500) {
+      logger.error('http_request', fields);
+      return;
+    }
+    if (response.statusCode >= 400) {
+      logger.warn('http_request', fields);
+      return;
+    }
+    logger.info('http_request', fields);
   });
   next();
 }

@@ -1,5 +1,11 @@
 export { LayoutParseError, parseSiteLayout } from './layout-parser';
 export {
+  VersionValidationError,
+  assertValidSemver,
+  isValidSemver,
+  normalizeChangelog,
+} from './version-validator';
+export {
   buildBreadcrumbPath,
   findNodeById,
   getFolderChildren,

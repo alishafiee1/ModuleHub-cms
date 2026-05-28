@@ -312,9 +312,13 @@
         return;
       }
       if (action === 'logs') {
-        const logResult = await ModuleHubApi.fetchModuleLogs(moduleId);
+        const levelFilter = await ModuleDialogs.showLogLevelPickerDialog();
+        if (levelFilter === undefined) {
+          return;
+        }
+        const logResult = await ModuleHubApi.fetchModuleLogs(moduleId, levelFilter);
         const content = logResult.content || '(لاگ خالی است)';
-        await ModuleDialogs.showLogsDialog(moduleMeta.name, content);
+        await ModuleDialogs.showLogsDialog(moduleMeta.name, content, levelFilter);
         const downloadChoice = await Swal.fire({
           title: 'دانلود لاگ کامل؟',
           icon: 'question',

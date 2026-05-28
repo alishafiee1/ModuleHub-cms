@@ -61,4 +61,14 @@
 - **درست:** flat zip — `build-phase4-test-zip.ps1` یا داخل پوشه «انتخاب همه → فشرده‌سازی»
 - **زمینه:** upload · dependencies.skipped · 2026-05-28
 
+### [DOC-002] بکاپ کل — دکمه در UI نیست
+- **اشتباه:** جستجوی «بکاپ کل» در صفحهٔ اصلی یا پنل `/admin` جدا — فکر به خرابی deploy
+- **درست:** بکاپ کل = `POST /admin/backup` · restore = `POST /admin/restore` · لیست = `GET /admin/backup/list` · ⚙ «پشتیبان ZIP» = فقط همان ماژول
+- **زمینه:** فاز ۶ · haderbash.ir · 2026-05-29
+
+### [OK-004] بکاپ/restore کامل — curl روی سرور
+- **راه‌حل:** `curl -X POST …/admin/backup` · `backup/list` · restore با `-F backup=@…/storage/backups/modulehub-full-….zip -F confirm=true`
+- **تأیید:** چند ZIP در list · تست دستی restore موفق
+- **زمینه:** فاز ۶ · ash@192.168.88.50
+
 </div>

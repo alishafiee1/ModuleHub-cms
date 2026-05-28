@@ -415,15 +415,21 @@ request → session parser
 
 ---
 
-## ۱۱. پشتیبان‌گیری و بازیابی (Backup & Restore)
+## ۱۱. پشتیبان‌گیری و بازیابی (Backup & Restore) — ✅ فاز ۶
 
-- از طریق پنل ادمین، گزینه **«پشتیبان‌گیری کامل»** فایل‌های زیر را در یک ZIP با timestamp ذخیره می‌کند:
-  - `site-layout.json`
-  - `system-settings.json`
-  - کل پوشه `standalone-modules/`
-  - پوشه `thumbnails/`
-  - لاگ‌های مهم (اختیاری)
-- برای بازیابی، فایل ZIP را آپلود کرده و سیستم پس از تأیید، کل وضعیت را بازنویسی می‌کند (قبل از آن یک پشتیبان خودکار گرفته می‌شود).
+**بکاپ کامل (کل CMS):** API + CLI — **بدون دکمه در UI** (تا فاز بعدی). بکاپ **تکی ماژول:** `GET /admin/module/:id/backup` از دیالوگ ⚙.
+
+| متد | مسیر | توضیح |
+|-----|------|--------|
+| POST | `/admin/backup` | ZIP در `storage/backups/modulehub-full-<timestamp>.zip` |
+| GET | `/admin/backup/list` | لیست نام فایل‌ها (جدیدترین اول) |
+| GET | `/admin/backup/download/:fileName` | دانلود |
+| POST | `/admin/restore` | multipart `backup` + `confirm=true` · قبلش `modulehub-pre-restore-*.zip` |
+| CLI | `node scripts/cli.js backup --output <path>` | همان ZIP کامل |
+
+**محتوای ZIP کامل:** `backup-manifest.json` · `site-layout.json` · `system-settings.json` · `standalone-modules/` · `thumbnails/` (لاگ‌ها داخل ZIP نیستند).
+
+**restore:** ماژول‌های `running` قبل از overwrite متوقف می‌شوند · سپس extract و جایگزینی · در صورت نیاز `systemctl restart modulehub-cms`.
 
 ---
 

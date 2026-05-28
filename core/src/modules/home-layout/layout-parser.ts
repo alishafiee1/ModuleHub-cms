@@ -1,4 +1,5 @@
 import type { LayoutTreeNode, ModuleEntry, SiteLayoutDocument } from './types';
+import { assertValidSemver } from './version-validator';
 
 /** Thrown when site-layout JSON fails validation */
 export class LayoutParseError extends Error {
@@ -33,10 +34,19 @@ function parseModuleEntry(moduleId: string, raw: unknown): ModuleEntry {
     throw new LayoutParseError(`Module "${moduleId}" must include resources`);
   }
 
+  const versionRaw = assertString(raw.version, `modules.${moduleId}.version`);
+  let version: string;
+  try {
+    version = assertValidSemver(versionRaw);
+  } catch (error: unknown) {
+    const detail = error instanceof Error ? error.message : 'invalid version';
+    throw new LayoutParseError(`Module "${moduleId}" ${detail}`);
+  }
+
   return {
     name: assertString(raw.name, `modules.${moduleId}.name`),
     status,
-    version: assertString(raw.version, `modules.${moduleId}.version`),
+    version,
     docker: Boolean(raw.docker),
     port: typeof raw.port === 'number' ? raw.port : Number(raw.port),
     permissions: assertString(raw.permissions, `modules.${moduleId}.permissions`),
