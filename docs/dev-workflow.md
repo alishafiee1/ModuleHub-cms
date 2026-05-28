@@ -45,12 +45,51 @@ table th code,
 }
 </style>
 
+<div dir="rtl" style="text-align:right;">
+
 # کار روزانه — از PC تا haderbash.ir
+
+## این فایل برای چیست؟
+
+این سند **راهنمای عملی روزانه** است — نه طراحی سیستم، نه چک‌لیست فازهای توسعه.
+
+وقتی روی PC کد را عوض کردی و می‌خواهی همان نسخه روی **haderbash.ir** برود، از همین فایل استفاده کن: چه دستوری بزنی، کدام پوشه روی سرور مهم است، اگر `git pull` یا ادمین یا `sudo` گیر کرد چه کار کنی.
+
+**برای AI در Cursor:** همان مسیر به‌صورت خطی در [`.cursor/commands/deploy-server.md`](../.cursor/commands/deploy-server.md) (`/deploy-server`) — فشرده و انگلیسی.
+
+---
+
+## روش کار — یک نگاه
+
+۱. **لوکال (ویندوز):** تست و build → `git push`  
+۲. **سرور — clone:** `git pull` داخل `~/ModuleHub-cms` (گاهی با اینترنت آزاد / `run-with-free-wan`)  
+۳. **سرور — اجرا:** کپی به `/opt` → build → restart سرویس → `curl /health`
+
+```
+[PC]  lint · test · build · push
+         ↓
+[سرور home]  git pull
+         ↓
+[سرور opt]   install-to-opt  →  deploy-on-server  →  سایت
+```
+
+| می‌خواهی… | برو به |
+|-----------|--------|
+| **هر بار بعد از push** — همان روتین | **§۲** |
+| بفهمی `home` و `/opt` چرا دو تا هستند | **§۱** |
+| `git pull` خطای overwrite داد | **§۵** |
+| دکمه + / Start کار نکرد | **§۴** (ادمین موقت) |
+| `sudo` یا broker | **§۴** · **§۹** · **§۱۰** |
+| نصب اولیهٔ سرور (یک‌بار) | **§۸** |
+
+> **یادت باشد:** دادهٔ واقعی سایت (`storage/`، ماژول‌ها، `.env` در `/opt`) با deploy معمولی **پاک نمی‌شود** — فقط **کد** عوض می‌شود.
+
+---
 
 > سرور: `ash@192.168.88.50`  
 > **کد از Git:** `~/ModuleHub-cms`  
 > **برنامه واقعی:** `/opt/modulehub-cms` (systemd همین را اجرا می‌کند)  
-> چک‌لیست فازها: [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
+> چک‌لیست فازها: [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md) · [`tasks.md`](tasks.md)
 
 ---
 
@@ -62,7 +101,8 @@ table th code,
 | 2 | آپلود ZIP، پوشه مجازی | ✅ |
 | 3 | Start/Stop، باز شدن `/modules/...` | ✅ |
 | 4 | کش پکیج (npm/pip/composer) | ✅ |
-| 5+ | gear dialog، login واقعی، … | ⏳ |
+| 5 | مدیریت ماژول (⚙ gear) | ✅ |
+| 6+ | backup کامل، login واقعی، … | ⏳ |
 
 بخش‌های قدیمی این فایل که فقط «فاز ۲» می‌گفتند، در **§۴ (ادمین موقت)** و **§۳ (deploy)** ادغام شده‌اند.
 
