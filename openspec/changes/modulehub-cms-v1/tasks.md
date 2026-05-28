@@ -12,14 +12,16 @@
 
 ## 2. فاز ۱ — صفحه اصلی و layout (home-layout + admin-frontend)
 
-- [ ] 2.1 Port فایل‌های `docs/Demo designe/` به `public/` (index.html, style.css, script.js, dialog.js)
+- [ ] 2.1 Port فایل‌های `docs/Demo designe/` به `public/` (index.html, style.css) — CSS/HTML بدون تغییر ساختار
+- [ ] 2.1.1 بازنویسی `script.js` و `dialog.js`: حذف `Map` محلی — fetch از `/api/layout` و endpointهای admin
+- [ ] 2.1.2 ماژول API client در frontend: `loadLayout()`, `createFolder()`, `startModule()`, `stopModule()`, ...
 - [ ] 2.2 API `GET /api/layout` — خواندن `storage/site-layout.json`
 - [ ] 2.3 Seed اولیه `storage/site-layout.json` از `docs/site-layout.json`
-- [ ] 2.4 Frontend: رندر کارت‌ها از JSON — نام، آیکون، thumbnail، badge وضعیت
+- [ ] 2.4 Frontend: رندر کارت‌ها از API — نام، آیکون، thumbnail، badge وضعیت
 - [ ] 2.5 Frontend: breadcrumb navigation برای پوشه‌های مجازی
 - [ ] 2.6 Frontend: dark/light theme toggle + localStorage
-- [ ] 2.7 Frontend: adminMode — مخفی کردن + و ⚙ برای کاربر عادی
-- [ ] 2.8 تست: باز کردن `/` — کارت‌های نمونه + breadcrumb با ۲ سطح پوشه
+- [ ] 2.7 Frontend: adminMode — مخفی کردن + و ⚙ برای کاربر عادی (بر اساس دسترسی LAN/Nginx)
+- [ ] 2.8 تست: باز کردن `/` — کارت‌های نمونه + breadcrumb با ۲ سطح پوشه (داده از API، نه Map محلی)
 
 ## 3. فاز ۲ — Add wizard (module-upload-wizard)
 
@@ -29,7 +31,9 @@
 - [ ] 3.4 Wizard مرحله ۲: آیکون (کتابخانه ۱۲تایی)، thumbnail، sliders منابع
 - [ ] 3.5 Wizard مرحله ۳: تأیید + ذخیره در `site-layout.json` (version=1.0.0, status=stopped)
 - [ ] 3.6 Port allocator — محدوده 4100–4999 از system-settings
-- [ ] 3.7 Frontend: کارت + → انتخاب «آپلود ZIP» / «پوشه جدید»
+- [ ] 3.7 Frontend: کارت + → منوی «پوشه جدید» / «آپلود ZIP»
+- [ ] 3.7.1 API `POST /admin/folder` — ایجاد پوشه مجازی در `site-layout.json` (virtual-folder)
+- [ ] 3.7.2 Frontend: فرم نام پوشه + فراخوانی API + refresh layout
 - [ ] 3.8 تست: ZIP کوچک → کارت جدید | ZIP >200MB → 413 | فایل غیر ZIP → خطا
 
 ## 4. فاز ۳ — اجرای ماژول (module-runtime)
@@ -38,11 +42,16 @@
 - [ ] 4.2 Static/SPA handler — serve `/modules/<id>/` بدون پروسه + SPA fallback
 - [ ] 4.3 Backend runner — `systemd-run --scope` با CPUQuota/MemoryMax/IOWeight
 - [ ] 4.4 Docker runner — `docker run` با resource flags + cap_drop ALL
+- [ ] 4.4.1 `scripts/setup_net_limit.sh` — اعمال `tc` token bucket برای `net_mbps` روی اینترفیس کانتینر
 - [ ] 4.5 Reverse proxy — `http-proxy-middleware` برای `/modules/<id>/`
 - [ ] 4.6 OOM detection — watch process exit → status=crashed
+- [ ] 4.6.1 بررسی `maxConcurrentRunningModules` قبل از start — reject با 409
+- [ ] 4.6.2 Auto-restart handler — `autoRestartOnCrash` + counter ساعتی per module
 - [ ] 4.7 `core/src/modules/resource-limiter/` — اعمال محدودیت‌ها از JSON
 - [ ] 4.8 Module logging — stdout/stderr → `/var/log/modulehub/modules/<id>.log`
 - [ ] 4.9 تست: Static module بدون پورت | Backend روی 4100 | Docker container running
+- [ ] 4.10 تست: Docker با `net_mbps: 10` — egress shaped (~40s برای 5MB)
+- [ ] 4.11 تست: start یازدهمین ماژول → reject 409 | auto-restart پس از crash
 
 ## 5. فاز ۴ — کش پکیج (package-cache)
 
@@ -97,7 +106,8 @@
 - [ ] 10.2 تست dual-WAN: npm install با metric toggler
 - [ ] 10.3 تست OOM: ماژول malloc → crashed badge
 - [ ] 10.4 تست امنیت: `/admin` از WAN → 403
-- [ ] 10.5 تست ۵ ماژول همزمان running
+- [ ] 10.5 تست ۵ ماژول همزمان running (زیر سقف ۱۰)
+- [ ] 10.5.1 تست سقف `maxConcurrentRunningModules` — start یازدهم → خطا
 - [ ] 10.6 Deploy به `/opt/modulehub-cms` روی `ash@192.168.88.50`
 - [ ] 10.7 بروزرسانی README.md
 - [ ] 10.8 نوشتن نتایج تست در `tests/test-results.log`

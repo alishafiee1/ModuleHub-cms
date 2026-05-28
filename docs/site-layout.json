@@ -57,7 +57,9 @@
       "gitRepo": "",
       "createdAt": "2025-01-15T10:30:00Z",
       "updatedAt": "2025-01-20T14:20:00Z",
-      "changelog": "نسخه اولیه"
+      "changelog": "نسخه اولیه",
+      "managementPasswordHash": "",
+      "managementPermissions": ["start", "stop", "logs", "edit"]
     },
     "live-101": {
       "name": "آمار زنده سرور",
@@ -78,7 +80,9 @@
       "gitRepo": "https://github.com/org/live-stats",
       "createdAt": "2025-01-10T08:15:00Z",
       "updatedAt": "2025-02-01T09:45:00Z",
-      "changelog": "رفع باگ WebSocket"
+      "changelog": "رفع باگ WebSocket",
+      "managementPasswordHash": "$2b$12$exampleHashOnlyForSchemaDemo",
+      "managementPermissions": ["start", "stop", "logs", "edit"]
     },
     "demo-crash": {
       "name": "ماژول تست crashed",

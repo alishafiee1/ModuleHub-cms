@@ -45,3 +45,40 @@ Stopping a module SHALL terminate its process or container.
 #### Scenario: Stop backend module
 - **WHEN** admin clicks Stop on a running backend module
 - **THEN** the scoped process is terminated and status becomes `stopped`
+
+### Requirement: Network bandwidth limiting for Docker modules
+For Docker modules with `resources.net_mbps` set, the system SHALL apply a token bucket filter using `tc` on the container's virtual interface via `scripts/setup_net_limit.sh`.
+
+#### Scenario: Network limit applied
+- **WHEN** a Docker module with `net_mbps: 10` starts
+- **THEN** the container's egress traffic is shaped to 10 Mbps via `scripts/setup_net_limit.sh`
+
+#### Scenario: No network limit for non-Docker
+- **WHEN** a non-Docker module starts with `net_mbps` set
+- **THEN** no `tc` rule is applied and admin is informed that network shaping applies to Docker modules only
+
+### Requirement: Enforce concurrent module limit
+The system SHALL reject starting a new module if the number of running modules reaches `maxConcurrentRunningModules` from system settings (default 10).
+
+#### Scenario: Limit reached
+- **WHEN** admin attempts to start a new module and current running count is greater than or equal to `maxConcurrentRunningModules`
+- **THEN** start is rejected with HTTP 409 and a clear error message
+
+#### Scenario: Start allowed under limit
+- **WHEN** admin starts a module and running count is below `maxConcurrentRunningModules`
+- **THEN** the module starts normally
+
+### Requirement: Auto-restart on crash
+If `autoRestartOnCrash` is true in system settings, the system SHALL attempt to restart a crashed module up to `autoRestartMaxAttemptsPerHour` times within a rolling one-hour window.
+
+#### Scenario: Auto-restart enabled
+- **WHEN** a module crashes and `autoRestartOnCrash` is true and attempts remain under the hourly limit
+- **THEN** system increments the attempt counter and restarts the module automatically
+
+#### Scenario: Auto-restart limit reached
+- **WHEN** a module crashes and hourly restart attempts have reached `autoRestartMaxAttemptsPerHour`
+- **THEN** status remains `crashed` and no further automatic restart is attempted until the window resets
+
+#### Scenario: Auto-restart disabled
+- **WHEN** a module crashes and `autoRestartOnCrash` is false
+- **THEN** status remains `crashed` with no automatic restart

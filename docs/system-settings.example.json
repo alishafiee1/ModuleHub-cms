@@ -17,5 +17,10 @@
   "autoRestartMaxAttemptsPerHour": 3,
   "uploadTempCleanupHours": 24,
   "packageInstallInterface": "enp63s0",
-  "logViewerMaxLines": 50
+  "logViewerMaxLines": 50,
+  "sessionTtlHours": 8,
+  "loginRateLimitPerMinute": 5,
+  "moduleManagerSessionTtlHours": 4,
+  "modulePasswordMaxAttempts": 5,
+  "modulePasswordLockoutMinutes": 15
 }

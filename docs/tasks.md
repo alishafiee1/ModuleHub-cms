@@ -45,7 +45,7 @@ table th code {
 | 0.2 | کپی سرویس systemd | کپی `modulehub-cms.service` به `/etc/systemd/system/` | فایل با محتوای صحیح وجود داشته باشد | `cat /etc/systemd/system/modulehub-cms.service` |
 | 0.3 | نصب وابستگی‌های Node.js | `npm init -y && npm install express multer adm-zip winston fs-extra` | فایل `package.json` و `node_modules` | `npm list --depth=0` |
 | 0.4 | راه‌اندازی سرویس | `systemctl daemon-reload && systemctl enable modulehub-cms --now` | سرویس active (running) | `systemctl status modulehub-cms` |
-| 0.5 | تنظیم Nginx | اضافه کردن `location /admin` با محدودیت IP به `haderbash.ir` | Nginx syntax ok, reload | `nginx -t && curl -I https://haderbash.ir/admin` از LAN و WAN |
+| 0.5 | تنظیم Nginx | proxy `/` و `/admin` بدون محدودیت IP — auth در CMS | Nginx syntax ok, reload | `nginx -t && curl -I https://haderbash.ir/admin/login` |
 | 0.6 | تست connectivity از ens4 و enp63s0 | اجرای `curl --interface ens4 https://google.com` و `curl --interface enp63s0 https://github.com` | هر دو پاسخ ۲۰۰ (ens4 محدودیت دارد ولی google کار می‌کند) | مشاهده خروجی curl |
 
 ---
@@ -108,7 +108,7 @@ table th code {
 | 5.2 | Start/Stop | فراخوانی `POST /admin/module/:id/start` و `:id/stop` | وضعیت `running` / `stopped` در کارت و JSON | مشاهده badge و بررسی پروسه |
 | 5.3 | نمایش badge وضعیت | `running` سبز، `stopped` خاکستری، `crashed` قرمز | سه حالت در UI و `site-layout.json` | kill پروسه → `crashed` |
 | 5.4 | نمایش لاگ | خواندن آخرین N خط (پیش‌فرض ۵۰) از `/var/log/modulehub/modules/<id>.log` | لاگ در modal نمایش داده شود | تولید خطای تستی در ماژول و مشاهده |
-| 5.5 | ویرایش تنظیمات | بارگذاری مقادیر فعلی در دیالوگ منابع و ذخیره مجدد | تنظیمات جدید در `site-layout.json` ذخیره شود و در صورت نیاز ماژول ری‌استارت شود | مقایسه قبل و بعد |
+| 5.5 | ویرایش تنظیمات | بارگذاری مقادیر فعلی در دیالوگ منابع و ذخیره مجدد — شامل set/reset رمز Module Manager (Super Admin) | تنظیمات جدید در `site-layout.json` ذخیره شود | مقایسه قبل و بعد |
 | 5.6 | حذف ماژول | توقف، حذف پوشه `standalone-modules/<id>`، حذف از JSON، حذف لاگ | ماژول ناپدید شود، منوها به‌روز شوند | بررسی فایل سیستم و JSON |
 | 5.7 | پشتیبان از یک ماژول | دانلود ZIP از پوشه ماژول + تنظیمات آن | فایل ZIP قابل دانلود باشد | باز کردن ZIP و بررسی محتوا |
 | 5.8 | همگام‌سازی GitHub | اجرای `git pull` در پوشه ماژول (اگر `gitRepo` تنظیم شده) | تغییرات کشیده شود، لاگ ثبت شود | تست با یک مخزن تستی |
@@ -148,18 +148,37 @@ table th code {
 
 ---
 
-## فاز ۸: تست یکپارچگی و استقرار نهایی (۳ روز)
+## فاز ۸: احراز هویت — Session + Module Manager (۳ روز)
+
+| # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |
+|---|-------|--------|------------------|----------|
+| 8.1 | Super Admin login | `GET/POST /admin/login` — bcrypt verify، express-session | session cookie پس از login موفق | login از اینترنت → redirect به `/` |
+| 8.2 | Auth middleware | محافظت `/admin/*` — Super Admin یا Module Manager scoped | بدون session → 401/redirect login | `curl /admin/settings` بدون cookie → 401 |
+| 8.3 | Rate limit login | `loginRateLimitPerMinute` از system-settings | ۶ تلاش در ۱ دقیقه → 429 | اسکریپت brute-force تست |
+| 8.4 | CSRF token | token در فرم‌های POST admin | POST بدون token → 403 | upload بدون token رد شود |
+| 8.5 | Logout | `POST /admin/logout` | session invalidate | بعد logout دسترسی admin قطع |
+| 8.6 | Seed Super Admin | `ADMIN_PASSWORD_HASH` env یا `storage/admin-users.json` | اولین login کار کند | login با رمز seed |
+| 8.7 | Module Manager auth | `POST /admin/module/:id/auth` — verify `managementPasswordHash` | session scoped به moduleId | login با رمز ماژول → start/stop همان ماژول |
+| 8.8 | Module Manager limits | Module Manager نتواند delete/settings/add | delete → 403 | تلاش delete با session ماژول |
+| 8.9 | Lockout رمز ماژول | پس از `modulePasswordMaxAttempts` → lockout | ۶ تلاش اشتباه → ۱۵ دقیقه block | brute-force رمز ماژول |
+| 8.10 | UI login + gear flow | صفحه login، SweetAlert رمز ⚙، مخفی + بدون Super Admin | UX کامل | سناریوی Module Manager از WAN |
+| 8.11 | Set module password | Super Admin در edit ماژول — set/reset hash | hash در site-layout.json | jq `.modules["id"].managementPasswordHash` |
+
+---
+
+## فاز ۹: تست یکپارچگی و استقرار نهایی (۳ روز)
 
 | # | سناریو تست | روش تست | معیار قبولی |
 |---|------------|---------|-------------|
-| 8.1 | سناریوی کامل نصب ماژول | از کارت + تا نمایش کارت جدید و کلیک روی آن | ماژول اجرا شود و محتوا نمایش یابد |
-| 8.2 | تست dual‑WAN برای npm install | در حین نصب ماژول با `package.json`، بررسی شود که از `enp63s0` خارج می‌شود | لاگ‌های `network-metric-toggler` تغییر metric را نشان دهند |
-| 8.3 | تست محدودیت Disk I/O | ماژولی که فایل ۱۰۰MB می‌نویسد | سرعت نوشتن کمتر از حالت بدون محدودیت (با `dd` قابل مشاهده) |
-| 8.4 | تست محدودیت Network | ماژول Dockerized با محدودیت 1 Mbps، دانلود فایل 5MB | زمان دانلود حدود 40 ثانیه (نه 2 ثانیه) |
-| 8.5 | تست امنیت `/admin` | تلاش از IP خارج از LAN (مثلاً از VPN) | خطای 403 یا redirect |
-| 8.6 | تست پشتیبان و بازیابی | backup بگیرید، کل سیستم را حذف کنید، restore کنید | همه چیز به حالت اول برگردد |
-| 8.7 | تست همزمان ۵ ماژول active | راه‌اندازی ۵ ماژول با محدودیت‌های مختلف | سرور پایدار بماند، CPU و RAM در محدوده |
-| 8.9 | تست تنظیمات سراسری | تغییر رابط شبکه در `/admin/settings` و نصب ماژول | npm از رابط انتخاب‌شده خارج شود، metric restore شود | لاگ network-metric-toggler |
+| 9.1 | سناریوی کامل نصب ماژول | login Super Admin → + → ZIP → wizard → start → کلیک کارت | ماژول اجرا شود و محتوا نمایش یابد |
+| 9.2 | تست dual‑WAN برای npm install | نصب ماژول با `package.json` | لاگ `network-metric-toggler` |
+| 9.3 | تست محدودیت Disk I/O | ماژول ۱۰۰MB write | سرعت کمتر با `dd` |
+| 9.4 | تست محدودیت Network | Docker `net_mbps: 1`، دانلود 5MB | ~40 ثانیه |
+| 9.5 | تست auth از اینترنت | login Super Admin از WAN | session + admin UI |
+| 9.6 | تست Module Manager از WAN | رمز ماژول → start/stop بدون Super Admin | فقط همان moduleId |
+| 9.7 | تست پشتیبان و بازیابی | backup → حذف → restore | همه برگردد |
+| 9.8 | تست ۵ ماژول همزمان | ۵ running | سرور پایدار |
+| 9.9 | تست تنظیمات سراسری | تغییر NIC + نصب ماژول | npm از interface انتخاب‌شده |
 
 ---
 
@@ -168,13 +187,13 @@ table th code {
 - [ ] `README.md` – نصب و راه‌اندازی سریع
 - [ ] `docs/ai-doc-guide.md` – قواعد نقش هر سند برای AI
 - [ ] `docs/system-settings.example.json` – نمونه تنظیمات سراسری
+- [ ] `docs/admin-guide.md` – راهنمای تصویری برای ادمین
 - [ ] `docs/developer-guide.md` – ساخت ZIP ماژول (v0 — §۶ پس از کد به‌روز شود)
-- [ ] `docs/developer-guide.md` – ساختار ZIP، وابستگی‌ها
 - [ ] `docs/backup-restore.md` – روش پشتیبان‌گیری
 - [ ] `docs/network-config.md` – نحوه مدیریت dual‑WAN
 - [ ] `CHANGELOG.md` – تاریخچه تغییرات هسته
 - [ ] `.eslintrc.json` و `.prettierrc`
-- [ ] نتایج تست‌های فاز ۸ در یک فایل `test-results.log`
+- [ ] نتایج تست‌های فاز ۹ در یک فایل `test-results.log`
 
 ---
 

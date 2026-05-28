@@ -7,10 +7,14 @@ ModuleHub CMS باید به‌عنوان هستهٔ سایت نقاب `haderbash
 - راه‌اندازی OpenSpec change برای پیاده‌سازی کامل ModuleHub CMS v1
 - ایجاد هسته Express روی `127.0.0.1:4000` با ذخیره‌سازی JSON (بدون DB خارجی)
 - پیاده‌سازی UI بر اساس `docs/Demo designe/` (RTL، دارک/لایت، کارت‌ها، breadcrumb، دیالوگ‌ها)
+- **Super Admin:** Session login از اینترنت/LAN — `/admin/login` + CSRF + rate limit
+- **Module Manager:** رمز جدا per-module — مدیریت محدود همان ماژول بدون Super Admin
 - پوشه‌های مجازی و درخت `site-layout.json`
 - Add wizard: آپلود ZIP + سه مرحله (Docker/Port/Permissions → آیکون/منابع → ذخیره)
 - اجرای ماژول: Static/SPA (بدون پروسه)، Backend (`systemd-run`)، Docker (`docker run`) + پروکسی `/modules/<id>/`
-- محدودیت منابع CPU/RAM/Swap/I/O با cgroups
+- محدودیت منابع CPU/RAM/Swap/I/O/Network (Docker) با cgroups و `tc`
+- سقف همزمانی ماژول running (`maxConcurrentRunningModules`)
+- auto-restart اختیاری پس از crash (از system-settings)
 - کش پکیج hash-based در `/var/cache/modulehub/pkg/`
 - مدیریت ماژول (چرخ‌دنده): start/stop، لاگ، ویرایش، حذف، backup تکی، GitHub sync
 - تنظیمات سراسری `/admin/settings` → `system-settings.json`
@@ -25,12 +29,15 @@ ModuleHub CMS باید به‌عنوان هستهٔ سایت نقاب `haderbash
 
 - `cms-core`: هسته Express، health، لاگ Winston، ساختار دایرکتوری سرور، سرویس systemd
 - `home-layout`: درخت پوشه‌های مجازی، `site-layout.json`، breadcrumb، رندر کارت‌ها
-- `admin-frontend`: UI صفحهٔ اصلی و پنل ادمین بر اساس Demo designe (RTL، تم، کارت +، چرخ‌دنده)
+- `virtual-folder`: ایجاد پوشه مجازی از منوی کارت + (بدون پوشه فیزیکی)
+- `admin-frontend`: UI صفحهٔ اصلی و پنل — login، gear flow، fetch API
+- `super-admin-auth`: Session login Super Admin — bcrypt، CSRF، rate limit، logout
+- `module-manager-auth`: رمز per-module — scoped session، lockout، permissions
 - `module-upload-wizard`: آپلود ZIP، استخراج، wizard سه‌مرحله‌ای، تخصیص پورت خودکار
 - `module-runtime`: میزبانی Static/SPA/Backend/Docker، پروکسی معکوس، محدودیت منابع
 - `package-cache`: کش hash-based برای `package.json` / `requirements.txt` / `composer.json`
 - `module-management`: دیالوگ چرخ‌دنده — start/stop/restart، لاگ، edit، delete، backup تکی، GitHub sync
-- `system-settings`: صفحه `/admin/settings`، اعتبارسنجی schema، رادیو رابط شبکه
+- `system-settings`: صفحه `/admin/settings`، اعتبارسنجی schema، رادیو رابط شبکه، auth TTL
 - `backup-restore`: پشتیبان‌گیری ZIP کامل و بازیابی با تأیید
 - `network-install`: یکپارچگی `network-metric-toggler` برای npm/pip/docker/git
 
@@ -41,9 +48,11 @@ ModuleHub CMS باید به‌عنوان هستهٔ سایت نقاب `haderbash
 ## Impact
 
 - **کد جدید:** `core/`، `public/`، `scripts/`، `config/`
-- **ذخیره‌سازی:** `storage/site-layout.json`، `storage/system-settings.json`
+- **ذخیره‌سازی:** `storage/site-layout.json`، `storage/system-settings.json`، `storage/admin-users.json`
 - **سرور:** `/opt/modulehub-cms/`، `/var/log/modulehub/modules/`، `/var/cache/modulehub/pkg/`
-- **زیرساخت:** Nginx (`haderbash.ir`)، systemd unit، dual-WAN metric toggler
-- **وابستگی‌ها:** Express، multer، adm-zip، winston، fs-extra
-- **امنیت:** `/admin` فقط LAN؛ بدون API عمومی؛ Docker با `cap_drop: ALL`
+- **زیرساخت:** Nginx (`haderbash.ir`) — proxy بدون IP restrict؛ auth در CMS
+- **وابستگی‌ها:** Express، express-session، bcrypt، express-rate-limit، multer، adm-zip، winston، fs-extra
+- **امنیت:** HTTPS + Session + CSRF؛ Super Admin از اینترنت؛ Module Manager scoped؛ Docker `cap_drop: ALL`
+- **env:** `SESSION_SECRET`، `ADMIN_PASSWORD_HASH`
 - **مرجع UI:** `docs/Demo designe/index.html`، `script.js`، `dialog.js`، `style.css`
+- **مرجع auth:** `docs/design plan.md` §۶.۵

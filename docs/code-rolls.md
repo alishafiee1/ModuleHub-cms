@@ -47,7 +47,12 @@ table th code {
 - **همه توابع عمومی** مستندات JSDoc داشته باشند.
 
 ### امنیت
-- هرگز کلیدها یا رمزها را در کد هاردکد نکنید. از `process.env` استفاده کنید.
+- هرگز کلیدها یا رمزها را در کد هاردکد نکنید. از `process.env` استفاده کنید (`SESSION_SECRET`, `ADMIN_PASSWORD_HASH`).
+- رمز Super Admin و Module Manager: **bcrypt** cost ≥ 12 — هرگز plaintext در JSON یا log.
+- Session cookie: `HttpOnly`, `Secure`, `SameSite=Strict`.
+- همه POST admin: **CSRF token** + session معتبر.
+- Rate limit: login (`loginRateLimitPerMinute`) و رمز ماژول (`modulePasswordMaxAttempts`).
+- Module Manager session: scoped به `moduleId` — middleware قبل از handler بررسی کند.
 - ورودی‌های کاربر (نام ماژول، پورت‌ها، حجم ZIP) را اعتبارسنجی کنید — پورت فقط در محدوده `system-settings.json` (`portRangeStart`–`portRangeEnd` یا مقدار دستی معتبر).
 - مقادیر `system-settings.json` را با schema اعتبارسنجی کنید (حد ZIP، timeout، رابط شبکه از لیست NICهای موجود).
 - در زمان اجرای Docker، از `cap_drop: ALL` و `read_only: true` استفاده کنید مگر اینکه ماژول واقعاً نیاز داشته باشد.

@@ -55,19 +55,24 @@ ModuleHub CMS پلتفرمی است که به شما امکان می‌دهد ب
 - **پشتیبان‌گیری و بازیابی** کامل از تمام ماژول‌ها و تنظیمات.
 - **نسخه‌گذاری ماژول‌ها** (semantic versioning).
 - **تنظیمات سراسری ادمین** (`/admin/settings`) — محدودیت ZIP، پورت خودکار، رابط شبکه.
+- **احراز هویت Session** — Super Admin از اینترنت/LAN با login؛ CSRF + rate limit.
+- **Module Manager** — رمز جدا per-module برای مدیریت محدود همان ماژول.
 - **محدودیت منابع** (CPU, RAM, Swap, Disk I/O, Network Bandwidth) با استفاده از قابلیت‌های بومی لینوکس (cgroups, systemd, Docker, tc).
-- **عدم وجود API عمومی** – مدیریت فقط از طریق پنل وب در دسترس LAN و خط فرمان روی سرور انجام می‌شود.
+- **عدم وجود API عمومی** – endpointهای مدیریت فقط با Session معتبر Super Admin یا Module Manager.
 
 ---
 
 ## ۲. معماری کلی
 
 ```
-[کاربر LAN/WAN] ← (443) Nginx (haderbash.ir) → reverse proxy → ModuleHub CMS (127.0.0.1:4000)
+[کاربر اینترنت/LAN] ← (443) Nginx → reverse proxy → ModuleHub CMS (127.0.0.1:4000)
                                     │
-                                    └─ /admin فقط از شبکه LAN (192.168.0.0/16)
-[مدیر] ← اتصال از LAN یا SSH → پنل وب و ابزار خط فرمان
-[کاربر عادی] ← درخواست عادی (non‑VPN) → CMS (خروجی از ens4) → محتوای ماژول‌ها
+                                    ├─ /              → صفحه عمومی (کارت‌ها)
+                                    ├─ /admin/login   → Super Admin (Session)
+                                    └─ /admin/*       → محافظت Session در CMS (نه IP در Nginx)
+[Super Admin] ← login از اینترنت/LAN → session cookie → همه عملیات CMS
+[Module Manager] ← رمز ماژول → session محدود moduleId → start/stop/log همان ماژول
+[SSH] ← cli.js روی سرور
 ```
 
 **مؤلفه‌ها:**
@@ -77,7 +82,8 @@ ModuleHub CMS پلتفرمی است که به شما امکان می‌دهد ب
 | هسته CMS | Node.js 20 + Express | صفحه اصلی، پنل مدیریت، پروکسی ماژول‌ها |
 | ذخیره‌سازی | `site-layout.json` + `storage/system-settings.json` | بدون دیتابیس خارجی |
 | اجرای ماژول‌ها | `systemd-run` (برای ماژول‌های غیر Docker) / `docker run` (برای ماژول‌های Dockerized) | محدودیت منابع توسط cgroups |
-| وب سرور | Nginx 1.28 | reverse proxy، محدودیت دسترسی به `/admin` |
+| وب سرور | Nginx 1.28 | reverse proxy؛ HTTPS اجباری؛ auth در لایه CMS |
+| احراز هویت | express-session + bcrypt | Super Admin session؛ Module Manager scoped session |
 | لاگ | Winston + فایل | هر ماژول لاگ جداگانه در `/var/log/modulehub/modules/` |
 | کش پکیج | `hash‑based cache` در `/var/cache/modulehub/pkg/` | کاهش آپلود و نصب سریع |
 | پشتیبان‌گیری | اسکریپت داخلی (ZIP از کل وضعیت) | قابلیت بازیابی یکپارچه |
@@ -105,8 +111,9 @@ ModuleHub CMS پلتفرمی است که به شما امکان می‌دهد ب
 │       ├── module.json       # تنظیمات محلی ماژول (نسخه، وضعیت، منابع)
 │       └── ... (فایل‌های پروژه)
 ├── storage/
-│   ├── site-layout.json      # درخت پوشه‌ها + تنظیمات ماژول‌ها
-│   ├── system-settings.json  # تنظیمات سراسری ادمین (محدودیت ZIP، پورت، شبکه، …)
+│   ├── site-layout.json      # درخت پوشه‌ها + تنظیمات ماژول‌ها (+ managementPasswordHash)
+│   ├── system-settings.json  # تنظیمات سراسری + auth (session TTL, rate limit)
+│   ├── admin-users.json      # hash رمز Super Admin (یا env: ADMIN_PASSWORD_HASH)
 │   ├── logs/                 # لاگ هسته CMS (cms.log)
 │   └── backups/              # فایل‌های پشتیبان (ZIP)
 ├── thumbnails/               # تصاویر کارت ماژول‌ها
@@ -140,6 +147,9 @@ sudo systemctl enable modulehub-cms --now
 ```
 
 ### ۴.۳ تنظیم Nginx (فایل `haderbash.ir`)
+
+> **تغییر:** محدودیت IP از Nginx حذف می‌شود — امنیت `/admin` در CMS با Session (سطح ۲).
+
 ```nginx
 server {
     listen 443 ssl http2;
@@ -148,16 +158,20 @@ server {
     location / {
         proxy_pass http://127.0.0.1:4000;
         proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     location /admin {
-        allow 192.168.0.0/16;
-        allow 127.0.0.1;
-        deny all;
         proxy_pass http://127.0.0.1:4000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # ... بقیه تنظیمات SSL (Let's Encrypt) و decoy برای Reality روی 8443
+    # ... SSL و decoy برای Reality روی 8443
 }
 ```
 
@@ -173,8 +187,8 @@ node scripts/cli.js --help
 
 ## ۵. نحوه اضافه کردن ماژول توسط ادمین (بدون کدنویسی)
 
-1. وارد پنل ادمین شوید (`https://haderbash.ir/admin` – فقط از LAN).
-2. در صفحه اصلی، کارت **➕** را ببینید.
+1. وارد شوید: `https://haderbash.ir/admin/login` (از اینترنت یا LAN).
+2. در صفحه اصلی (بعد از login)، کارت **➕** را ببینید.
 3. گزینه **«آپلود ZIP»** را انتخاب کنید.
 4. فایل ZIP پروژه خود را آپلود کنید (می‌تواند شامل هر نوع محتوای وب یا اپلیکیشن باشد).
 5. در سه مرحله ساده اطلاعات را وارد کنید:
@@ -228,7 +242,90 @@ node scripts/cli.js --help
 - **همگام‌سازی از GitHub** (اگر مخزن ثبت شده باشد: `git pull` و نصب وابستگی‌های جدید)
 - **به‌روزرسانی نسخه** (شماره نسخه ماژول را تغییر می‌دهد)
 - **پشتیبان‌گیری از ماژول** (دانلود ZIP از پوشه ماژول + تنظیمات)
-- **حذف ماژول** (توقف فرآیند، حذف پوشه و رکورد از JSON)
+- **حذف ماژول** (توقف فرآیند، حذف پوشه و رکورد از JSON) — **فقط Super Admin**
+
+---
+
+## ۶.۵ احراز هویت و سطوح دسترسی (Session + Module Manager)
+
+**سطح انتخاب‌شده:** سطح ۲ — Session Login در CMS (پایه production).
+
+### نقش‌ها
+
+| نقش | ورود | محدوده | ذخیره |
+|-----|------|--------|-------|
+| **Super Admin** | `POST /admin/login` — username + password | همه `/admin/*` | `storage/admin-users.json` یا `ADMIN_PASSWORD_HASH` در env |
+| **Module Manager** | `POST /admin/module/:id/auth` — رمز ماژول | فقط `moduleId` مشخص | `managementPasswordHash` در `site-layout.json` |
+| **کاربر عادی** | بدون login | `/` و `/modules/<id>/` | — |
+
+### Super Admin — Session
+
+| مورد | مقدار / روش |
+|------|-------------|
+| Hash رمز | bcrypt cost ≥ 12 |
+| Session | `express-session` — cookie `HttpOnly`, `Secure`, `SameSite=Strict` |
+| TTL | `sessionTtlHours` از system-settings (پیش‌فرض ۸) |
+| Rate limit login | `loginRateLimitPerMinute` (پیش‌فرض ۵) — express-rate-limit |
+| CSRF | token در همه فرم‌های POST admin |
+| Logout | `POST /admin/logout` — invalidate session |
+
+**Endpointهای Super Admin-only:**
+
+| مسیر | عمل |
+|------|-----|
+| `POST /admin/upload` | آپلود ZIP |
+| `POST /admin/folder` | پوشه مجازی |
+| `GET/POST /admin/settings` | تنظیمات سراسری |
+| `POST /admin/backup`, `POST /admin/restore` | backup/restore کامل |
+| `DELETE /admin/module/:id` | حذف ماژول |
+| تنظیم/reset `managementPasswordHash` | در edit ماژول |
+
+### Module Manager — رمز per-module
+
+**فیلدهای schema در `site-layout.json` → `modules.<id>`:**
+
+| فیلد | نوع | توضیح |
+|------|-----|-------|
+| `managementPasswordHash` | string | bcrypt hash؛ خالی = فقط Super Admin |
+| `managementPermissions` | string[] | پیش‌فرض: `["start","stop","logs","edit"]` |
+
+**جریان:**
+
+1. کلیک ⚙ → اگر Super Admin session فعال → دیالوگ کامل.
+2. اگر session نیست و `managementPasswordHash` تنظیم شده → SweetAlert رمز.
+3. `POST /admin/module/:id/auth` → session scoped با `scope: "module-manager"`, `moduleId`.
+4. TTL: `moduleManagerSessionTtlHours` (پیش‌فرض ۴).
+5. Rate limit: `modulePasswordMaxAttempts` (۵) → lockout `modulePasswordLockoutMinutes` (۱۵).
+
+**Module Manager مجاز / ممنوع:**
+
+| عمل | Module Manager | Super Admin |
+|-----|----------------|-------------|
+| Start / Stop / Restart | ✅ | ✅ |
+| View logs | ✅ | ✅ |
+| Edit resources (نه رمز) | ✅ | ✅ |
+| Module backup (تکی) | ✅ | ✅ |
+| Delete module | ❌ | ✅ |
+| `/admin/settings` | ❌ | ✅ |
+| Add wizard / پوشه | ❌ | ✅ |
+| تغییر `managementPasswordHash` | ❌ | ✅ |
+
+### Middleware
+
+```
+request → session parser
+       → if path starts /admin (except /admin/login, /admin/module/:id/auth)
+       →   require superAdminSession OR moduleManagerSession matching :id
+       → CSRF check on POST/PUT/DELETE
+       → handler
+```
+
+### امنیت
+
+- HTTPS اجباری (Nginx TLS)
+- هرگز plaintext password در JSON یا log
+- `managementPasswordHash` در backup ZIP — محافظت backup مثل secret
+- Session secret از `SESSION_SECRET` env
 
 ---
 
@@ -284,6 +381,11 @@ node scripts/cli.js --help
 | **پاک‌سازی ZIP موقت** | ۲۴ ساعت | `/tmp/modulehub-upload/` |
 | **رابط شبکه برای نصب پکیج** | `enp63s0` | موقت — npm/docker/git |
 | **حداکثر خطوط لاگ در پنل** | ۵۰ | دیالوگ چرخ‌دنده |
+| **مدت Session Super Admin (ساعت)** | ۸ | `sessionTtlHours` |
+| **حداکثر تلاش login در دقیقه** | ۵ | `loginRateLimitPerMinute` |
+| **مدت Session Module Manager (ساعت)** | ۴ | `moduleManagerSessionTtlHours` |
+| **حداکثر تلاش رمز ماژول** | ۵ | قبل از lockout |
+| **مدت lockout رمز ماژول (دقیقه)** | ۱۵ | `modulePasswordLockoutMinutes` |
 
 **رادیو باکس رابط شبکه** (فقط ≥۲ NIC فعال): لیست از `ip -o link show up` — انتخاب رابط برای عملیات نصب. CMS با `network-metric-toggler` موقتاً metric را عوض و **restore** می‌کند. مسیر دائمی Ubuntu از پنل وب عوض **نمی‌شود** (ریسک dual-WAN / Xray).
 
@@ -322,7 +424,7 @@ node scripts/cli.js --help
 ### ۱۳.۲ قوانین برای فرانت‌اند (HTML/CSS/JS)
 - استفاده از **BEM** برای نام‌گذاری کلاس‌های CSS.
 - رعایت تضاد رنگ‌ها (قابل استفاده در دارک/لایت مود).
-- تمام فرم‌ها با CSRF token (در پیاده‌سازی نهایی) محافظت می‌شوند.
+- تمام فرم‌های admin با **CSRF token** محافظت می‌شوند (فاز ۸ — auth).
 
 ### ۱۳.۳ نقش فایل‌های docs (برای AI)
 
@@ -377,7 +479,8 @@ modulehub-cms/
 | ۲ | پیاده‌سازی درخت پوشه‌های مجازی (JSON, breadcrumb, frontend) |
 | ۳ | Add wizard (آپلود، سه سؤال، دیالوگ منابع/آیکون، ذخیره در JSON) |
 | ۴ | مدیریت ماژول (چرخ‌دنده: start/stop, log viewer, edit, delete) + پشتیبان اولیه |
-| ۴.۵ | صفحه تنظیمات سراسری (`/admin/settings`)، `system-settings.json`، رادیو رابط شبکه |
+| ۴.۵ | صفحه تنظیمات سراسری، `system-settings.json`، رادیو رابط شبکه |
+| ۴.۶ | **احراز هویت:** Session Super Admin + Module Manager password |
 | ۵ | کش پکیج، محدودیت منابع کامل (CPU, RAM, Disk I/O, Network) |
 | ۶ | نسخه‌گذاری، همگام‌سازی GitHub، بهبود لاگ متمرکز |
 | ۷ | تست (سناریوهای جدول‌شده)، نوشتن مستندات، استقرار نهایی روی سرور |
@@ -395,6 +498,7 @@ ModuleHub CMS پلتفرمی است که **امنیت، جداسازی، و سه
 - ✓ کش پکیج برای نصب سریع
 - ✓ پشتیبان‌گیری و بازیابی یکپارچه
 - ✓ مستندات کامل و قوانین کدنویسی شفاف
-- ✓ عدم وابستگی به API خارجی – مدیریت فقط از LAN/SSH
+- ✓ احراز هویت Session — Super Admin از اینترنت + Module Manager per-module
+- ✓ عدم API عمومی بدون session — مدیریت با login یا رمز ماژول
 
 **آماده برای پیاده‌سازی فاز صفر.**

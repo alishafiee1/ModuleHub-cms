@@ -121,14 +121,20 @@ my-app.zip
 
 > **این بخش draft است.** مقادیر از spec فعلی؛ ممکن است با کد واقعی کمی فرق کند.
 
-| endpoint (پ planned) | کار |
-|----------------------|-----|
-| `POST /admin/upload` | آپلود ZIP |
-| `POST /admin/module/:id/start` | Start |
-| `POST /admin/module/:id/stop` | Stop |
-| `GET /modules/:id/*` | سرو Static یا پروکسی Backend |
+| endpoint (planned) | کار | نقش |
+|----------------------|-----|-----|
+| `GET/POST /admin/login` | ورود Super Admin | Super Admin |
+| `POST /admin/logout` | خروج | Super Admin |
+| `POST /admin/upload` | آپلود ZIP | Super Admin |
+| `POST /admin/folder` | پوشه مجازی | Super Admin |
+| `POST /admin/module/:id/auth` | ورود با رمز ماژول | Module Manager |
+| `POST /admin/module/:id/start` | Start | Super Admin یا Module Manager |
+| `POST /admin/module/:id/stop` | Stop | Super Admin یا Module Manager |
+| `GET /modules/:id/*` | سرو Static یا پروکسی Backend | عمومی |
 
-**پس از merge فاز ۱–۳:** این جدول از `core/server.js` (یا مسیر systemd نهایی) استخراج و این § به‌روز شود.
+**Module Manager:** Super Admin می‌تواند در edit ماژول `managementPasswordHash` تنظیم کند. توسعه‌دهنده با همان رمز — از اینترنت — فقط start/stop/log/edit **همان** ماژول را دارد. جزئیات: `design plan.md` §۶.۵.
+
+**پس از merge فاز ۱–۳ و ۸:** این جدول از کد واقعی استخراج و این § به‌روز شود.
 
 > **تناقض فعلی config:** `modulehub-cms.service` → `dist/core/src/server/index.js` — `design plan.md` → `core/server.js`. هنگام پیاده‌سازی یکی انتخاب و هر دو doc هماهنگ شوند.
 
