@@ -1,0 +1,828 @@
+```html
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>HaderBash | مراقبت هوشمند IoT + CMS حرفه‌ای</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.2s ease, color 0.2s, border-color 0.2s;
+        }
+
+        /* ----- متغیرهای رنگ (دارک/لایت) ----- */
+        :root {
+            --bg-body: #f1f5f9;
+            --bg-container: rgba(255, 255, 255, 0.96);
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #334155;
+            --border-light: #e2e8f0;
+            --header-grad-start: #0b2b3b;
+            --header-grad-end: #1f5e7e;
+            --header-text: white;
+            --breadcrumb-bg: #f8fafc;
+            --breadcrumb-border: #dce5ec;
+            --feature-bg: #eef3fa;
+            --feature-chip: white;
+            --card-shadow: 0 12px 24px -12px rgba(0,0,0,0.08);
+            --card-hover-shadow: 0 20px 30px -12px rgba(0,0,0,0.15);
+            --add-card-bg: #fefcf5;
+            --add-card-border: #b9d3e8;
+            --note-bg: #fef3dd;
+            --note-text: #ad7a2c;
+            --gear-bg: #f0f4f9;
+            --gear-hover: #e2eaf1;
+            --status-bg: #e3f2fd;
+            --status-text: #0b5e7e;
+            --hero-gradient: linear-gradient(135deg, #e0f2fe 0%, #f1f5f9 100%);
+            --btn-primary: #2c7da0;
+            --btn-primary-hover: #1f5e7e;
+        }
+
+        body.dark {
+            --bg-body: #0f172a;
+            --bg-container: #1e293b;
+            --card-bg: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border-light: #475569;
+            --header-grad-start: #0f172a;
+            --header-grad-end: #1e3a5f;
+            --header-text: #e2e8f0;
+            --breadcrumb-bg: #1e293b;
+            --breadcrumb-border: #334155;
+            --feature-bg: #1e2a3a;
+            --feature-chip: #334155;
+            --card-shadow: 0 12px 24px -12px rgba(0,0,0,0.5);
+            --card-hover-shadow: 0 20px 30px -12px rgba(0,0,0,0.6);
+            --add-card-bg: #2d3a48;
+            --add-card-border: #5b7a9a;
+            --note-bg: #2a2a1c;
+            --note-text: #e2c28b;
+            --gear-bg: #475569;
+            --gear-hover: #5b6e8c;
+            --status-bg: #1e3a4d;
+            --status-text: #9ac8e4;
+            --hero-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --btn-primary: #2c7da0;
+            --btn-primary-hover: #4b9bba;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Tahoma', 'Verdana', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            direction: rtl;
+            line-height: 1.5;
+        }
+
+        .demo-container {
+            max-width: 1400px;
+            margin: 1.5rem auto;
+            background: var(--bg-container);
+            border-radius: 2rem;
+            box-shadow: 0 25px 45px -12px rgba(0,0,0,0.25);
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+        }
+
+        /* ----- HEADER یکپارچه (لندینگ + CMS) ----- */
+        .header {
+            background: linear-gradient(105deg, var(--header-grad-start) 0%, var(--header-grad-end) 100%);
+            padding: 1.3rem 2rem;
+            color: var(--header-text);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .logo-hb {
+            background: #ffb74d;
+            width: 48px;
+            height: 48px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1e293b;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .logo-area h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+        .controls-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .dark-toggle {
+            background: rgba(255,255,255,0.2);
+            border-radius: 60px;
+            padding: 0.3rem 0.9rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+        .badge-admin-toggle {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(8px);
+            padding: 0.4rem 1rem;
+            border-radius: 60px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 54px;
+            height: 28px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #9aaebf;
+            transition: 0.3s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            right: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #2dd4bf;
+        }
+        input:checked + .slider:before {
+            transform: translateX(-26px);
+        }
+
+        /* ----- بخش قهرمان (Hero) الهام گرفته از Akiflow ----- */
+        .hero-section {
+            background: var(--hero-gradient);
+            margin: 1.5rem 2rem;
+            padding: 2.5rem 2rem;
+            border-radius: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+            border: 1px solid var(--border-light);
+        }
+        .hero-text {
+            flex: 2;
+            text-align: right;
+        }
+        .hero-text h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+        .highlight {
+            color: #2c7da0;
+            border-bottom: 3px solid #2c7da0;
+            display: inline-block;
+        }
+        .hero-text p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 600px;
+        }
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .btn-primary {
+            background: var(--btn-primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.8rem;
+            border-radius: 60px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+        .btn-primary:hover {
+            background: var(--btn-primary-hover);
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--text-secondary);
+            color: var(--text-primary);
+            padding: 0.8rem 1.8rem;
+            border-radius: 60px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+        .btn-secondary:hover {
+            background: rgba(44,125,160,0.1);
+            border-color: #2c7da0;
+        }
+        .hero-image {
+            flex: 1;
+            background: rgba(44,125,160,0.15);
+            backdrop-filter: blur(8px);
+            border-radius: 2rem;
+            padding: 2rem;
+            text-align: center;
+            font-size: 3rem;
+            color: #2c7da0;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+        .hero-image i {
+            font-size: 5rem;
+        }
+        .hero-image span {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        /* ----- بخش امکانات (features) ----- */
+        .features-banner {
+            background: var(--feature-bg);
+            padding: 0.7rem 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.8rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .feature-chip {
+            background: var(--feature-chip);
+            border-radius: 40px;
+            padding: 0.2rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        /* ----- بخش مدیریت ماژول (CMS) ----- */
+        .breadcrumb-area {
+            background: var(--breadcrumb-bg);
+            padding: 0.8rem 2rem;
+            border-bottom: 1px solid var(--breadcrumb-border);
+            font-weight: 500;
+        }
+        .breadcrumb-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .breadcrumb-item {
+            color: #2c7da0;
+            cursor: pointer;
+        }
+        body.dark .breadcrumb-item {
+            color: #7ab3c8;
+        }
+        .grid-cards {
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 1.8rem;
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            box-shadow: var(--card-shadow);
+            transition: all 0.25s;
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--card-hover-shadow);
+        }
+        .card-content {
+            padding: 1.4rem 1.2rem 1.2rem;
+        }
+        .card-icon {
+            font-size: 2.2rem;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-icon-img {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .thumbnail-icon {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+        .gear-icon {
+            font-size: 1.2rem;
+            color: #66819b;
+            background: var(--gear-bg);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+        .gear-icon:hover {
+            background: var(--gear-hover);
+            color: #1f3f57;
+        }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .card-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.45;
+        }
+        .status-badge {
+            display: inline-block;
+            background: var(--status-bg);
+            font-size: 0.7rem;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            margin-top: 12px;
+            color: var(--status-text);
+        }
+        .add-card {
+            background: var(--add-card-bg);
+            border: 2px dashed var(--add-card-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .add-card i {
+            font-size: 3rem;
+            color: #3f8db3;
+        }
+        .folder-card {
+            border-right: 5px solid #2c7da0;
+        }
+        .module-card {
+            border-right: 5px solid #2e9c6b;
+        }
+        .demo-note {
+            background: var(--note-bg);
+            padding: 0.8rem 2rem;
+            font-size: 0.75rem;
+            color: var(--note-text);
+            border-top: 1px solid var(--border-light);
+        }
+
+        /* دیالوگ‌های سفارشی */
+        .icon-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .icon-option {
+            text-align: center;
+            padding: 8px;
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .icon-option.selected {
+            background: #2c7da0;
+            color: white;
+            border-color: #2c7da0;
+        }
+        .resource-slider {
+            width: 100%;
+            margin: 8px 0;
+        }
+        @media (max-width: 700px) {
+            .grid-cards { padding: 1rem; gap: 1rem; }
+            .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .hero-text h2 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="demo-container">
+    <!-- هدر یکپارچه -->
+    <div class="header">
+        <div class="logo-area">
+            <div class="logo-hb">HB</div>
+            <h1><i class="fas fa-shield-alt"></i> HaderBash.ir</h1>
+        </div>
+        <div class="controls-row">
+            <div class="dark-toggle" id="darkModeToggle">
+                <i class="fas fa-moon"></i> <span>دارک مود</span>
+            </div>
+            <div class="badge-admin-toggle">
+                <i class="fas fa-user-shield"></i> <span>حالت ادمین</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="adminToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- بخش لندینگ (Hero + CTA) -->
+    <div class="hero-section">
+        <div class="hero-text">
+            <h2>مراقبت هوشمند از <span class="highlight">زیرساخت IoT</span> شما</h2>
+            <p>هادر باش یعنی نظارت لحظه‌ای، مدیریت ماژولار و استقرار سریع. پلتفرم تخصصی تیم‌های IoT، با امکانات گالری، سرور فایل، چت پروژه و مانیتورینگ منابع.</p>
+            <div class="hero-buttons">
+                <button class="btn-primary" id="ctaStartBtn"><i class="fas fa-rocket"></i> شروع رایگان</button>
+                <button class="btn-secondary" id="viewGalleryBtn"><i class="fas fa-images"></i> مشاهده نمونه کارها</button>
+            </div>
+        </div>
+        <div class="hero-image">
+            <i class="fas fa-microchip"></i>
+            <span>مدیریت یکپارچه · مقیاس‌پذیر</span>
+        </div>
+    </div>
+
+    <!-- بنر امکانات CMS -->
+    <div class="features-banner" id="featuresBanner">
+        <div class="feature-chip"><i class="fas fa-folder-tree"></i> پوشه مجازی (JSON)</div>
+        <div class="feature-chip"><i class="fas fa-cloud-upload-alt"></i> آپلود ZIP → ۳ سوال + منابع + آیکون</div>
+        <div class="feature-chip"><i class="fas fa-docker"></i> Docker/پورت/دسترسی</div>
+        <div class="feature-chip"><i class="fas fa-microchip"></i> محدودیت CPU/RAM (cgroups)</div>
+        <div class="feature-chip"><i class="fas fa-database"></i> کش پکیج متمرکز</div>
+        <div class="feature-chip"><i class="fas fa-history"></i> لاگ متمرکز</div>
+        <div class="feature-chip" id="cacheInfoChip"><i class="fas fa-database"></i> اطلاعات کش</div>
+    </div>
+
+    <!-- مسیریابی (breadcrumb) و گرید مدیریت ماژول‌ها -->
+    <div class="breadcrumb-area" id="breadcrumbArea"></div>
+    <div id="cardsGrid" class="grid-cards"></div>
+
+    <div class="demo-note">
+        <i class="fas fa-lightbulb"></i> <strong>هادر باش · داشبورد تیم IoT</strong> — ادمین: کارت + → آپلود ZIP (شبیه‌سازی) → تنظیم آیکون، منابع، سه سوال اصلی. ماژول‌ها را اجرا/توقف کن، لاگ ببین، منابع را تغییر بده. کش متمرکز پکیج‌ها نیز فعال است.
+    </div>
+</div>
+
+<script>
+    // ================ ادغام کامل CMS (script.js + dialog.js) ================
+    (function(){
+        // دیکشنری آیتم‌ها و متغیرهای سراسری
+        let itemsMap = new Map();
+        const ROOT_ID = "root_home";
+        let currentFolderId = ROOT_ID;
+        let adminMode = true;
+        function genId() { return Date.now() + '-' + Math.random().toString(36).substring(2, 8); }
+
+        // کتابخانه آیکون‌ها برای دیالوگ
+        const iconLibrary = [
+            "fas fa-images", "fas fa-chart-line", "fab fa-react", "fab fa-docker",
+            "fas fa-cube", "fas fa-file-alt", "fas fa-video", "fas fa-music",
+            "fas fa-store", "fas fa-graduation-cap", "fas fa-tachometer-alt", "fas fa-database"
+        ];
+
+        // دیالوگ تنظیمات منابع و آیکون
+        async function showResourceAndIconDialog(initialData = {}) {
+            const defaultResources = {
+                cpu_limit: 0.5,
+                ram_limit_mb: 512,
+                swap_limit_mb: 128,
+                icon: "fas fa-cube",
+                thumbnail: null,
+                moduleName: "",
+                moduleDesc: ""
+            };
+            const data = { ...defaultResources, ...initialData };
+            const iconOptionsHtml = iconLibrary.map(icon => `
+                <div class="icon-option" data-icon="${icon}">
+                    <i class="${icon}" style="font-size: 1.8rem;"></i>
+                </div>
+            `).join('');
+            const { value: result } = await Swal.fire({
+                title: 'تنظیمات ماژول: منابع، آیکون و تصویر کارت',
+                html: `
+                    <div style="text-align:right;">
+                        <label>نام ماژول</label>
+                        <input id="mod-name" class="swal2-input" value="${data.moduleName.replace(/"/g, '&quot;')}" placeholder="نام کارت">
+                        <label>توضیحات</label>
+                        <textarea id="mod-desc" class="swal2-textarea" placeholder="توضیحات کوتاه">${data.moduleDesc.replace(/"/g, '&quot;')}</textarea>
+                        <label>آیکون کارت (انتخاب از کتابخانه)</label>
+                        <div id="icon-selector-container" class="icon-selector">${iconOptionsHtml}</div>
+                        <input id="custom-icon" class="swal2-input" placeholder="یا آیکون سفارشی (مثلاً fas fa-rocket)" value="${data.icon}">
+                        <label>تصویر کارت (آپلود، اختیاری)</label>
+                        <input type="file" id="card-thumbnail" accept="image/*">
+                        <div id="thumbnail-preview" style="margin: 8px 0;"></div>
+                        <hr>
+                        <label>محدودیت CPU (هسته): <span id="cpu-val">${data.cpu_limit}</span></label>
+                        <input type="range" id="cpu-limit" class="resource-slider" min="0.1" max="2" step="0.1" value="${data.cpu_limit}">
+                        <label>محدودیت RAM (MB): <span id="ram-val">${data.ram_limit_mb}</span></label>
+                        <input type="range" id="ram-limit" class="resource-slider" min="128" max="4096" step="64" value="${data.ram_limit_mb}">
+                        <label>محدودیت Swap (MB): <span id="swap-val">${data.swap_limit_mb}</span></label>
+                        <input type="range" id="swap-limit" class="resource-slider" min="0" max="1024" step="32" value="${data.swap_limit_mb}">
+                    </div>
+                `,
+                focusConfirm: false,
+                confirmButtonText: 'ذخیره و ادامه',
+                cancelButtonText: 'انصراف',
+                showCancelButton: true,
+                preConfirm: () => {
+                    const selectedIconElem = document.querySelector('#icon-selector-container .icon-option.selected');
+                    let finalIcon = document.getElementById('custom-icon').value;
+                    if (selectedIconElem && !finalIcon) finalIcon = selectedIconElem.getAttribute('data-icon');
+                    if (!finalIcon) finalIcon = "fas fa-cube";
+                    const thumbnailFile = document.getElementById('card-thumbnail').files[0];
+                    let thumbnailData = null;
+                    if (thumbnailFile) thumbnailData = thumbnailFile.name;
+                    return {
+                        moduleName: document.getElementById('mod-name').value,
+                        moduleDesc: document.getElementById('mod-desc').value,
+                        icon: finalIcon,
+                        thumbnail: thumbnailData,
+                        cpu_limit: parseFloat(document.getElementById('cpu-limit').value),
+                        ram_limit_mb: parseInt(document.getElementById('ram-limit').value),
+                        swap_limit_mb: parseInt(document.getElementById('swap-limit').value)
+                    };
+                },
+                didOpen: () => {
+                    const cpuSlider = document.getElementById('cpu-limit');
+                    const ramSlider = document.getElementById('ram-limit');
+                    const swapSlider = document.getElementById('swap-limit');
+                    cpuSlider.addEventListener('input', () => document.getElementById('cpu-val').innerText = cpuSlider.value);
+                    ramSlider.addEventListener('input', () => document.getElementById('ram-val').innerText = ramSlider.value);
+                    swapSlider.addEventListener('input', () => document.getElementById('swap-val').innerText = swapSlider.value);
+                    const iconOptions = document.querySelectorAll('.icon-option');
+                    iconOptions.forEach(opt => {
+                        opt.addEventListener('click', () => {
+                            iconOptions.forEach(o => o.classList.remove('selected'));
+                            opt.classList.add('selected');
+                            document.getElementById('custom-icon').value = opt.getAttribute('data-icon');
+                        });
+                    });
+                    const thumbInput = document.getElementById('card-thumbnail');
+                    const previewDiv = document.getElementById('thumbnail-preview');
+                    thumbInput.addEventListener('change', (e) => {
+                        if (e.target.files[0]) {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => { previewDiv.innerHTML = `<img src="${ev.target.result}" style="max-width:100px; border-radius:12px;">`; };
+                            reader.readAsDataURL(e.target.files[0]);
+                        } else previewDiv.innerHTML = '';
+                    });
+                }
+            });
+            return result;
+        }
+
+        async function showLogsDialog(moduleName, logsContent) {
+            await Swal.fire({
+                title: `لاگ‌های ماژول: ${moduleName}`,
+                html: `<pre style="text-align:left; direction:ltr; background:#1e1e2f; color:#f0f0f0; padding:12px; border-radius:12px; max-height:400px; overflow:auto;">${logsContent}</pre>`,
+                icon: 'info',
+                confirmButtonText: 'بستن'
+            });
+        }
+
+        async function showCacheInfoDialog() {
+            await Swal.fire({
+                title: 'کش متمرکز پکیج‌ها',
+                html: `<div style="text-align:right;"><p>✅ وضعیت کش فعال است.</p><p>📦 تعداد پکیج‌های کش شده: ۳۲</p><p>💾 حجم کل کش: ۴۵۲ MB</p><p>🕒 آخرین به‌روزرسانی: امروز ۱۴:۳۰</p><hr><small>هر ماژول با package.json یا requirements.txt جدید، به‌طور خودکار کش می‌شود.</small></div>`,
+                confirmButtonText: 'بستن'
+            });
+        }
+
+        // داده‌های اولیه
+        function initializeData() {
+            itemsMap.set(ROOT_ID, { id: ROOT_ID, name: "خانه", type: "folder", parentId: null, childrenIds: [], description: "ریشه سایت" });
+            const gallery = { id: genId(), name: "گالری حرفه‌ای نمونه‌کار", type: "module", moduleKind: "gallery", description: "آلبوم تصاویر پروژه‌های معماری", status: "running", icon: "fas fa-images", settings: { docker: false, port: "", permissions: "network", resources: { cpu_limit: 0.5, ram_limit_mb: 512, swap_limit_mb: 128 }, logs: "۱۴۰۴/۰۲/۱۰: راه‌اندازی شد" } };
+            const markdown = { id: genId(), name: "مقالات آموزشی مارک‌داون", type: "module", moduleKind: "markdown", description: "مجموعه فایل‌های .md", status: "running", icon: "fab fa-markdown", settings: { docker: false, port: "", permissions: "none", resources: { cpu_limit: 0.3, ram_limit_mb: 256, swap_limit_mb: 64 }, logs: "آماده به کار" } };
+            const live = { id: genId(), name: "لایو مانیتورینگ سرور", type: "module", moduleKind: "live-widget", description: "نمودارهای زنده و WebSocket", status: "stopped", icon: "fas fa-chart-line", settings: { docker: true, port: "8080", permissions: "network", resources: { cpu_limit: 0.8, ram_limit_mb: 1024, swap_limit_mb: 256 }, logs: "متوقف شده به دلیل کمبود RAM در آخرین اجرا" } };
+            const portfolioFolder = { id: genId(), name: "نمونه‌کارهای برتر", type: "folder", parentId: ROOT_ID, childrenIds: [], description: "پروژه‌های شاخص", icon: "fas fa-briefcase" };
+            const reactApp = { id: genId(), name: "اپلیکیشن فروشگاهی React", type: "module", moduleKind: "spa", description: "SPA کامل با روتینگ", status: "running", icon: "fab fa-react", settings: { docker: false, port: "3000", permissions: "network", resources: { cpu_limit: 0.6, ram_limit_mb: 768, swap_limit_mb: 128 }, logs: "فعال" } };
+            const dockerApp = { id: genId(), name: "پلتفرم تحلیل داکری", type: "module", moduleKind: "dockerized", description: "میکروسرویس", status: "running", icon: "fab fa-docker", settings: { docker: true, port: "80", permissions: "network+volume", resources: { cpu_limit: 1.2, ram_limit_mb: 2048, swap_limit_mb: 512 }, logs: "مصرف RAM نزدیک به حد مجاز" } };
+            portfolioFolder.childrenIds = [reactApp.id, dockerApp.id];
+            itemsMap.get(ROOT_ID).childrenIds = [gallery.id, markdown.id, live.id, portfolioFolder.id];
+            [gallery, markdown, live, portfolioFolder, reactApp, dockerApp].forEach(n => itemsMap.set(n.id, n));
+        }
+        initializeData();
+
+        async function toggleModuleStatus(moduleId) {
+            const mod = itemsMap.get(moduleId);
+            if (mod && mod.type === 'module') {
+                mod.status = mod.status === 'running' ? 'stopped' : 'running';
+                renderAll();
+                Swal.fire({ icon: 'success', title: 'تغییر وضعیت', text: `ماژول "${mod.name}" اکنون ${mod.status === 'running' ? 'در حال اجرا' : 'متوقف شد'}`, timer: 1500, showConfirmButton: false });
+            }
+        }
+        function deleteItem(id, parentId) {
+            const item = itemsMap.get(id);
+            if (!item) return;
+            if (item.type === 'folder') {
+                for (let child of [...item.childrenIds]) deleteItem(child, id);
+            }
+            const parent = itemsMap.get(parentId || item.parentId);
+            if (parent) parent.childrenIds = parent.childrenIds.filter(cid => cid !== id);
+            itemsMap.delete(id);
+            if (currentFolderId === id) currentFolderId = ROOT_ID;
+            renderAll();
+            Swal.fire({ icon: 'info', title: 'حذف شد', text: `${item.name} حذف گردید.`, toast: true, timer: 1800, position: 'top-end' });
+        }
+        async function openSettingsModal(moduleId) {
+            const mod = itemsMap.get(moduleId);
+            if (!mod || mod.type !== 'module') return;
+            const res = await showResourceAndIconDialog({
+                moduleName: mod.name,
+                moduleDesc: mod.description,
+                icon: mod.icon,
+                cpu_limit: mod.settings.resources?.cpu_limit || 0.5,
+                ram_limit_mb: mod.settings.resources?.ram_limit_mb || 512,
+                swap_limit_mb: mod.settings.resources?.swap_limit_mb || 128
+            });
+            if (res) {
+                mod.name = res.moduleName;
+                mod.description = res.moduleDesc;
+                mod.icon = res.icon;
+                if (!mod.settings.resources) mod.settings.resources = {};
+                mod.settings.resources.cpu_limit = res.cpu_limit;
+                mod.settings.resources.ram_limit_mb = res.ram_limit_mb;
+                mod.settings.resources.swap_limit_mb = res.swap_limit_mb;
+                if (res.thumbnail) mod.thumbnail = res.thumbnail;
+                renderAll();
+                Swal.fire({ icon: 'success', title: 'ذخیره شد', text: 'تنظیمات منابع و ظاهر بروز شد.', timer: 1300 });
+            }
+        }
+        async function openGearMenu(moduleId) {
+            const mod = itemsMap.get(moduleId);
+            if (!adminMode) return;
+            const action = await Swal.fire({
+                title: `مدیریت ماژول · ${mod.name}`,
+                text: `وضعیت: ${mod.status === 'running' ? '🟢 فعال' : '⛔ متوقف'} | CPU: ${mod.settings.resources?.cpu_limit || '?'} هسته | RAM: ${mod.settings.resources?.ram_limit_mb || '?'} MB`,
+                icon: 'info',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: mod.status === 'running' ? '🛑 توقف' : '▶️ اجرا',
+                denyButtonText: '⚙️ ویرایش منابع/آیکون',
+                cancelButtonText: '📋 لاگ ماژول'
+            });
+            if (action.isConfirmed) toggleModuleStatus(moduleId);
+            else if (action.isDenied) openSettingsModal(moduleId);
+            else if (action.dismiss === Swal.DismissReason.cancel) {
+                const logs = mod.settings.logs || "لاگی موجود نیست.";
+                showLogsDialog(mod.name, logs);
+            }
+        }
+        async function addVirtualFolder(parentId) {
+            const { value: folderName } = await Swal.fire({ title: 'پوشه مجازی جدید', input: 'text', inputPlaceholder: 'نام پوشه', showCancelButton: true });
+            if (folderName) {
+                const newId = genId();
+                const newFolder = { id: newId, name: folderName, type: "folder", parentId: parentId, childrenIds: [], description: "پوشه مجازی", icon: "fas fa-folder" };
+                itemsMap.set(newId, newFolder);
+                itemsMap.get(parentId).childrenIds.push(newId);
+                renderAll();
+                Swal.fire({ icon: 'success', title: 'ساخته شد', timer: 1200 });
+            }
+        }
+        async function uploadZipWizard(parentId) {
+            const { value: fileConfirm } = await Swal.fire({ title: 'آپلود ماژول (ZIP)', input: 'file', inputAttributes: { accept: '.zip' }, confirmButtonText: 'ادامه', showCancelButton: true });
+            if (!fileConfirm) return;
+            const { value: basicAnswers } = await Swal.fire({
+                title: 'تنظیمات پایه ماژول', html: `<select id="install-docker" style="width:100%"><option value="false">خیر (اجرای مستقیم)</option><option value="true">بله (Docker)</option></select><input id="install-port" placeholder="پورت داخلی (مثل 3000)" style="width:100%;margin-top:8px;"><select id="install-perms" style="width:100%;margin-top:8px;"><option value="network">شبکه</option><option value="none">هیچ</option><option value="network+volume">شبکه + ذخیره‌سازی</option></select>`,
+                confirmButtonText: 'ادامه', preConfirm: () => ({ docker: document.getElementById('install-docker').value === 'true', port: document.getElementById('install-port').value, permissions: document.getElementById('install-perms').value })
+            });
+            if (!basicAnswers) return;
+            const resourceData = await showResourceAndIconDialog({ moduleName: "ماژول جدید", moduleDesc: "توضیحات...", cpu_limit: 0.5, ram_limit_mb: 512, swap_limit_mb: 128 });
+            if (!resourceData) return;
+            const newId = genId();
+            const newModule = { id: newId, name: resourceData.moduleName, type: "module", moduleKind: "uploaded", description: resourceData.moduleDesc, status: "stopped", icon: resourceData.icon, thumbnail: resourceData.thumbnail, settings: { docker: basicAnswers.docker, port: basicAnswers.port, permissions: basicAnswers.permissions, resources: { cpu_limit: resourceData.cpu_limit, ram_limit_mb: resourceData.ram_limit_mb, swap_limit_mb: resourceData.swap_limit_mb }, logs: "ماژول تازه نصب شده." } };
+            itemsMap.set(newId, newModule);
+            itemsMap.get(parentId).childrenIds.push(newId);
+            renderAll();
+            Swal.fire({ icon: 'success', title: 'ماژول نصب شد!', timer: 2000 });
+        }
+        async function addFromLibrary(parentId) {
+            const { value: choice } = await Swal.fire({ title: 'کتابخانه ماژول‌ها', input: 'select', inputOptions: { gallery: 'گالری تصاویر', markdown: 'مارک‌داون بلاگ' } });
+            if (choice) {
+                const resourceData = await showResourceAndIconDialog({ moduleName: choice === 'gallery' ? 'گالری هوشمند' : 'وبلاگ مارک‌داون', moduleDesc: `یک ماژول آماده`, cpu_limit: 0.3, ram_limit_mb: 256 });
+                if (!resourceData) return;
+                const newId = genId();
+                const newModule = { id: newId, name: resourceData.moduleName, type: "module", moduleKind: choice, description: resourceData.moduleDesc, status: "running", icon: resourceData.icon, thumbnail: resourceData.thumbnail, settings: { docker: false, port: "", permissions: "network", resources: { cpu_limit: resourceData.cpu_limit, ram_limit_mb: resourceData.ram_limit_mb, swap_limit_mb: resourceData.swap_limit_mb }, logs: "ماژول آماده از کتابخانه نصب شد." } };
+                itemsMap.set(newId, newModule);
+                itemsMap.get(parentId).childrenIds.push(newId);
+                renderAll();
+                Swal.fire({ icon: 'success', title: 'نصب شد', timer: 1500 });
+            }
+        }
+        async function openAddMasterDialog() {
+            if (!adminMode) return;
+            const { value: option } = await Swal.fire({ title: '➕ افزودن به صفحه', input: 'select', inputOptions: { folder: 'پوشه مجازی', zip: 'آپلود ZIP (پروژه شخصی)', library: 'کتابخانه آماده' }, confirmButtonText: 'ادامه' });
+            if (option === 'folder') await addVirtualFolder(currentFolderId);
+            else if (option === 'zip') await uploadZipWizard(currentFolderId);
+            else if (option === 'library') await addFromLibrary(currentFolderId);
+        }
+        function renderBreadcrumb() {
+            const container = document.getElementById("breadcrumbArea");
+            let pathNodes = [];
+            let cur = itemsMap.get(currentFolderId);
+            while (cur && cur.id !== ROOT_ID) { pathNodes.unshift(cur); cur = itemsMap.get(cur.parentId); }
+            const rootNode = itemsMap.get(ROOT_ID);
+            let html = `<div class="breadcrumb-list"><div class="breadcrumb-item" data-folder="${ROOT_ID}"><i class="fas fa-home"></i> ${rootNode.name}</div>`;
+            for (let node of pathNodes) html += `<span class="separator"> / </span><div class="breadcrumb-item" data-folder="${node.id}">${node.name}</div>`;
+            html += `</div>`;
+            container.innerHTML = html;
+            document.querySelectorAll('.breadcrumb-item').forEach(el => {
+                el.addEventListener('click', (e) => { const fid = el.getAttribute('data-folder'); if (fid && itemsMap.has(fid) && itemsMap.get(fid).type === 'folder') { currentFolderId = fid; renderAll(); } });
+            });
+        }
+        function renderCards() {
+            const container = document.getElementById("cardsGrid");
+            const folder = itemsMap.get(currentFolderId);
+            if (!folder) return;
+            let html = '';
+            for (let childId of folder.childrenIds) {
+                const node = itemsMap.get(childId);
+                if (!node) continue;
+                const isFolder = node.type === 'folder';
+                const iconHtml = node.thumbnail ? `<img src="${node.thumbnail}" class="thumbnail-icon">` : `<i class="${node.icon || (isFolder ? 'fas fa-folder' : 'fas fa-puzzle-piece')}"></i>`;
+                const gearHtml = adminMode ? `<div class="gear-icon" data-gear-id="${node.id}"><i class="fas fa-cog"></i></div>` : '';
+                const statusHtml = (!isFolder && node.status) ? `<div class="status-badge"><i class="fas ${node.status === 'running' ? 'fa-play' : 'fa-stop'}"></i> ${node.status === 'running' ? 'فعال' : 'متوقف'}</div>` : '';
+                const resourceHint = (!isFolder && node.settings?.resources) ? `<div style="font-size:0.65rem; margin-top:4px;">💻 CPU: ${node.settings.resources.cpu_limit} | 🧠 RAM: ${node.settings.resources.ram_limit_mb}MB</div>` : '';
+                html += `<div class="card ${isFolder ? 'folder-card' : 'module-card'}" data-id="${node.id}" data-type="${node.type}"><div class="card-content"><div class="card-icon"><div class="card-icon-img">${iconHtml}</div>${gearHtml}</div><div class="card-title">${node.name}</div><div class="card-desc">${node.description || (isFolder ? 'پوشه مجازی' : 'ماژول مستقل')}</div>${statusHtml}${resourceHint}</div></div>`;
+            }
+            if (adminMode) html += `<div class="card add-card" id="addNewCardBtn"><div class="card-content"><i class="fas fa-plus-circle"></i><div class="card-title">افزودن محتوا</div><div class="card-desc">پوشه / ZIP / کتابخانه</div></div></div>`;
+            container.innerHTML = html;
+            document.querySelectorAll('.card:not(.add-card)').forEach(card => {
+                const id = card.getAttribute('data-id');
+                const type = card.getAttribute('data-type');
+                card.addEventListener('click', (e) => { if (e.target.closest('.gear-icon')) return; if (type === 'folder') { currentFolderId = id; renderAll(); } else { Swal.fire({ icon: 'info', title: 'ماژول', text: `کلیک روی "${itemsMap.get(id)?.name}" → محتوای مستقل بارگذاری می‌شود.`, toast: true, timer: 1200 }); } });
+                const gear = card.querySelector('.gear-icon');
+                if (gear) gear.addEventListener('click', (e) => { e.stopPropagation(); openGearMenu(id); });
+            });
+            const addBtn = document.getElementById("addNewCardBtn");
+            if (addBtn && adminMode) addBtn.addEventListener('click', openAddMasterDialog);
+        }
+        function renderAll() { renderBreadcrumb(); renderCards(); }
+
+        // ادغام دارک مود و کنترل ادمین
+        document.getElementById("adminToggle").addEventListener('change', (e) => { adminMode = e.target.checked; renderAll(); });
+        function initDarkMode() {
+            const darkToggle = document.getElementById('darkModeToggle');
+            const isDark = localStorage.getItem('modulehub-theme') === 'dark';
+            if (isDark) document.body.classList.add('dark');
+            darkToggle.addEventListener('click', () => { document.body.classList.toggle('dark'); localStorage.setItem('modulehub-theme', document.body.classList.contains('dark') ? 'dark' : 'light'); });
+        }
+        initDarkMode();
+        document.getElementById('cacheInfoChip').addEventListener('click', showCacheInfoDialog);
+        // دکمه‌های لندینگ
+        document.getElementById('ctaStartBtn').addEventListener('click', () => Swal.fire({ icon: 'success', title: 'به جمع هادر باش خوش آمدید', text: 'به زودی محیط اختصاصی شما فعال می‌شود.' }));
+        document.getElementById('viewGalleryBtn').addEventListener('click', () => { Swal.fire({ title: 'نمونه کارها', html: '<div style="display:flex; gap:8px; flex-wrap:wrap;"><img src="https://picsum.photos/100/100?random=1" style="border-radius:12px"><img src="https://picsum.photos/100/100?random=2" style="border-radius:12px"><img src="https://picsum.photos/100/100?random=3" style="border-radius:12px"></div><p>پروژه‌های IoT · نظارت هوشمند · داشبورد مدیریت</p>' }); });
+        renderAll();
+    })();
+</script>
+</body>
+</html>
+```

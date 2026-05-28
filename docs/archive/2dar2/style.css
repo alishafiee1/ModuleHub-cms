@@ -1,0 +1,379 @@
+/* ============================================================================================
+   FILE: style.css
+   PROJECT: HaderBash.ir
+   LAYER: Client - Styling
+   
+   PURPOSE: Main stylesheet for landing page with floating animated icons
+   
+   CAPABILITIES:
+   - Dark/Light theme with CSS variables
+   - Floating icons with rotation and mouse interaction
+   - Responsive design
+   - NO glow effects on menus/header (glow only for CMS internally)
+   - Floating icons are darker in light mode
+   ============================================================================================ */
+
+/* ========== متغیرهای رنگ (دارک/لایت) ========== */
+:root {
+    /* Light mode (default) */
+    --bg-site: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    --bg-surface: #ffffff;
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --border-light: #e2e8f0;
+    --accent: #2c7da0;
+    --accent-hover: #1f5e7e;
+    --header-bg: rgba(255, 255, 255, 0.85);
+    --footer-bg: #0f172a;
+    --footer-text: #cbd5e1;
+    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+    /* Floating icons - در حالت روشن تیره‌تر */
+    --floating-icon-color: #1a2a3a;
+    --floating-opacity-light: 0.08;
+    --floating-opacity-dark: 0.15;
+    --menu-hover: rgba(44, 125, 160, 0.08);
+}
+
+body.dark {
+    /* Dark mode */
+    --bg-site: linear-gradient(135deg, #0b1120 0%, #1e293b 100%);
+    --bg-surface: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e6;
+    --border-light: #334155;
+    --accent: #3b9bcb;
+    --accent-hover: #5bb4e0;
+    --header-bg: rgba(15, 23, 42, 0.9);
+    --footer-bg: #020617;
+    --footer-text: #94a3b8;
+    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.25);
+    /* Floating icons - در حالت تیره روشن‌تر */
+    --floating-icon-color: #5bb4e0;
+    --menu-hover: rgba(59, 155, 203, 0.12);
+}
+
+/* ========== ریست و پایه ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', 'Tahoma', 'Verdana', sans-serif;
+    background: var(--bg-site);
+    color: var(--text-primary);
+    direction: rtl;
+    line-height: 1.5;
+    overflow-x: hidden;
+    min-height: 100vh;
+    transition: background 0.3s ease, color 0.2s ease;
+}
+
+/* ========== المان‌های شناور پس‌زمینه ========== */
+.floating-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.floating-icon {
+    position: absolute;
+    pointer-events: auto;
+    cursor: default;
+    user-select: none;
+    transition: transform 0.1s ease-out, opacity 0.2s ease;
+}
+
+/* ========== هدر سایت (بدون نورپردازی، مات و ساده) ========== */
+.main-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--header-bg);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-light);
+    padding: 0.8rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.logo-hb {
+    background: linear-gradient(135deg, #2c7da0, #1f5e7e);
+    width: 44px;
+    height: 44px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: white;
+}
+
+.logo-text {
+    font-size: 1.4rem;
+    font-weight: 700;
+    background: linear-gradient(120deg, var(--accent), #4f9dc4);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+/* منوها - ساده و بدون نورپردازی */
+.nav-menu {
+    display: flex;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+}
+
+.nav-menu a {
+    text-decoration: none;
+    color: var(--text-primary);
+    font-weight: 500;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 8px;
+}
+
+.nav-menu a:hover {
+    color: var(--accent);
+    background: var(--menu-hover);
+    /* بدون سایه و بدون نورپردازی */
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* دکمه دارک مود - ساده */
+.dark-toggle-header {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    border-radius: 40px;
+    padding: 0.4rem 1rem;
+    cursor: pointer;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.dark-toggle-header:hover {
+    border-color: var(--accent);
+}
+
+/* ========== بخش قهرمان (Hero) ========== */
+.hero {
+    position: relative;
+    z-index: 2;
+    padding: 3rem 2rem;
+    text-align: center;
+    max-width: 850px;
+    margin: 1rem auto;
+}
+
+.hero h1 {
+    font-size: 2.8rem;
+    margin-bottom: 1rem;
+    font-weight: 800;
+}
+
+.hero .highlight {
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent);
+    display: inline-block;
+}
+
+.hero p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.8rem;
+}
+
+.cta-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-primary, .btn-outline {
+    padding: 0.7rem 1.8rem;
+    border-radius: 50px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+}
+
+.btn-outline:hover {
+    background: var(--menu-hover);
+    transform: translateY(-2px);
+}
+
+/* ========== فضای خالی وسط برای CMS ========== */
+.cms-placeholder {
+    position: relative;
+    z-index: 2;
+    min-height: 500px;
+    margin: 2rem;
+    background: var(--bg-surface);
+    border-radius: 24px;
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+/* لودر در حین بارگذاری CMS */
+.loader-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    gap: 1rem;
+}
+
+.loader {
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--border-light);
+    border-top: 3px solid var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loader-wrapper p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* ========== فوتر ========== */
+.main-footer {
+    background: var(--footer-bg);
+    color: var(--footer-text);
+    padding: 2rem;
+    text-align: center;
+    margin-top: 2rem;
+    position: relative;
+    z-index: 2;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.footer-links a {
+    color: var(--footer-text);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+}
+
+.footer-links a:hover {
+    color: var(--accent);
+}
+
+/* ========== ریسپانسیو ========== */
+@media (max-width: 768px) {
+    .main-header {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        padding: 0.8rem 1rem;
+    }
+    
+    .nav-menu {
+        justify-content: center;
+    }
+    
+    .hero {
+        padding: 2rem 1rem;
+    }
+    
+    .hero h1 {
+        font-size: 2rem;
+    }
+    
+    .hero p {
+        font-size: 0.95rem;
+    }
+    
+    .cms-placeholder {
+        margin: 1rem;
+        min-height: 400px;
+    }
+    
+    .btn-primary, .btn-outline {
+        padding: 0.5rem 1.2rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo-text {
+        font-size: 1.1rem;
+    }
+    
+    .logo-hb {
+        width: 36px;
+        height: 36px;
+        font-size: 1.3rem;
+    }
+    
+    .nav-menu {
+        gap: 0.8rem;
+    }
+    
+    .nav-menu a {
+        font-size: 0.8rem;
+    }
+}

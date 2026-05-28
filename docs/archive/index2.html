@@ -1,0 +1,554 @@
+```html
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>HaderBash.ir | مراقبت هوشمند IoT + CMS مدولار</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- SweetAlert2 برای CMS و تعاملات -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s ease, color 0.2s, border-color 0.2s, transform 0.2s;
+        }
+
+        /* ---------- متغیرهای رنگ (دارک/لایت) ---------- */
+        :root {
+            --bg-site: #f8fafc;
+            --bg-surface: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --border-light: #e2e8f0;
+            --accent: #2c7da0;
+            --accent-hover: #1f5e7e;
+            --header-bg: rgba(255,255,255,0.85);
+            --footer-bg: #0f172a;
+            --footer-text: #cbd5e1;
+            --card-bg: #ffffff;
+            --shadow-sm: 0 10px 25px -5px rgba(0,0,0,0.05);
+            --shadow-md: 0 20px 25px -12px rgba(0,0,0,0.1);
+            --floating-icon-opacity: 0.08;
+        }
+
+        body.dark {
+            --bg-site: #0b1120;
+            --bg-surface: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e6;
+            --border-light: #334155;
+            --accent: #3b9bcb;
+            --accent-hover: #5bb4e0;
+            --header-bg: rgba(15,23,42,0.9);
+            --footer-bg: #020617;
+            --footer-text: #94a3b8;
+            --card-bg: #2d3a4a;
+            --floating-icon-opacity: 0.12;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Tahoma', 'Verdana', sans-serif;
+            background: var(--bg-site);
+            color: var(--text-primary);
+            direction: rtl;
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        /* ---------- انیمیشن آیکون‌های شناور IoT (پس‌زمینه) ---------- */
+        .floating-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .floating-icon {
+            position: absolute;
+            font-size: 2rem;
+            color: var(--accent);
+            opacity: var(--floating-icon-opacity);
+            animation: floatAround 20s infinite ease-in-out;
+            user-select: none;
+        }
+        @keyframes floatAround {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-40px) rotate(8deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        /* ---------- هدر و نویگیشن مدرن ---------- */
+        .main-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--header-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-light);
+            padding: 0.8rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .logo-hb {
+            background: linear-gradient(135deg, #2c7da0, #1f5e7e);
+            width: 44px;
+            height: 44px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(120deg, var(--accent), #4f9dc4);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .nav-menu {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .nav-menu a {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 500;
+            transition: 0.2s;
+            font-size: 1rem;
+        }
+        .nav-menu a:hover {
+            color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .dark-toggle-header {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            border-radius: 60px;
+            padding: 0.4rem 1rem;
+            cursor: pointer;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        /* ---------- بخش قهرمان (Hero) ---------- */
+        .hero {
+            position: relative;
+            z-index: 2;
+            padding: 4rem 2rem;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+        .hero .highlight {
+            color: var(--accent);
+            border-bottom: 3px solid var(--accent);
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn-primary, .btn-outline {
+            padding: 0.8rem 2rem;
+            border-radius: 60px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+        .btn-outline:hover {
+            background: rgba(44,125,160,0.1);
+            transform: translateY(-3px);
+        }
+
+        /* ---------- بخش تکنولوژی‌ها و آیتم‌ها (کارت‌های افقی) ---------- */
+        .tech-section {
+            position: relative;
+            z-index: 2;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+        }
+        .tech-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .tech-card {
+            background: var(--bg-surface);
+            border-radius: 2rem;
+            padding: 1.8rem;
+            width: 200px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .tech-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-md);
+        }
+        .tech-card i {
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+        .tech-card h3 {
+            font-size: 1.2rem;
+        }
+
+        /* ---------- کانتینر CMS (بخش اصلی مدیریت) ---------- */
+        .cms-container {
+            position: relative;
+            z-index: 2;
+            background: var(--bg-surface);
+            margin: 2rem;
+            border-radius: 2rem;
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* ---------- فوتر مدرن ---------- */
+        .main-footer {
+            background: var(--footer-bg);
+            color: var(--footer-text);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        .footer-links a {
+            color: var(--footer-text);
+            text-decoration: none;
+        }
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        /* ---------- استایل‌های CMS داخلی (ادغام با دیزاین سایت) ---------- */
+        /* بازنویسی جزئی برای هماهنگی با تم اصلی */
+        .cms-container .demo-container {
+            margin: 0;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+        .cms-container .header {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .cms-container .features-banner {
+            background: var(--bg-site);
+        }
+        .grid-cards {
+            background: transparent;
+        }
+        /* اطمینان از هماهنگی دارک مود */
+        body.dark .cms-container .card {
+            background: var(--card-bg);
+        }
+        @media (max-width: 700px) {
+            .main-header { flex-direction: column; align-items: stretch; text-align: center; }
+            .nav-menu { justify-content: center; }
+            .hero h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- آیکون‌های شناور پس‌زمینه IoT -->
+<div class="floating-bg" id="floatingBg"></div>
+
+<!-- هدر اصلی سایت -->
+<header class="main-header">
+    <div class="logo-area">
+        <div class="logo-hb">HB</div>
+        <div class="logo-text">HaderBash.ir</div>
+    </div>
+    <nav class="nav-menu">
+        <a href="#">خانه</a>
+        <a href="#" id="navTech">تکنولوژی</a>
+        <a href="#" id="navMCU">میکروکنترلر</a>
+        <a href="#" id="navIoT">IoT</a>
+        <a href="#" id="navShop">فروشگاه</a>
+        <a href="#" id="navDocs">داکیومنت</a>
+        <a href="#" id="navCms">مدیریت ماژول‌ها</a>
+    </nav>
+    <div class="header-actions">
+        <div class="dark-toggle-header" id="darkToggleMain">
+            <i class="fas fa-moon"></i> <span>دارک مود</span>
+        </div>
+    </div>
+</header>
+
+<!-- بخش قهرمان -->
+<section class="hero">
+    <h1>مراقبت هوشمند <span class="highlight">زیرساخت IoT</span> با HaderBash</h1>
+    <p>پلتفرم ماژولار برای تیم‌های حرفه‌ای — از نمونه کارها و سرور فایل تا چت پروژه و مانیتورینگ لحظه‌ای</p>
+    <div class="cta-buttons">
+        <button class="btn-primary" id="heroCta">شروع رایگان</button>
+        <button class="btn-outline" id="heroGallery">مشاهده نمونه کارها</button>
+    </div>
+</section>
+
+<!-- بخش تکنولوژی‌ها (کارت‌های جذاب) -->
+<section class="tech-section" id="techSection">
+    <h2 class="section-title">⚡ اکوسیستم HaderBash</h2>
+    <div class="tech-grid">
+        <div class="tech-card" data-tech="mcu">
+            <i class="fas fa-microchip"></i>
+            <h3>میکروکنترلر</h3>
+            <p style="font-size:0.75rem;">STM32, ESP, AVR</p>
+        </div>
+        <div class="tech-card" data-tech="iot">
+            <i class="fas fa-wifi"></i>
+            <h3>IoT & Cloud</h3>
+            <p>MQTT, HTTP, WebSocket</p>
+        </div>
+        <div class="tech-card" data-tech="docker">
+            <i class="fab fa-docker"></i>
+            <h3>Docker Native</h3>
+            <p>استقرار آسان ماژول‌ها</p>
+        </div>
+        <div class="tech-card" data-tech="dashboard">
+            <i class="fas fa-chart-line"></i>
+            <h3>مانیتورینگ</h3>
+            <p>CPU, RAM, Logs</p>
+        </div>
+    </div>
+</section>
+
+<!-- کانتینر CMS (سیستم مدیریت ماژول‌ها) -->
+<div class="cms-container" id="cmsRoot">
+    <!-- اینجا محتوای CMS به صورت داینامیک بارگذاری می‌شود (ادغام کامل) -->
+</div>
+
+<!-- فوتر سایت -->
+<footer class="main-footer">
+    <div class="footer-links">
+        <a href="#">درباره ما</a>
+        <a href="#">مستندات API</a>
+        <a href="#">پشتیبانی</a>
+        <a href="#">قوانین</a>
+    </div>
+    <p>© 2025 HaderBash.ir — همه حقوق برای تیم IoT محفوظ است.</p>
+</footer>
+
+<script>
+    // ======================== ادغام کامل CMS (همان ماژول قبلی) ========================
+    // این بخش کل کدهای سیستم مدیریت ماژول‌ها را در بر می‌گیرد و درون #cmsRoot رندر می‌کند.
+    // برای حفظ تعامل دارک مود و زبان، از متغیرهای سراسری استفاده می‌شود.
+
+    (function() {
+        // ------------------------------------- کدهای CMS (script.js + dialog.js) -------------------------------------
+        let itemsMap = new Map();
+        const ROOT_ID = "root_home";
+        let currentFolderId = ROOT_ID;
+        let adminMode = true;
+
+        function genId() { return Date.now() + '-' + Math.random().toString(36).substring(2, 8); }
+
+        const iconLibrary = [
+            "fas fa-images", "fas fa-chart-line", "fab fa-react", "fab fa-docker",
+            "fas fa-cube", "fas fa-file-alt", "fas fa-video", "fas fa-music",
+            "fas fa-store", "fas fa-graduation-cap", "fas fa-tachometer-alt", "fas fa-database"
+        ];
+
+        async function showResourceAndIconDialog(initialData = {}) {
+            const defaultResources = { cpu_limit: 0.5, ram_limit_mb: 512, swap_limit_mb: 128, icon: "fas fa-cube", thumbnail: null, moduleName: "", moduleDesc: "" };
+            const data = { ...defaultResources, ...initialData };
+            const iconOptionsHtml = iconLibrary.map(icon => `<div class="icon-option" data-icon="${icon}"><i class="${icon}" style="font-size: 1.8rem;"></i></div>`).join('');
+            const { value: result } = await Swal.fire({
+                title: 'تنظیمات ماژول: منابع، آیکون و تصویر کارت',
+                html: `<div style="text-align:right;"><label>نام ماژول</label><input id="mod-name" class="swal2-input" value="${data.moduleName.replace(/"/g, '&quot;')}" placeholder="نام کارت"><label>توضیحات</label><textarea id="mod-desc" class="swal2-textarea" placeholder="توضیحات کوتاه">${data.moduleDesc.replace(/"/g, '&quot;')}</textarea><label>آیکون کارت (انتخاب از کتابخانه)</label><div id="icon-selector-container" class="icon-selector">${iconOptionsHtml}</div><input id="custom-icon" class="swal2-input" placeholder="یا آیکون سفارشی" value="${data.icon}"><label>تصویر کارت (آپلود)</label><input type="file" id="card-thumbnail" accept="image/*"><div id="thumbnail-preview"></div><hr><label>CPU (هسته): <span id="cpu-val">${data.cpu_limit}</span></label><input type="range" id="cpu-limit" min="0.1" max="2" step="0.1" value="${data.cpu_limit}"><label>RAM (MB): <span id="ram-val">${data.ram_limit_mb}</span></label><input type="range" id="ram-limit" min="128" max="4096" step="64" value="${data.ram_limit_mb}"><label>Swap (MB): <span id="swap-val">${data.swap_limit_mb}</span></label><input type="range" id="swap-limit" min="0" max="1024" step="32" value="${data.swap_limit_mb}"></div>`,
+                focusConfirm: false, confirmButtonText: 'ذخیره', cancelButtonText: 'انصراف', showCancelButton: true,
+                preConfirm: () => {
+                    const selectedIconElem = document.querySelector('#icon-selector-container .icon-option.selected');
+                    let finalIcon = document.getElementById('custom-icon').value;
+                    if (selectedIconElem && !finalIcon) finalIcon = selectedIconElem.getAttribute('data-icon');
+                    if (!finalIcon) finalIcon = "fas fa-cube";
+                    const thumbnailFile = document.getElementById('card-thumbnail').files[0];
+                    let thumbnailData = thumbnailFile ? thumbnailFile.name : null;
+                    return { moduleName: document.getElementById('mod-name').value, moduleDesc: document.getElementById('mod-desc').value, icon: finalIcon, thumbnail: thumbnailData, cpu_limit: parseFloat(document.getElementById('cpu-limit').value), ram_limit_mb: parseInt(document.getElementById('ram-limit').value), swap_limit_mb: parseInt(document.getElementById('swap-limit').value) };
+                },
+                didOpen: () => {
+                    const cpu = document.getElementById('cpu-limit'), ram = document.getElementById('ram-limit'), swap = document.getElementById('swap-limit');
+                    cpu.addEventListener('input', () => document.getElementById('cpu-val').innerText = cpu.value);
+                    ram.addEventListener('input', () => document.getElementById('ram-val').innerText = ram.value);
+                    swap.addEventListener('input', () => document.getElementById('swap-val').innerText = swap.value);
+                    document.querySelectorAll('.icon-option').forEach(opt => opt.addEventListener('click', () => { document.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected')); opt.classList.add('selected'); document.getElementById('custom-icon').value = opt.getAttribute('data-icon'); }));
+                    const thumbInput = document.getElementById('card-thumbnail'), previewDiv = document.getElementById('thumbnail-preview');
+                    thumbInput.addEventListener('change', (e) => { if(e.target.files[0]){ const reader = new FileReader(); reader.onload = (ev) => previewDiv.innerHTML = `<img src="${ev.target.result}" style="max-width:100px; border-radius:12px;">`; reader.readAsDataURL(e.target.files[0]); } else previewDiv.innerHTML = ''; });
+                }
+            });
+            return result;
+        }
+
+        async function showLogsDialog(moduleName, logsContent) {
+            await Swal.fire({ title: `لاگ‌های ${moduleName}`, html: `<pre style="text-align:left; direction:ltr; background:#1e1e2f; color:#f0f0f0; padding:12px; border-radius:12px; max-height:400px; overflow:auto;">${logsContent}</pre>`, icon: 'info' });
+        }
+
+        async function showCacheInfoDialog() {
+            await Swal.fire({ title: 'کش متمرکز پکیج‌ها', html: '<div><p>✅ وضعیت کش فعال</p><p>📦 ۳۲ پکیج کش شده</p><p>💾 حجم ۴۵۲ MB</p></div>' });
+        }
+
+        function initializeData() {
+            itemsMap.set(ROOT_ID, { id: ROOT_ID, name: "خانه", type: "folder", parentId: null, childrenIds: [], description: "ریشه" });
+            const gallery = { id: genId(), name: "گالری حرفه‌ای نمونه‌کار", type: "module", moduleKind: "gallery", description: "آلبوم پروژه‌های IoT", status: "running", icon: "fas fa-images", settings: { docker: false, port: "", permissions: "network", resources: { cpu_limit: 0.5, ram_limit_mb: 512, swap_limit_mb: 128 }, logs: "۱۴۰۴/۰۲/۱۱: فعال" } };
+            const markdown = { id: genId(), name: "داکیومنت فنی", type: "module", moduleKind: "markdown", description: "مستندات میکروکنترلرها", status: "running", icon: "fab fa-markdown", settings: { docker: false, resources: { cpu_limit: 0.3, ram_limit_mb: 256, swap_limit_mb: 64 }, logs: "در حال سرویس دهی" } };
+            const live = { id: genId(), name: "مانیتورینگ لحظه‌ای", type: "module", moduleKind: "live-widget", description: "نمودار سنسورها", status: "stopped", icon: "fas fa-chart-line", settings: { docker: true, port: "8080", permissions: "network", resources: { cpu_limit: 0.8, ram_limit_mb: 1024, swap_limit_mb: 256 }, logs: "متوقف شده" } };
+            const portfolioFolder = { id: genId(), name: "پروژه‌های شاخص", type: "folder", parentId: ROOT_ID, childrenIds: [], description: "نمونه کارهای تیم", icon: "fas fa-briefcase" };
+            const reactApp = { id: genId(), name: "فروشگاه قطعات", type: "module", moduleKind: "spa", description: "فروشگاه آنلاین IoT", status: "running", icon: "fab fa-react", settings: { resources: { cpu_limit: 0.6, ram_limit_mb: 768, swap_limit_mb: 128 }, logs: "فعال" } };
+            const dockerApp = { id: genId(), name: "پلتفرم داکری", type: "module", moduleKind: "dockerized", description: "میکروسرویس تحلیل", status: "running", icon: "fab fa-docker", settings: { docker: true, port: "80", resources: { cpu_limit: 1.2, ram_limit_mb: 2048, swap_limit_mb: 512 }, logs: "پایدار" } };
+            portfolioFolder.childrenIds = [reactApp.id, dockerApp.id];
+            itemsMap.get(ROOT_ID).childrenIds = [gallery.id, markdown.id, live.id, portfolioFolder.id];
+            [gallery, markdown, live, portfolioFolder, reactApp, dockerApp].forEach(n => itemsMap.set(n.id, n));
+        }
+        initializeData();
+
+        async function toggleModuleStatus(id) { let mod = itemsMap.get(id); if(mod && mod.type==='module'){ mod.status = mod.status==='running'?'stopped':'running'; renderAllCMS(); Swal.fire({icon:'success',title:'تغییر وضعیت',text:`${mod.name} اکنون ${mod.status==='running'?'فعال':'متوقف'}`,timer:1500}); } }
+        function deleteItem(id, parentId){ let item=itemsMap.get(id); if(!item) return; if(item.type==='folder') for(let c of [...item.childrenIds]) deleteItem(c,id); let parent=itemsMap.get(parentId||item.parentId); if(parent) parent.childrenIds=parent.childrenIds.filter(cid=>cid!==id); itemsMap.delete(id); if(currentFolderId===id) currentFolderId=ROOT_ID; renderAllCMS(); Swal.fire({icon:'info',title:'حذف شد',toast:true,timer:1800}); }
+        async function openSettingsModal(id){ let mod=itemsMap.get(id); if(!mod || mod.type!=='module') return; let res=await showResourceAndIconDialog({ moduleName:mod.name, moduleDesc:mod.description, icon:mod.icon, cpu_limit:mod.settings.resources?.cpu_limit||0.5, ram_limit_mb:mod.settings.resources?.ram_limit_mb||512, swap_limit_mb:mod.settings.resources?.swap_limit_mb||128 }); if(res){ mod.name=res.moduleName; mod.description=res.moduleDesc; mod.icon=res.icon; if(!mod.settings.resources) mod.settings.resources={}; mod.settings.resources.cpu_limit=res.cpu_limit; mod.settings.resources.ram_limit_mb=res.ram_limit_mb; mod.settings.resources.swap_limit_mb=res.swap_limit_mb; if(res.thumbnail) mod.thumbnail=res.thumbnail; renderAllCMS(); Swal.fire({icon:'success',title:'ذخیره شد',timer:1300}); } }
+        async function openGearMenu(moduleId){ let mod=itemsMap.get(moduleId); if(!adminMode) return; let action=await Swal.fire({ title:`مدیریت ${mod.name}`, text:`وضعیت: ${mod.status==='running'?'🟢 فعال':'⛔ متوقف'} | CPU: ${mod.settings.resources?.cpu_limit} | RAM: ${mod.settings.resources?.ram_limit_mb}MB`, icon:'info', showDenyButton:true, showCancelButton:true, confirmButtonText:mod.status==='running'?'🛑 توقف':'▶️ اجرا', denyButtonText:'⚙️ ویرایش', cancelButtonText:'📋 لاگ' }); if(action.isConfirmed) toggleModuleStatus(moduleId); else if(action.isDenied) openSettingsModal(moduleId); else if(action.dismiss===Swal.DismissReason.cancel) showLogsDialog(mod.name, mod.settings.logs||'لاگی نیست'); }
+        async function addVirtualFolder(parentId){ let name=await Swal.fire({title:'پوشه جدید',input:'text'}); if(name.value){ let newId=genId(); let newFolder={id:newId, name:name.value, type:"folder", parentId, childrenIds:[], description:"پوشه مجازی", icon:"fas fa-folder"}; itemsMap.set(newId,newFolder); itemsMap.get(parentId).childrenIds.push(newId); renderAllCMS(); } }
+        async function uploadZipWizard(parentId){ await Swal.fire({title:'آپلود شبیه‌سازی',text:'در حالت دمو، فایل ZIP شبیه‌سازی می‌شود',icon:'info'}); let basic={docker:false, port:'8080', permissions:'network'}; let resourceData=await showResourceAndIconDialog({moduleName:"ماژول جدید", cpu_limit:0.5}); if(resourceData){ let newId=genId(); let newModule={id:newId, name:resourceData.moduleName, type:"module", moduleKind:"uploaded", description:resourceData.moduleDesc, status:"stopped", icon:resourceData.icon, settings:{docker:basic.docker, port:basic.port, permissions:basic.permissions, resources:{cpu_limit:resourceData.cpu_limit, ram_limit_mb:resourceData.ram_limit_mb, swap_limit_mb:resourceData.swap_limit_mb}, logs:"جدید"}}; itemsMap.set(newId,newModule); itemsMap.get(parentId).childrenIds.push(newId); renderAllCMS(); Swal.fire({icon:'success',title:'ماژول نصب شد'}); } }
+        async function addFromLibrary(parentId){ let choice=await Swal.fire({title:'کتابخانه',input:'select',inputOptions:{gallery:'گالری',markdown:'وبلاگ'}}); if(choice.value){ let res=await showResourceAndIconDialog({moduleName:choice.value==='gallery'?'گالری':'وبلاگ'}); if(res){ let newId=genId(); let newModule={id:newId, name:res.moduleName, type:"module", moduleKind:choice.value, description:res.moduleDesc, status:"running", icon:res.icon, settings:{resources:{cpu_limit:res.cpu_limit, ram_limit_mb:res.ram_limit_mb, swap_limit_mb:res.swap_limit_mb}, logs:"از کتابخانه نصب شد"}}; itemsMap.set(newId,newModule); itemsMap.get(parentId).childrenIds.push(newId); renderAllCMS(); } } }
+        async function openAddMasterDialog(){ if(!adminMode) return; let option=await Swal.fire({title:'افزودن',input:'select',inputOptions:{folder:'پوشه',zip:'ZIP',library:'کتابخانه'}}); if(option.value==='folder') addVirtualFolder(currentFolderId); else if(option.value==='zip') uploadZipWizard(currentFolderId); else if(option.value==='library') addFromLibrary(currentFolderId); }
+        function renderBreadcrumbCMS(container){ let path=[]; let cur=itemsMap.get(currentFolderId); while(cur && cur.id!==ROOT_ID){ path.unshift(cur); cur=itemsMap.get(cur.parentId); } let root=itemsMap.get(ROOT_ID); let html=`<div class="breadcrumb-list"><div class="breadcrumb-item" data-folder="${ROOT_ID}"><i class="fas fa-home"></i> ${root.name}</div>`; path.forEach(n=>html+=`<span class="separator"> / </span><div class="breadcrumb-item" data-folder="${n.id}">${n.name}</div>`); html+=`</div>`; container.innerHTML=html; document.querySelectorAll('#cmsRoot .breadcrumb-item').forEach(el=>{ el.addEventListener('click',(e)=>{ let fid=el.getAttribute('data-folder'); if(fid && itemsMap.has(fid) && itemsMap.get(fid).type==='folder'){ currentFolderId=fid; renderAllCMS(); } }); }); }
+        function renderCardsCMS(container){ let folder=itemsMap.get(currentFolderId); if(!folder) return; let html=''; for(let childId of folder.childrenIds){ let node=itemsMap.get(childId); if(!node) continue; let isFolder=node.type==='folder'; let iconHtml=node.thumbnail?`<img src="${node.thumbnail}" class="thumbnail-icon">`:`<i class="${node.icon||(isFolder?'fas fa-folder':'fas fa-puzzle-piece')}"></i>`; let gearHtml=adminMode?`<div class="gear-icon" data-gear-id="${node.id}"><i class="fas fa-cog"></i></div>`:''; let statusHtml=(!isFolder && node.status)?`<div class="status-badge"><i class="fas ${node.status==='running'?'fa-play':'fa-stop'}"></i> ${node.status==='running'?'فعال':'متوقف'}</div>`:''; let resourceHint=(!isFolder && node.settings?.resources)?`<div style="font-size:0.65rem;">💻 CPU:${node.settings.resources.cpu_limit} | RAM:${node.settings.resources.ram_limit_mb}MB</div>`:''; html+=`<div class="card ${isFolder?'folder-card':'module-card'}" data-id="${node.id}" data-type="${node.type}"><div class="card-content"><div class="card-icon"><div class="card-icon-img">${iconHtml}</div>${gearHtml}</div><div class="card-title">${node.name}</div><div class="card-desc">${node.description||''}</div>${statusHtml}${resourceHint}</div></div>`; }
+            if(adminMode) html+=`<div class="card add-card" id="addNewCardBtn"><div class="card-content"><i class="fas fa-plus-circle"></i><div class="card-title">افزودن محتوا</div><div class="card-desc">پوشه / ZIP / کتابخانه</div></div></div>`;
+            container.innerHTML=html;
+            document.querySelectorAll('#cmsRoot .card:not(.add-card)').forEach(card=>{ let id=card.getAttribute('data-id'),type=card.getAttribute('data-type'); card.addEventListener('click',(e)=>{ if(e.target.closest('.gear-icon')) return; if(type==='folder'){ currentFolderId=id; renderAllCMS(); } else Swal.fire({icon:'info',title:'ماژول',text:`ماژول "${itemsMap.get(id)?.name}" آماده است`}); }); let gear=card.querySelector('.gear-icon'); if(gear) gear.addEventListener('click',(e)=>{ e.stopPropagation(); openGearMenu(id); }); });
+            let addBtn=document.getElementById('addNewCardBtn'); if(addBtn) addBtn.addEventListener('click',openAddMasterDialog);
+        }
+        function renderAllCMS(){ let breadDiv=document.querySelector('#cmsRoot .breadcrumb-area'); if(breadDiv) renderBreadcrumbCMS(breadDiv); let gridDiv=document.querySelector('#cmsRoot .grid-cards'); if(gridDiv) renderCardsCMS(gridDiv); }
+
+        // ساختار HTML مورد نیاز CMS درون #cmsRoot
+        function buildCMSStructure(){
+            const cmsRoot = document.getElementById('cmsRoot');
+            cmsRoot.innerHTML = `
+                <div class="demo-container">
+                    <div class="header">
+                        <div class="logo-area"><h3><i class="fas fa-puzzle-piece"></i> مدیریت ماژول‌ها (CMS)</h3></div>
+                        <div class="controls-row">
+                            <div class="badge-admin-toggle"><span>حالت ادمین</span><label class="toggle-switch"><input type="checkbox" id="adminToggleCMS" checked><span class="slider"></span></label></div>
+                        </div>
+                    </div>
+                    <div class="features-banner">
+                        <div class="feature-chip"><i class="fas fa-folder-tree"></i> پوشه مجازی</div>
+                        <div class="feature-chip"><i class="fas fa-cloud-upload-alt"></i> آپلود ZIP</div>
+                        <div class="feature-chip"><i class="fas fa-docker"></i> Docker</div>
+                        <div class="feature-chip"><i class="fas fa-microchip"></i> محدودیت منابع</div>
+                        <div class="feature-chip" id="cacheInfoBtn"><i class="fas fa-database"></i> کش پکیج</div>
+                    </div>
+                    <div class="breadcrumb-area" id="breadcrumbArea"></div>
+                    <div id="cardsGrid" class="grid-cards"></div>
+                    <div class="demo-note"><i class="fas fa-lightbulb"></i> ماژول‌های خود را مدیریت کنید — گالری، سرور فایل، چت پروژه و...</div>
+                </div>
+            `;
+            document.getElementById('adminToggleCMS').addEventListener('change', (e) => { adminMode = e.target.checked; renderAllCMS(); });
+            document.getElementById('cacheInfoBtn').addEventListener('click', showCacheInfoDialog);
+            renderAllCMS();
+        }
+        buildCMSStructure();
+    })();
+
+    // ---------- تعامل دارک مود بین هدر سایت و CMS ----------
+    const darkToggleBtn = document.getElementById('darkToggleMain');
+    darkToggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        localStorage.setItem('haderbash-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    });
+    if (localStorage.getItem('haderbash-theme') === 'dark') document.body.classList.add('dark');
+
+    // دکمه‌های ناوبری و اسکرول به بخش CMS
+    document.getElementById('navCms')?.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('cmsRoot').scrollIntoView({ behavior: 'smooth' }); });
+    document.getElementById('heroCta')?.addEventListener('click', () => Swal.fire({ icon: 'success', title: 'به HaderBash خوش آمدید', text: 'پلتفرم شما آماده است.' }));
+    document.getElementById('heroGallery')?.addEventListener('click', () => Swal.fire({ title: 'نمونه کارها', html: '<div style="display:flex; gap:8px;"><img src="https://picsum.photos/80/80?random=1"><img src="https://picsum.photos/80/80?random=2"><img src="https://picsum.photos/80/80?random=3"></div><p>پروژه‌های IoT – نظارت بر دما، رباتیک، خانه هوشمند</p>' }));
+    // آیکون‌های شناور پس‌زمینه
+    function createFloatingIcons() {
+        const container = document.getElementById('floatingBg');
+        const icons = ['fas fa-microchip', 'fas fa-wifi', 'fas fa-cloud-upload-alt', 'fas fa-chart-line', 'fas fa-database', 'fab fa-docker', 'fas fa-microphone-alt'];
+        for (let i = 0; i < 20; i++) {
+            let icon = document.createElement('i');
+            icon.className = icons[i % icons.length] + ' floating-icon';
+            let size = Math.random() * 30 + 20;
+            icon.style.fontSize = size + 'px';
+            icon.style.left = Math.random() * 100 + '%';
+            icon.style.top = Math.random() * 100 + '%';
+            icon.style.animationDuration = 15 + Math.random() * 20 + 's';
+            icon.style.animationDelay = Math.random() * 10 + 's';
+            container.appendChild(icon);
+        }
+    }
+    createFloatingIcons();
+</script>
+</body>
+</html>
+```

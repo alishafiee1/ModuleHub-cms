@@ -1,0 +1,464 @@
+/* ============================================================================================
+   FILE: cms-style.css
+   PROJECT: HaderBash.ir - CMS Module
+   LAYER: Client - CMS Styling
+   
+   PURPOSE: Standalone stylesheet for CMS module with glow effects
+   
+   CAPABILITIES:
+   - Dark/Light theme support (independent from main site)
+   - Glow effects on cards, buttons, and features
+   - Responsive grid layout
+   - Smooth animations and hover effects
+   ============================================================================================ */
+
+/* ========== متغیرهای رنگ CMS با نورپردازی ========== */
+.light-theme {
+    --cms-bg: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    --cms-surface: #ffffff;
+    --cms-card-bg: #ffffff;
+    --cms-text-primary: #0f172a;
+    --cms-text-secondary: #334155;
+    --cms-border: #e2e8f0;
+    --cms-accent: #2c7da0;
+    --cms-accent-hover: #1f5e7e;
+    --cms-accent-glow: rgba(44, 125, 160, 0.4);
+    --cms-glow: 0 0 15px rgba(44, 125, 160, 0.3);
+    --cms-glow-strong: 0 0 25px rgba(44, 125, 160, 0.5);
+    --cms-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+    --cms-chip-bg: #f1f5f9;
+    --cms-status-running: #10b981;
+    --cms-status-stopped: #ef4444;
+    --cms-header-bg: rgba(255, 255, 255, 0.9);
+}
+
+.dark-theme {
+    --cms-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    --cms-surface: #1e293b;
+    --cms-card-bg: #334155;
+    --cms-text-primary: #f1f5f9;
+    --cms-text-secondary: #cbd5e1;
+    --cms-border: #475569;
+    --cms-accent: #3b9bcb;
+    --cms-accent-hover: #5bb4e0;
+    --cms-accent-glow: rgba(59, 155, 203, 0.5);
+    --cms-glow: 0 0 20px rgba(59, 155, 203, 0.4);
+    --cms-glow-strong: 0 0 30px rgba(59, 155, 203, 0.6);
+    --cms-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    --cms-chip-bg: #2d3a4a;
+    --cms-status-running: #34d399;
+    --cms-status-stopped: #f87171;
+    --cms-header-bg: rgba(30, 41, 59, 0.95);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', 'Tahoma', 'Verdana', sans-serif;
+    background: var(--cms-bg);
+    color: var(--cms-text-primary);
+    direction: rtl;
+    line-height: 1.5;
+    min-height: 100vh;
+    transition: background 0.3s ease, color 0.2s ease;
+}
+
+/* ========== کانتینر اصلی ========== */
+.cms-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* ========== هدر CMS با نورپردازی ========== */
+.cms-header {
+    background: var(--cms-header-bg);
+    backdrop-filter: blur(12px);
+    border-radius: 1.5rem;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    border: 1px solid var(--cms-border);
+    box-shadow: var(--cms-shadow);
+}
+
+.cms-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.cms-logo i {
+    font-size: 1.8rem;
+    color: var(--cms-accent);
+    text-shadow: var(--cms-glow);
+}
+
+.cms-logo h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--cms-text-primary);
+}
+
+.cms-badge {
+    background: var(--cms-accent);
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 30px;
+    box-shadow: var(--cms-glow);
+}
+
+.cms-dark-btn {
+    background: var(--cms-surface);
+    border: 1px solid var(--cms-border);
+    border-radius: 40px;
+    padding: 0.4rem 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--cms-text-primary);
+    transition: all 0.2s ease;
+}
+
+.cms-dark-btn:hover {
+    border-color: var(--cms-accent);
+    box-shadow: var(--cms-glow);
+    transform: translateY(-2px);
+}
+
+/* ========== بنر قابلیت‌ها ========== */
+.cms-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+}
+
+.cms-feature-chip {
+    background: var(--cms-chip-bg);
+    border: 1px solid var(--cms-border);
+    border-radius: 40px;
+    padding: 0.3rem 1rem;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--cms-text-secondary);
+    transition: all 0.2s ease;
+}
+
+.cms-feature-chip:hover {
+    border-color: var(--cms-accent);
+    box-shadow: var(--cms-glow);
+    transform: translateY(-2px);
+}
+
+.cms-feature-chip i {
+    color: var(--cms-accent);
+}
+
+/* ========== مسیریابی (Breadcrumb) ========== */
+.cms-breadcrumb {
+    background: var(--cms-surface);
+    border-radius: 1rem;
+    padding: 0.6rem 1.2rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--cms-border);
+    box-shadow: var(--cms-shadow);
+}
+
+.breadcrumb-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.breadcrumb-item {
+    color: var(--cms-text-secondary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    padding: 0.2rem 0.5rem;
+    border-radius: 8px;
+}
+
+.breadcrumb-item:hover {
+    color: var(--cms-accent);
+    background: var(--cms-chip-bg);
+}
+
+.breadcrumb-item.active {
+    color: var(--cms-accent);
+    font-weight: 600;
+}
+
+.separator {
+    color: var(--cms-text-secondary);
+    font-size: 0.7rem;
+}
+
+/* ========== گرید کارت‌ها با نورپردازی ========== */
+.cms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* کارت ماژول و پوشه - نورپردازی اصلی اینجاست */
+.cms-card {
+    background: var(--cms-card-bg);
+    border-radius: 1.25rem;
+    border: 1px solid var(--cms-border);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+/* نورپردازی (glow) هنگام هاور */
+.cms-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--cms-accent);
+    box-shadow: var(--cms-glow-strong);
+}
+
+/* خط سمت راست با نور */
+.cms-card.folder-card {
+    border-right: 4px solid var(--cms-accent);
+}
+
+.cms-card.module-card {
+    border-right: 4px solid #10b981;
+}
+
+.dark-theme .cms-card.module-card {
+    border-right: 4px solid #34d399;
+}
+
+/* انیمیشن شاین روی کارت */
+.cms-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, var(--cms-accent-glow), transparent);
+    transition: left 0.6s ease;
+    pointer-events: none;
+}
+
+.cms-card:hover::before {
+    left: 100%;
+}
+
+.card-content {
+    padding: 1.2rem;
+}
+
+.card-icon {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+}
+
+.card-icon-img {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-icon-img i {
+    font-size: 2rem;
+    color: var(--cms-accent);
+    text-shadow: var(--cms-glow);
+}
+
+.card-icon-img img {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.gear-icon {
+    background: var(--cms-chip-bg);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--cms-text-secondary);
+}
+
+.gear-icon:hover {
+    background: var(--cms-accent);
+    color: white;
+    transform: rotate(90deg);
+    box-shadow: var(--cms-glow);
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    color: var(--cms-text-primary);
+}
+
+.card-desc {
+    font-size: 0.75rem;
+    color: var(--cms-text-secondary);
+    line-height: 1.4;
+    margin-bottom: 0.6rem;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: 30px;
+    font-weight: 500;
+}
+
+.status-badge.running {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--cms-status-running);
+}
+
+.status-badge.stopped {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--cms-status-stopped);
+}
+
+.resource-hint {
+    font-size: 0.6rem;
+    color: var(--cms-text-secondary);
+    margin-top: 0.5rem;
+    display: flex;
+    gap: 10px;
+}
+
+/* کارت افزودن */
+.cms-card.add-card {
+    background: var(--cms-surface);
+    border: 2px dashed var(--cms-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 180px;
+}
+
+.cms-card.add-card .card-content {
+    text-align: center;
+}
+
+.cms-card.add-card i {
+    font-size: 2.5rem;
+    color: var(--cms-accent);
+    text-shadow: var(--cms-glow);
+}
+
+.cms-card.add-card:hover {
+    background: var(--cms-accent-glow);
+}
+
+/* ========== توضیحات پایین ========== */
+.cms-note {
+    background: var(--cms-surface);
+    border-radius: 1rem;
+    padding: 0.7rem 1.2rem;
+    font-size: 0.7rem;
+    color: var(--cms-text-secondary);
+    text-align: center;
+    border: 1px solid var(--cms-border);
+}
+
+.cms-note i {
+    color: var(--cms-accent);
+}
+
+/* ========== دیالوگ‌های سفارشی SweetAlert ========== */
+.icon-selector {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.icon-option {
+    text-align: center;
+    padding: 8px;
+    border: 1px solid var(--cms-border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.icon-option.selected {
+    background: var(--cms-accent);
+    color: white;
+    border-color: var(--cms-accent);
+    box-shadow: var(--cms-glow);
+}
+
+.resource-slider {
+    width: 100%;
+    margin: 8px 0;
+}
+
+/* ========== ریسپانسیو ========== */
+@media (max-width: 768px) {
+    .cms-container {
+        padding: 0.5rem;
+    }
+    
+    .cms-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .cms-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .cms-feature-chip {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.7rem;
+    }
+    
+    .card-title {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .cms-logo h2 {
+        font-size: 1.1rem;
+    }
+    
+    .cms-badge {
+        font-size: 0.6rem;
+    }
+}

@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>HaderBash.ir | مراقبت هوشمند IoT + CMS مدولار</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ========== متغیرهای رنگ (دارک/لایت) ========== */
+        :root {
+            --bg-site: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            --bg-surface: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --border-light: #e2e8f0;
+            --accent: #2c7da0;
+            --accent-glow: rgba(44,125,160,0.3);
+            --accent-hover: #1f5e7e;
+            --header-bg: rgba(255,255,255,0.85);
+            --footer-bg: #0f172a;
+            --footer-text: #cbd5e1;
+            --card-bg: #ffffff;
+            --shadow-sm: 0 10px 25px -5px rgba(0,0,0,0.05);
+            --shadow-md: 0 20px 25px -12px rgba(0,0,0,0.1);
+            --shadow-glow: 0 0 20px rgba(44,125,160,0.2);
+            --floating-opacity: 0.12;
+            --menu-hover: rgba(44,125,160,0.1);
+        }
+
+        body.dark {
+            --bg-site: linear-gradient(135deg, #0b1120 0%, #1e293b 100%);
+            --bg-surface: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e6;
+            --border-light: #334155;
+            --accent: #3b9bcb;
+            --accent-glow: rgba(59,155,203,0.3);
+            --accent-hover: #5bb4e0;
+            --header-bg: rgba(15,23,42,0.9);
+            --footer-bg: #020617;
+            --footer-text: #94a3b8;
+            --card-bg: #2d3a4a;
+            --shadow-glow: 0 0 25px rgba(59,155,203,0.25);
+            --floating-opacity: 0.2;
+            --menu-hover: rgba(59,155,203,0.15);
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Tahoma', 'Verdana', sans-serif;
+            background: var(--bg-site);
+            color: var(--text-primary);
+            direction: rtl;
+            line-height: 1.5;
+            overflow-x: hidden;
+            transition: background 0.3s ease, color 0.2s;
+        }
+
+        /* ========== المان‌های شناور با چرخش و واکنش به موس ========== */
+        .floating-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .floating-icon {
+            position: absolute;
+            font-size: 2rem;
+            color: var(--accent);
+            opacity: var(--floating-opacity);
+            animation: floatRotate 20s infinite ease-in-out;
+            user-select: none;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            pointer-events: auto;
+            cursor: default;
+        }
+        @keyframes floatRotate {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(6deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        /* ========== هدر با نورپردازی مشابه کارت‌ها ========== */
+        .main-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--header-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-light);
+            padding: 0.8rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .logo-hb {
+            background: linear-gradient(135deg, #2c7da0, #1f5e7e);
+            width: 48px;
+            height: 48px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 4px 15px var(--accent-glow);
+            transition: all 0.3s ease;
+        }
+        .logo-hb:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+        .logo-text {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(120deg, var(--accent), #4f9dc4);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        /* منوها با نورپردازی مشابه کارت‌های RODI */
+        .nav-menu {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .nav-menu a {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            padding: 0.5rem 0.8rem;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-menu a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+            transition: left 0.5s ease;
+        }
+        .nav-menu a:hover::before {
+            left: 100%;
+        }
+        .nav-menu a:hover {
+            color: var(--accent);
+            transform: translateY(-2px);
+            background: var(--menu-hover);
+            box-shadow: 0 2px 8px var(--accent-glow);
+        }
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .dark-toggle-header {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            border-radius: 60px;
+            padding: 0.5rem 1.2rem;
+            cursor: pointer;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+        .dark-toggle-header:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+            border-color: var(--accent);
+        }
+
+        /* ========== بخش قهرمان ========== */
+        .hero {
+            position: relative;
+            z-index: 2;
+            padding: 4rem 2rem;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+        .hero .highlight {
+            color: var(--accent);
+            border-bottom: 3px solid var(--accent);
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn-primary, .btn-outline {
+            padding: 0.8rem 2rem;
+            border-radius: 60px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            color: white;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px var(--accent-glow);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+        .btn-outline:hover {
+            background: var(--menu-hover);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* ========== بخش تکنولوژی (کارت‌های با نورپردازی RODI) ========== */
+        .tech-section {
+            position: relative;
+            z-index: 2;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            display: inline-block;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--accent);
+            border-radius: 3px;
+        }
+        .tech-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .tech-card {
+            background: var(--bg-surface);
+            border-radius: 20px;
+            padding: 1.8rem;
+            width: 210px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .tech-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+            transition: left 0.5s ease;
+        }
+        .tech-card:hover::before {
+            left: 100%;
+        }
+        .tech-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-glow);
+            border-color: var(--accent);
+        }
+        .tech-card i {
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            transition: transform 0.3s;
+        }
+        .tech-card:hover i {
+            transform: scale(1.1);
+        }
+        .tech-card h3 {
+            font-size: 1.2rem;
+        }
+
+        /* ========== کانتینر CMS (وسط صفحه خالی برای بارگذاری) ========== */
+        .cms-wrapper {
+            position: relative;
+            z-index: 2;
+            margin: 2rem;
+            min-height: 500px;
+        }
+        .cms-loading {
+            text-align: center;
+            padding: 3rem;
+            background: var(--bg-surface);
+            border-radius: 2rem;
+            border: 1px solid var(--border-light);
+        }
+
+        /* ========== فوتر ========== */
+        .main-footer {
+            background: var(--footer-bg);
+            color: var(--footer-text);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        .footer-links a {
+            color: var(--footer-text);
+            text-decoration: none;
+            transition: 0.2s;
+        }
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        @media (max-width: 768px) {
+            .main-header { flex-direction: column; align-items: stretch; text-align: center; }
+            .nav-menu { justify-content: center; }
+            .hero h1 { font-size: 2rem; }
+            .cms-wrapper { margin: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- المان‌های شناور با چرخش و واکنش به موس -->
+<div class="floating-bg" id="floatingBg"></div>
+
+<!-- هدر اصلی با منوهای نورپردازی شده -->
+<header class="main-header">
+    <div class="logo-area">
+        <div class="logo-hb">HB</div>
+        <div class="logo-text">HaderBash.ir</div>
+    </div>
+    <nav class="nav-menu">
+        <a href="#" id="navHome">خانه</a>
+        <a href="#" id="navTech">تکنولوژی</a>
+        <a href="#" id="navMCU">میکروکنترلر</a>
+        <a href="#" id="navIoT">IoT</a>
+        <a href="#" id="navShop">فروشگاه</a>
+        <a href="#" id="navDocs">داکیومنت</a>
+        <a href="#" id="navCmsTrigger">مدیریت ماژول‌ها</a>
+    </nav>
+    <div class="header-actions">
+        <div class="dark-toggle-header" id="darkToggleMain">
+            <i class="fas fa-moon"></i> <span>دارک مود</span>
+        </div>
+    </div>
+</header>
+
+<!-- بخش قهرمان -->
+<section class="hero">
+    <h1>مراقبت هوشمند <span class="highlight">زیرساخت IoT</span> با HaderBash</h1>
+    <p>پلتفرم ماژولار برای تیم‌های حرفه‌ای — از نمونه کارها و سرور فایل تا چت پروژه و مانیتورینگ لحظه‌ای</p>
+    <div class="cta-buttons">
+        <button class="btn-primary" id="heroCta">شروع رایگان</button>
+        <button class="btn-outline" id="heroGallery">مشاهده نمونه کارها</button>
+    </div>
+</section>
+
+<!-- بخش تکنولوژی‌ها -->
+<section class="tech-section" id="techSection">
+    <h2 class="section-title">⚡ اکوسیستم HaderBash</h2>
+    <div class="tech-grid">
+        <div class="tech-card" data-tech="mcu">
+            <i class="fas fa-microchip"></i>
+            <h3>میکروکنترلر</h3>
+            <p style="font-size:0.75rem;">STM32, ESP, AVR</p>
+        </div>
+        <div class="tech-card" data-tech="iot">
+            <i class="fas fa-wifi"></i>
+            <h3>IoT & Cloud</h3>
+            <p>MQTT, HTTP, WebSocket</p>
+        </div>
+        <div class="tech-card" data-tech="docker">
+            <i class="fab fa-docker"></i>
+            <h3>Docker Native</h3>
+            <p>استقرار آسان ماژول‌ها</p>
+        </div>
+        <div class="tech-card" data-tech="dashboard">
+            <i class="fas fa-chart-line"></i>
+            <h3>مانیتورینگ</h3>
+            <p>CPU, RAM, Logs</p>
+        </div>
+    </div>
+</section>
+
+<!-- کانتینر CMS (وسط صفحه خالی) -->
+<div class="cms-wrapper" id="cmsWrapper">
+    <div class="cms-loading">
+        <i class="fas fa-puzzle-piece" style="font-size: 2rem; color: var(--accent);"></i>
+        <p>در حال بارگذاری سیستم مدیریت ماژول‌ها (CMS)...</p>
+    </div>
+</div>
+
+<!-- فوتر سایت -->
+<footer class="main-footer">
+    <div class="footer-links">
+        <a href="#">درباره ما</a>
+        <a href="#">مستندات API</a>
+        <a href="#">پشتیبانی</a>
+        <a href="#">قوانین</a>
+    </div>
+    <p>© 2025 HaderBash.ir — همه حقوق برای تیم IoT محفوظ است.</p>
+</footer>
+
+<script>
+    // ======================== ایجاد المان‌های شناور با واکنش به موس ========================
+    function createFloatingIcons() {
+        const container = document.getElementById('floatingBg');
+        const icons = ['fas fa-microchip', 'fas fa-wifi', 'fas fa-cloud-upload-alt', 'fas fa-chart-line', 'fas fa-database', 'fab fa-docker', 'fas fa-microphone-alt', 'fas fa-satellite-dish', 'fas fa-robot'];
+        container.innerHTML = '';
+        for (let i = 0; i < 28; i++) {
+            let icon = document.createElement('i');
+            icon.className = icons[i % icons.length] + ' floating-icon';
+            let size = Math.random() * 40 + 20;
+            icon.style.fontSize = size + 'px';
+            icon.style.left = Math.random() * 100 + '%';
+            icon.style.top = Math.random() * 100 + '%';
+            icon.style.animationDuration = 12 + Math.random() * 20 + 's';
+            icon.style.animationDelay = Math.random() * 10 + 's';
+            icon.style.position = 'absolute';
+            // واکنش به حرکت موس (تغییر موقعیت و چرخش)
+            icon.addEventListener('mousemove', (e) => {
+                const rect = icon.getBoundingClientRect();
+                const mouseX = e.clientX;
+                const mouseY = e.clientY;
+                const iconCenterX = rect.left + rect.width / 2;
+                const iconCenterY = rect.top + rect.height / 2;
+                const deltaX = (mouseX - iconCenterX) * 0.03;
+                const deltaY = (mouseY - iconCenterY) * 0.03;
+                icon.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${deltaX * 0.5}deg)`;
+                icon.style.opacity = Math.min(0.5, parseFloat(getComputedStyle(icon).opacity) + 0.1);
+            });
+            icon.addEventListener('mouseleave', () => {
+                icon.style.transform = '';
+                icon.style.opacity = '';
+            });
+            container.appendChild(icon);
+        }
+    }
+    createFloatingIcons();
+
+    // ======================== دارک مود یکپارچه با استفاده از postMessage (ارتباط با CMS) ========================
+    let currentTheme = localStorage.getItem('haderbash-theme') === 'dark' ? 'dark' : 'light';
+    if (currentTheme === 'dark') document.body.classList.add('dark');
+
+    const darkToggle = document.getElementById('darkToggleMain');
+    darkToggle.addEventListener('click', () => {
+        const isDark = document.body.classList.toggle('dark');
+        currentTheme = isDark ? 'dark' : 'light';
+        localStorage.setItem('haderbash-theme', currentTheme);
+        
+        // ارسال پیام به iframe برای تغییر تم CMS (اگر لود شده باشد)
+        const cmsIframe = document.getElementById('cmsIframe');
+        if (cmsIframe && cmsIframe.contentWindow) {
+            cmsIframe.contentWindow.postMessage({ type: 'theme-change', theme: currentTheme }, '*');
+        }
+    });
+
+    // ======================== لود کردن CMS به صورت iframe (روش مستقل و بدون تداخل) ========================
+    // ساخت iframe برای بارگذاری CMS به صورت ایزوله
+    function loadCMS() {
+        const wrapper = document.getElementById('cmsWrapper');
+        // در این دمو، به دلیل نبود فایل جداگانه cms.html، یک CMS مستقل درون iframe ایجاد می‌کنیم
+        // اما برای رعایت ساختار، اگر فایل cms.html وجود داشت از آن استفاده می‌کنیم.
+        // در اینجا یک CMS مینیاتوری مستقل با قابلیت دارک مود می‌سازیم که از postMessage پشتیبانی کند.
+        const iframe = document.createElement('iframe');
+        iframe.id = 'cmsIframe';
+        iframe.style.width = '100%';
+        iframe.style.minHeight = '600px';
+        iframe.style.border = 'none';
+        iframe.style.borderRadius = '24px';
+        iframe.style.background = 'transparent';
+        iframe.style.overflow = 'auto';
+        
+        // محتوای iframe: یک CMS ساده اما کامل با قابلیت هماهنگی دارک مود
+        const iframeContent = `
+        <!DOCTYPE html>
+        <html dir="rtl">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+                body {
+                    background: ${currentTheme === 'dark' ? '#1e293b' : '#ffffff'};
+                    color: ${currentTheme === 'dark' ? '#f1f5f9' : '#0f172a'};
+                    transition: background 0.3s, color 0.2s;
+                    padding: 1rem;
+                }
+                body.dark-theme {
+                    background: #1e293b;
+                    color: #f1f5f9;
+                }
+                body.light-theme {
+                    background: #ffffff;
+                    color: #0f172a;
+                }
+                .cms-header { display: flex; justify-content: space-between; margin-bottom: 1rem; padding: 0.5rem; border-bottom: 1px solid #ddd; }
+                .cms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap: 1rem; }
+                .card { background: ${currentTheme === 'dark' ? '#334155' : '#f8fafc'}; border-radius: 1rem; padding: 1rem; border: 1px solid #ccc; cursor: pointer; transition: 0.2s; }
+                .card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+                .icon { font-size: 2rem; color: #2c7da0; margin-bottom: 0.5rem; }
+                .add-card { background: ${currentTheme === 'dark' ? '#2d3a48' : '#fefcf5'}; border: 2px dashed #2c7da0; text-align: center; }
+                .status { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 20px; display: inline-block; margin-top: 0.5rem; }
+                .running { background: #2e9c6b; color: white; }
+                .stopped { background: #b91c1c; color: white; }
+                h3 { font-size: 1rem; margin: 0.5rem 0; }
+                p { font-size: 0.75rem; opacity: 0.8; }
+            </style>
+        </head>
+        <body id="cmsBody" class="${currentTheme === 'dark' ? 'dark-theme' : 'light-theme'}">
+            <div class="cms-header">
+                <h3><i class="fas fa-puzzle-piece"></i> مدیریت ماژول‌ها (CMS)</h3>
+                <button id="cmsDarkBtn" style="background:transparent; border:1px solid; border-radius:20px; padding:0.2rem 1rem; cursor:pointer;">🌙 دارک</button>
+            </div>
+            <div class="cms-grid" id="cmsGrid">
+                <div class="card"><div class="icon"><i class="fas fa-images"></i></div><h3>گالری نمونه‌کارها</h3><p>پروژه‌های IoT و معماری</p><span class="status running">فعال</span></div>
+                <div class="card"><div class="icon"><i class="fas fa-file-alt"></i></div><h3>داکیومنت فنی</h3><p>مستندات میکروکنترلرها</p><span class="status running">فعال</span></div>
+                <div class="card"><div class="icon"><i class="fas fa-chart-line"></i></div><h3>مانیتورینگ سرور</h3><p>نمودارهای زنده</p><span class="status stopped">متوقف</span></div>
+                <div class="card"><div class="icon"><i class="fas fa-store"></i></div><h3>فروشگاه قطعات</h3><p>ماژول‌های IoT</p><span class="status running">فعال</span></div>
+                <div class="card add-card" id="addModuleBtn"><div class="icon"><i class="fas fa-plus-circle"></i></div><h3>افزودن ماژول جدید</h3><p>ZIP / کتابخانه</p></div>
+            </div>
+            <script>
+                const cmsBody = document.getElementById('cmsBody');
+                const cmsDarkBtn = document.getElementById('cmsDarkBtn');
+                // تغییر تم داخلی CMS
+                function setCMSTheme(theme) {
+                    if (theme === 'dark') {
+                        cmsBody.classList.remove('light-theme');
+                        cmsBody.classList.add('dark-theme');
+                    } else {
+                        cmsBody.classList.remove('dark-theme');
+                        cmsBody.classList.add('light-theme');
+                    }
+                }
+                cmsDarkBtn.addEventListener('click', () => {
+                    const isDarkNow = cmsBody.classList.contains('dark-theme');
+                    const newTheme = isDarkNow ? 'light' : 'dark';
+                    setCMSTheme(newTheme);
+                    // اطلاع به والد
+                    window.parent.postMessage({ type: 'cms-theme-changed', theme: newTheme }, '*');
+                });
+                // دریافت پیام از والد (سایت اصلی)
+                window.addEventListener('message', (event) => {
+                    if (event.data.type === 'theme-change') {
+                        setCMSTheme(event.data.theme);
+                    }
+                });
+                document.getElementById('addModuleBtn')?.addEventListener('click', () => {
+                    Swal.fire({ title: 'افزودن ماژول', text: 'ماژول جدید با موفقیت اضافه شد!', icon: 'success' });
+                });
+            <\/script>
+        </body>
+        </html>
+        `;
+        
+        iframe.srcdoc = iframeContent;
+        wrapper.innerHTML = '';
+        wrapper.appendChild(iframe);
+        
+        // گوش دادن به پیام‌های iframe (در صورت نیاز)
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'cms-theme-changed') {
+                // هماهنگ‌سازی تم سایت اصلی با CMS در صورت تمایل (اختیاری)
+                if (event.data.theme === 'dark' && !document.body.classList.contains('dark')) {
+                    document.body.classList.add('dark');
+                    localStorage.setItem('haderbash-theme', 'dark');
+                } else if (event.data.theme === 'light' && document.body.classList.contains('dark')) {
+                    document.body.classList.remove('dark');
+                    localStorage.setItem('haderbash-theme', 'light');
+                }
+            }
+        });
+    }
+    
+    // بارگذاری CMS
+    loadCMS();
+    
+    // ======================== دکمه‌های ناوبری و تعاملات ========================
+    document.getElementById('navCmsTrigger')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('cmsWrapper').scrollIntoView({ behavior: 'smooth' });
+    });
+    document.getElementById('heroCta')?.addEventListener('click', () => {
+        Swal.fire({ icon: 'success', title: 'به HaderBash خوش آمدید', text: 'پلتفرم شما آماده است.' });
+    });
+    document.getElementById('heroGallery')?.addEventListener('click', () => {
+        Swal.fire({ title: 'نمونه کارها', html: '<div style="display:flex; gap:8px; flex-wrap:wrap;"><img src="https://picsum.photos/80/80?random=1" style="border-radius:12px"><img src="https://picsum.photos/80/80?random=2" style="border-radius:12px"><img src="https://picsum.photos/80/80?random=3" style="border-radius:12px"></div><p>پروژه‌های IoT – نظارت بر دما، رباتیک، خانه هوشمند</p>' });
+    });
+    // دکمه‌های منو (نمایش اطلاعات)
+    const showInfo = (title, msg) => Swal.fire({ title, text: msg, icon: 'info' });
+    document.getElementById('navTech')?.addEventListener('click', (e) => { e.preventDefault(); showInfo('تکنولوژی‌های HaderBash', 'IoT, Docker, ESP32, STM32, MQTT, WebSocket'); });
+    document.getElementById('navMCU')?.addEventListener('click', (e) => { e.preventDefault(); showInfo('میکروکنترلرهای پشتیبانی شده', 'ESP8266, ESP32, STM32, Arduino, Raspberry Pi Pico'); });
+    document.getElementById('navIoT')?.addEventListener('click', (e) => { e.preventDefault(); showInfo('IoT و ابر', 'اتصال امن، مانیتورینگ لحظه‌ای، دشبورد اختصاصی'); });
+    document.getElementById('navShop')?.addEventListener('click', (e) => { e.preventDefault(); showInfo('فروشگاه قطعات', 'ماژول‌های آماده، سنسورها، بردهای توسعه'); });
+    document.getElementById('navDocs')?.addEventListener('click', (e) => { e.preventDefault(); showInfo('داکیومنت جامع', 'راهنمای نصب، API، کدنویسی، فریمور'); });
+    document.getElementById('navHome')?.addEventListener('click', (e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+</script>
+</body>
+</html>
