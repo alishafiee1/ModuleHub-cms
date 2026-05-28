@@ -56,6 +56,15 @@ table th code,
 
 ## آخرین جلسات
 
+### 2026-05-28 — /sync-docs وابستگی‌ها + fixture تست
+- **درخواست (UTC):** توضیح «معمای وابستگی‌ها» + `/sync-docs` — `node_modules` لازم نیست؛ نصب موقع upload
+- **نتیجه:** `developer-guide.md` §۲.۱ · patch `proposal` · `module-hosting-guide` · fixture `phase4-cache-test` + اسکریپت build ZIP
+
+### 2026-05-28 — /sync-docs هم‌راستا با کد (فاز ۰–۴)
+- **درخواست (18:00 UTC):** `/sync-docs` — بروزرسانی `proposal` · `design plan` · `tasks` طبق §۶
+- **نتیجه (18:10 UTC):** drift فاز ۴ (symlink، npm/systemd، LRU) در design plan · روایت کش در proposal · ✅ فاز ۰–۴ در tasks
+- **منبع حقیقت کد:** `core/src/modules/package-cache/` · `POST /admin/upload`
+
 ### 2026-05-28 — /sync-docs (فاز ۴ بسته شد)
 - **درخواست (17:30 UTC):** `/sync-docs` بعد از فاز ۴ و سؤال design plan
 - **نتیجه (17:35 UTC):** walk-through یکپارچه · mistakes (npm/systemd، SCP) · deploy-notes · README · server-scripts

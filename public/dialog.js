@@ -133,14 +133,148 @@ const ModuleDialogs = (function createModuleDialogs() {
   }
 
   /**
-   * Shows package cache info placeholder (phase 5).
+   * Shows package cache info (centralized under /var/cache/modulehub/pkg).
    */
   async function showCacheInfoDialog() {
     await Swal.fire({
       title: 'کش متمرکز پکیج‌ها',
-      html: '<div style="text-align:right;"><p>کش پکیج در فاز بعدی فعال می‌شود.</p></div>',
+      html: `<div style="text-align:right;">
+        <p>وابستگی‌های مشترک (npm/pip/composer) با هش SHA256 در کش سرور ذخیره می‌شوند.</p>
+        <p>مسیر پیش‌فرض: <code>/var/cache/modulehub/pkg</code></p>
+        <p>ماژول‌های با manifest یکسان در نصب بعدی از symlink استفاده می‌کنند.</p>
+      </div>`,
       confirmButtonText: 'بستن',
     });
+  }
+
+  /**
+   * Gear management menu — returns selected action id.
+   * @param {object} moduleMeta - Module metadata from layout API
+   * @param {object} options - { isSuperAdmin, statusLabel, statusClass }
+   * @returns {Promise<string|null>} Action id or null when cancelled
+   */
+  async function showGearActionsDialog(moduleMeta, options) {
+    const { isSuperAdmin, statusLabel, statusClass } = options;
+    const isRunning = moduleMeta.status === 'running';
+    const hasGitRepo = Boolean(moduleMeta.gitRepo && moduleMeta.gitRepo.trim());
+
+    const actionButtons = [
+      { id: 'start', label: 'Start', icon: 'fa-play', show: !isRunning },
+      { id: 'stop', label: 'Stop', icon: 'fa-stop', show: isRunning },
+      { id: 'restart', label: 'Restart', icon: 'fa-redo', show: true },
+      { id: 'logs', label: 'مشاهده لاگ', icon: 'fa-file-alt', show: true },
+      { id: 'edit', label: 'ویرایش تنظیمات', icon: 'fa-edit', show: true },
+      { id: 'backup', label: 'پشتیبان ZIP', icon: 'fa-download', show: true },
+      { id: 'github', label: 'GitHub Sync', icon: 'fa-github', show: hasGitRepo },
+      { id: 'delete', label: 'حذف ماژول', icon: 'fa-trash', show: isSuperAdmin, danger: true },
+    ].filter((action) => action.show);
+
+    const buttonsHtml = actionButtons.map((action) => `
+      <button type="button" class="gear-action-btn${action.danger ? ' gear-action-danger' : ''}" data-action="${action.id}">
+        <i class="fas ${action.icon}"></i> ${action.label}
+      </button>
+    `).join('');
+
+    const result = await Swal.fire({
+      title: `مدیریت · ${escapeHtml(moduleMeta.name)}`,
+      html: `<div style="text-align:right;">
+        <p>وضعیت: <span class="${statusClass}">${statusLabel}</span> · نسخه ${escapeHtml(moduleMeta.version)}</p>
+        <p style="font-size:0.85rem;">CPU ${moduleMeta.resources.cpu_limit} · RAM ${moduleMeta.resources.ram_limit_mb} MB · پورت ${moduleMeta.port || '—'}</p>
+        <div class="gear-actions-grid">${buttonsHtml}</div>
+      </div>`,
+      showConfirmButton: false,
+      showCancelButton: true,
+      cancelButtonText: 'بستن',
+      width: '420px',
+      didOpen: () => {
+        document.querySelectorAll('.gear-action-btn').forEach((button) => {
+          button.addEventListener('click', () => {
+            const actionId = button.getAttribute('data-action');
+            Swal.close({ isConfirmed: true, value: actionId });
+          });
+        });
+      },
+    });
+
+    return result.isConfirmed ? (result.value || null) : null;
+  }
+
+  /**
+   * Edit module dialog — resources, name, version, git, management password.
+   * @param {object} moduleMeta - Current module metadata
+   * @param {boolean} isSuperAdmin - Whether password fields are shown
+   * @returns {Promise<object|undefined>}
+   */
+  async function showModuleEditDialog(moduleMeta, isSuperAdmin) {
+    const passwordFields = isSuperAdmin ? `
+      <label>رمز Module Manager (خالی = بدون تغییر)</label>
+      <input id="edit-mgmt-pass" type="password" class="swal2-input" placeholder="رمز جدید">
+      <label><input type="checkbox" id="edit-clear-pass"> حذف رمز Module Manager</label>
+      <label>آدرس GitHub (gitRepo)</label>
+      <input id="edit-git-repo" class="swal2-input" value="${escapeHtml(moduleMeta.gitRepo || '')}" placeholder="https://github.com/user/repo.git">
+    ` : '';
+
+    const { value: result } = await Swal.fire({
+      title: `ویرایش · ${escapeHtml(moduleMeta.name)}`,
+      html: `
+        <div style="text-align:right;">
+          <label>نام</label>
+          <input id="edit-name" class="swal2-input" value="${escapeHtml(moduleMeta.name)}">
+          <label>نسخه</label>
+          <input id="edit-version" class="swal2-input" value="${escapeHtml(moduleMeta.version)}">
+          <label>توضیحات</label>
+          <textarea id="edit-changelog" class="swal2-textarea">${escapeHtml(moduleMeta.changelog || '')}</textarea>
+          <label>CPU: <span id="edit-cpu-val">${moduleMeta.resources.cpu_limit}</span></label>
+          <input type="range" id="edit-cpu" class="resource-slider" min="0.1" max="2" step="0.1" value="${moduleMeta.resources.cpu_limit}">
+          <label>RAM (MB): <span id="edit-ram-val">${moduleMeta.resources.ram_limit_mb}</span></label>
+          <input type="range" id="edit-ram" class="resource-slider" min="128" max="4096" step="64" value="${moduleMeta.resources.ram_limit_mb}">
+          ${passwordFields}
+        </div>
+      `,
+      focusConfirm: false,
+      confirmButtonText: 'ذخیره',
+      cancelButtonText: 'انصراف',
+      showCancelButton: true,
+      preConfirm: () => {
+        const payload = {
+          name: document.getElementById('edit-name').value,
+          version: document.getElementById('edit-version').value,
+          changelog: document.getElementById('edit-changelog').value,
+          resources: {
+            cpu_limit: parseFloat(document.getElementById('edit-cpu').value),
+            ram_limit_mb: parseInt(document.getElementById('edit-ram').value, 10),
+          },
+        };
+        if (isSuperAdmin) {
+          const gitInput = document.getElementById('edit-git-repo');
+          if (gitInput) {
+            payload.gitRepo = gitInput.value.trim();
+          }
+          const clearPass = document.getElementById('edit-clear-pass');
+          if (clearPass && clearPass.checked) {
+            payload.clearManagementPassword = true;
+          } else {
+            const passInput = document.getElementById('edit-mgmt-pass');
+            const passValue = passInput ? passInput.value : '';
+            if (passValue) {
+              payload.managementPasswordPlain = passValue;
+            }
+          }
+        }
+        return payload;
+      },
+      didOpen: () => {
+        const cpuSlider = document.getElementById('edit-cpu');
+        const ramSlider = document.getElementById('edit-ram');
+        cpuSlider.addEventListener('input', () => {
+          document.getElementById('edit-cpu-val').innerText = cpuSlider.value;
+        });
+        ramSlider.addEventListener('input', () => {
+          document.getElementById('edit-ram-val').innerText = ramSlider.value;
+        });
+      },
+    });
+    return result;
   }
 
   /**
@@ -215,5 +349,7 @@ const ModuleDialogs = (function createModuleDialogs() {
     showLogsDialog,
     showCacheInfoDialog,
     showAuthRequiredDialog,
+    showGearActionsDialog,
+    showModuleEditDialog,
   };
 })();

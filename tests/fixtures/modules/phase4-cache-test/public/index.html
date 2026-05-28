@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تست فاز ۴ — کش پکیج</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 2rem; background: #0f172a; color: #e2e8f0; }
+    h1 { color: #38bdf8; }
+    .warn { background: #422006; border: 1px solid #f59e0b; padding: 0.75rem 1rem; border-radius: 8px; margin: 1rem 0; }
+    pre { direction: ltr; text-align: left; background: #1e293b; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+    .pass { color: #4ade80; font-weight: bold; }
+    .fail { color: #f87171; font-weight: bold; }
+    button { background: #2563eb; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>ماژول تست فاز ۴ — Package Cache</h1>
+  <div class="warn">
+    در wizard حتماً پورت <strong>4100</strong> بزنید (هم‌خوان با server.js). بعد از Save، ماژول را <strong>Start</strong> کنید.
+  </div>
+  <p>این صفحه از <code>/api/diagnostics</code> وضعیت symlink و وابستگی npm را نشان می‌دهد.</p>
+  <button type="button" id="refreshBtn">بارگذاری مجدد diagnostics</button>
+  <pre id="output">در حال بارگذاری…</pre>
+  <script>
+    async function loadDiagnostics() {
+      const output = document.getElementById('output');
+      try {
+        const response = await fetch('./api/diagnostics');
+        const data = await response.json();
+        const statusClass = data.ok ? 'pass' : 'fail';
+        const statusText = data.ok ? 'PASS' : 'FAIL';
+        output.innerHTML = '<span class="' + statusClass + '">' + statusText + '</span>\n' + JSON.stringify(data, null, 2);
+      } catch (error) {
+        output.textContent = 'خطا: ' + error.message + '\n(ماژول Start شده؟ پورت 4100 در wizard؟)';
+      }
+    }
+    document.getElementById('refreshBtn').addEventListener('click', loadDiagnostics);
+    loadDiagnostics();
+  </script>
+</body>
+</html>

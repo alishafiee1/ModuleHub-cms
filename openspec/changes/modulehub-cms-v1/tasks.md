@@ -89,19 +89,19 @@
 
 ## 6. فاز ۵ — مدیریت ماژول (module-management)
 
-- [ ] 6.1 Gear dialog — Start/Stop/Restart/Logs/Edit/Backup/GitHub/Delete
-- [ ] 6.2 API start/stop
-- [ ] 6.3 Log viewer
-- [ ] 6.4 Edit settings + set/reset `managementPasswordHash` (Super Admin)
-- [ ] 6.5 Delete — Super Admin only
-- [ ] 6.6 Per-module backup
-- [ ] 6.7 GitHub sync
-- [ ] 6.8 Status badges
-- [ ] 6.9 **Unit:** `tests/unit/module-management/log-viewer.test.ts` — tail آخرین N خط از fixture
-- [ ] 6.10 **Unit:** `tests/unit/module-management/module-edit.test.ts` — به‌روزرسانی resources و hash در layout
-- [ ] 6.11 **Unit:** `tests/unit/module-management/module-delete.test.ts` — حذف از layout + validation id
+- [x] 6.1 Gear dialog — Start/Stop/Restart/Logs/Edit/Backup/GitHub/Delete
+- [x] 6.2 API start/stop/restart
+- [x] 6.3 Log viewer + download
+- [x] 6.4 Edit settings + set/reset `managementPasswordHash` (Super Admin)
+- [x] 6.5 Delete — Super Admin only
+- [x] 6.6 Per-module backup
+- [x] 6.7 GitHub sync
+- [x] 6.8 Status badges (UI موجود از فاز ۱–۳)
+- [x] 6.9 **Unit:** `tests/unit/module-management/log-viewer.test.ts`
+- [x] 6.10 **Unit:** `tests/unit/module-management/module-edit.test.ts`
+- [x] 6.11 **Unit:** `tests/unit/module-management/module-delete.test.ts`
 - [ ] 6.12 تست دستی: start→stop→logs→edit→delete
-- [ ] 6.13 **بستن فاز:** `npm run lint` + JSDoc برای handlers مدیریت ماژول
+- [x] 6.13 **بستن فاز:** `npm run lint` + JSDoc — 2026-05-28
 
 ## 7. فاز ۶ — پشتیبان‌گیری (backup-restore)
 

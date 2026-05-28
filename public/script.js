@@ -272,41 +272,110 @@
     }
 
     const statusDisplay = getStatusDisplay(moduleMeta.status);
-    const canStart = moduleMeta.status !== 'running';
-    const canStop = moduleMeta.status === 'running';
-
-    const result = await Swal.fire({
-      title: `مدیریت · ${moduleMeta.name}`,
-      html: `<div style="text-align:right;">
-        <p>وضعیت: <span class="${statusDisplay.cssClass}">${statusDisplay.label}</span></p>
-        <p>نسخه: ${moduleMeta.version}</p>
-        <p>CPU: ${moduleMeta.resources.cpu_limit} | RAM: ${moduleMeta.resources.ram_limit_mb} MB</p>
-      </div>`,
-      icon: 'info',
-      showDenyButton: canStop,
-      showConfirmButton: canStart,
-      confirmButtonText: canStart ? 'Start' : 'بستن',
-      denyButtonText: 'Stop',
-      showCancelButton: true,
-      cancelButtonText: 'بستن',
+    const action = await ModuleDialogs.showGearActionsDialog(moduleMeta, {
+      isSuperAdmin: authStatus.isSuperAdmin,
+      statusLabel: statusDisplay.label,
+      statusClass: statusDisplay.cssClass,
     });
 
-    if (result.isConfirmed && canStart) {
-      try {
+    if (!action) {
+      return;
+    }
+
+    await handleGearAction(moduleId, moduleMeta, action);
+  }
+
+  /**
+   * Executes a gear menu action for a module.
+   * @param {string} moduleId - Module id
+   * @param {object} moduleMeta - Module metadata
+   * @param {string} action - Action id from gear dialog
+   */
+  async function handleGearAction(moduleId, moduleMeta, action) {
+    try {
+      if (action === 'start') {
         await ModuleHubApi.startModule(moduleId);
         await refreshFromServer();
         Swal.fire({ icon: 'success', title: 'ماژول استارت شد', timer: 1200, showConfirmButton: false });
-      } catch (error) {
-        Swal.fire({ icon: 'error', title: 'خطا', text: error.message });
+        return;
       }
-    } else if (result.isDenied && canStop) {
-      try {
+      if (action === 'stop') {
         await ModuleHubApi.stopModule(moduleId);
         await refreshFromServer();
         Swal.fire({ icon: 'success', title: 'ماژول متوقف شد', timer: 1200, showConfirmButton: false });
-      } catch (error) {
-        Swal.fire({ icon: 'error', title: 'خطا', text: error.message });
+        return;
       }
+      if (action === 'restart') {
+        await ModuleHubApi.restartModule(moduleId);
+        await refreshFromServer();
+        Swal.fire({ icon: 'success', title: 'ماژول ری‌استارت شد', timer: 1200, showConfirmButton: false });
+        return;
+      }
+      if (action === 'logs') {
+        const logResult = await ModuleHubApi.fetchModuleLogs(moduleId);
+        const content = logResult.content || '(لاگ خالی است)';
+        await ModuleDialogs.showLogsDialog(moduleMeta.name, content);
+        const downloadChoice = await Swal.fire({
+          title: 'دانلود لاگ کامل؟',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'دانلود',
+          cancelButtonText: 'بستن',
+        });
+        if (downloadChoice.isConfirmed) {
+          ModuleHubApi.downloadModuleLogs(moduleId);
+        }
+        return;
+      }
+      if (action === 'edit') {
+        const editPayload = await ModuleDialogs.showModuleEditDialog(
+          moduleMeta,
+          authStatus.isSuperAdmin,
+        );
+        if (!editPayload) {
+          return;
+        }
+        await ModuleHubApi.updateModule(moduleId, editPayload);
+        await refreshFromServer();
+        Swal.fire({ icon: 'success', title: 'تنظیمات ذخیره شد', timer: 1200, showConfirmButton: false });
+        return;
+      }
+      if (action === 'backup') {
+        ModuleHubApi.downloadModuleBackup(moduleId);
+        Swal.fire({ icon: 'success', title: 'دانلود پشتیبان شروع شد', timer: 1500, showConfirmButton: false });
+        return;
+      }
+      if (action === 'github') {
+        Swal.fire({ title: 'همگام‌سازی GitHub...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        const syncResult = await ModuleHubApi.syncModuleGitHub(moduleId);
+        Swal.close();
+        await refreshFromServer();
+        Swal.fire({
+          icon: 'success',
+          title: 'همگام‌سازی انجام شد',
+          html: `<pre style="text-align:left; direction:ltr; font-size:0.75rem;">${syncResult.gitOutput || ''}</pre>`,
+        });
+        return;
+      }
+      if (action === 'delete') {
+        const confirmDelete = await Swal.fire({
+          title: 'حذف ماژول',
+          text: `آیا از حذف «${moduleMeta.name}» مطمئن هستید؟ این عمل غیرقابل بازگشت است.`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'حذف',
+          cancelButtonText: 'انصراف',
+          confirmButtonColor: '#d33',
+        });
+        if (!confirmDelete.isConfirmed) {
+          return;
+        }
+        await ModuleHubApi.deleteModule(moduleId);
+        await refreshFromServer();
+        Swal.fire({ icon: 'success', title: 'ماژول حذف شد', timer: 1500, showConfirmButton: false });
+      }
+    } catch (error) {
+      Swal.fire({ icon: 'error', title: 'خطا', text: error.message });
     }
   }
 

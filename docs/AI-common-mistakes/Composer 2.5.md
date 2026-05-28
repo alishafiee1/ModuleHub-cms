@@ -56,4 +56,9 @@
 - **تأیید:** upload2 → `"message":"Linked from package cache"` · `/var/cache/modulehub/pkg/<hash>/`
 - **زمینه:** openspec 5.11 · 2026-05-28
 
+### [DOC-001] ZIP با پوشه تو در تو — manifest دیده نمی‌شود
+- **اشتباه:** ZIP کردن خود پوشه `phase4-cache-test/` → `package.json` در `mod/` نه ریشه
+- **درست:** flat zip — `build-phase4-test-zip.ps1` یا داخل پوشه «انتخاب همه → فشرده‌سازی»
+- **زمینه:** upload · dependencies.skipped · 2026-05-28
+
 </div>

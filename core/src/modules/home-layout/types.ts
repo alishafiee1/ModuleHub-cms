@@ -61,6 +61,7 @@ export interface PublicModuleEntry {
   icon: string;
   thumbnail: string;
   changelog?: string;
+  gitRepo?: string;
   hasManagementPassword: boolean;
 }
 

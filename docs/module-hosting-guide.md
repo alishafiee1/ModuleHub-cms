@@ -46,6 +46,8 @@ my-site.zip
 
 **اشتباه رایج:** ZIP شامل `node_modules/` یا `.git/` — حجم بالا، امنیت پایین. فقط سورس یا `dist/`.
 
+**نصب وابستگی:** اگر `package.json` / `requirements.txt` / `composer.json` در **ریشه** ZIP باشد، CMS **بلافاصله بعد از upload** (قبل از wizard) از npm/pip/composer نصب می‌کند یا از کش symlink می‌زند — **`node_modules` لازم نیست داخل ZIP باشد.** جزئیات: [`developer-guide.md`](developer-guide.md) §۲.۱ · [`design plan.md`](design%20plan.md) §۸.
+
 ---
 
 ## ۳. چالش‌های سرور که باید بدانید

@@ -413,3 +413,33 @@ body.dark .breadcrumb-item { color: #7ab3c8; }
     color: white;
     border-color: #2c7da0;
 }
+
+.gear-actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.gear-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 8px;
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.gear-action-btn:hover {
+    background: var(--gear-hover);
+}
+
+.gear-action-danger {
+    color: var(--status-crashed-text);
+    border-color: #fecaca;
+}

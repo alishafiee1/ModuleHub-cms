@@ -25,6 +25,7 @@ export function toPublicModuleEntry(entry: ModuleEntry): PublicModuleEntry {
     icon: entry.icon,
     thumbnail: entry.thumbnail,
     changelog: entry.changelog,
+    gitRepo: entry.gitRepo,
     hasManagementPassword,
   };
 }

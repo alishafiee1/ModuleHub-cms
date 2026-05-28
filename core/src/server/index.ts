@@ -6,7 +6,8 @@ import { PATHS } from '../config/paths';
 import { createAdminLoginRouter } from '../modules/admin-auth';
 import { createLayoutRouter } from '../modules/home-layout';
 import { requestLoggingMiddleware } from '../modules/logger';
-import { createModuleManagementRouter, createModuleServingRouter } from '../modules/module-manager';
+import { createModuleManagementRouter } from '../modules/module-management';
+import { createModuleServingRouter } from '../modules/module-manager';
 import { createUploadWizardRouter } from '../modules/module-upload-wizard';
 
 const DEFAULT_HOST = '127.0.0.1';

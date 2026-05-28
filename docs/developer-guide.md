@@ -22,7 +22,7 @@ table td code, table th code { direction: ltr; unicode-bidi: embed; text-align: 
 
 | مخاطب | الان بخوان | بعد از پیاده‌سازی هسته |
 |--------|------------|-------------------------|
-| **سازنده ماژول** (HTML، React، Node، …) | §۲–§۵ | §۶ (endpointها) |
+| **سازنده ماژول** (HTML، React، Node، …) | §۲–§۲.۱ · §۳–§۵ | §۹ (endpointها) |
 | **توسعه‌دهنده هسته CMS** | `design plan.md` + `tasks.md` | همین فایل §۶–§۷ |
 
 ---
@@ -68,9 +68,45 @@ my-app.zip
 └── ...
 ```
 
-**ممنوع در ZIP:** `node_modules/`، `.git/`، فایل `.env` با secret.
+**ممنوع در ZIP:** `node_modules/`، `venv/`، `vendor/`، `.git/`، فایل `.env` با secret — سرور خودش نصب می‌کند (§۲.۱).
 
 **حد حجم:** پیش‌فرض ۲۰۰ MB (`system-settings.example.json`).
+
+---
+
+## ۲.۱ وابستگی‌ها — کی دانلود می‌شوند؟
+
+> روایت ساده: [`proposal.md`](proposal.md) §کش پکیج · فنی: [`design plan.md`](design%20plan.md) §۸
+
+### یک جمله
+
+**ZIP = سورس + دستور پخت** (`package.json` / `requirements.txt` / `composer.json`). **`node_modules` نفرست** — سرور بعد از آپلود خودش نصب می‌کند یا از کش **لینک** می‌زند.
+
+### جریان
+
+```
+ZIP آپلود → extract → CMS manifest را در ریشه پوشه می‌گردد
+  ├─ نیست → هیچ npm/pip/composer اجرا نمی‌شود (Static کافی است)
+  └─ هست →
+        ├─ کش hit (همان hash قبلی) → symlink — بدون دانلود
+        └─ کش miss → npm/pip/composer از اینترنت (enp63s0 موقت) → ذخیره در /var/cache/... → symlink
+```
+
+**زمان نصب:** همان **لحظه upload** — نه wizard، نه Start.
+
+### جدول سریع
+
+| سؤال | جواب |
+|------|------|
+| `node_modules` داخل ZIP؟ | **نه** — حجم زیاد و اشتباه |
+| بدون `package.json`؟ | CMS دانلود نمی‌کند |
+| اینترنت لازم است؟ | **بله** — اولین بار (cache miss) |
+| manifest کجا باشد؟ | **ریشه ZIP** — نه داخل `mod/` |
+| ZIP flat چطور؟ | `build-phase4-test-zip.ps1` یا داخل پوشه انتخاب همه → ZIP |
+
+### تست
+
+fixture: [`tests/fixtures/modules/phase4-cache-test/`](../tests/fixtures/modules/phase4-cache-test/) — `package.json` بدون `node_modules`.
 
 ---
 
@@ -106,13 +142,14 @@ my-app.zip
 
 ## ۵. وابستگی‌ها
 
+جزئیات کامل: **§۲.۱** · جدول manifest:
+
 | فایل | سیستم چه می‌کند |
 |------|------------------|
 | `package.json` | `npm install` + کش در `/var/cache/modulehub/pkg/<hash>/` |
 | `requirements.txt` | `pip install -r requirements.txt` |
 | `composer.json` | `composer install` |
 
-- ZIP فقط **سورس** یا **`dist/`** — نه `node_modules`.
 - نصب پکیج ممکن است **اینترنت آزاد** بخواهد (dual-WAN — `design plan.md` §۱۰).
 
 ---
@@ -186,10 +223,27 @@ npx serve . -l 8080
 
 ---
 
-## ۱۰. ارجاع
+## ۱۰. تست فاز ۴ — ماژول fixture (کش پکیج)
+
+**مسیر:** [`tests/fixtures/modules/phase4-cache-test/`](../tests/fixtures/modules/phase4-cache-test/)
+
+| مرحله | دستور / انتظار |
+|--------|----------------|
+| ساخت ZIP | `bash scripts/build-phase4-test-zip.sh` (ویندوز: `build-phase4-test-zip.ps1`) |
+| آپلود ×۲ | `bash scripts/test-package-cache-manual.sh` — upload2: `installed:false` · hash یکسان |
+| wizard | Docker خیر · پورت **4100** · needsProcess بله → **Start** |
+| UI | `/modules/<module-id>/` — diagnostics باید **PASS** |
+| verify | `bash scripts/verify-phase4-cache.sh <module-id> [module-id-2]` |
+
+hash ثابت fixture در README همان ماژول — unit: `tests/unit/package-cache/phase4-fixture-hash.test.ts`
+
+---
+
+## ۱۱. ارجاع
 
 | موضوع | فایل |
 |--------|------|
+| **وابستگی‌ها — کی دانلود می‌شود** | §۲.۱ همین فایل |
 | انواع ماژول و چالش سرور | `module-hosting-guide.md` |
 | معماری و تنظیمات | `design plan.md` |
 | چک‌لیست پیاده‌سازی | `openspec/changes/modulehub-cms-v1/tasks.md` |

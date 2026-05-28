@@ -136,8 +136,9 @@ table td code, table th code {
 
 ## وقتی کاربر `/sync-docs` یا «به‌روز docs» زد
 
-1. بخوان: `.cursor/rules/sync-docs-after-work.mdc` و `.cursor/commands/sync-docs.md`
+1. بخوان: `.cursor/commands/sync-docs.md` (شامل §۶ سه سند legacy)
 2. اول `session-walkthrough.md` (≤۵ خط) · بعد mistakes/deploy · بعد سایر docs در صورت نیاز
+3. **§۶:** `proposal` (روایی) · `design plan` (دلتا فنی) · `docs/tasks` (✅ فاز) — هم‌زمان با `openspec/.../tasks.md`
 
 ## وقتی کاربر درخواست «به‌روز docs» داد (دستی)
 

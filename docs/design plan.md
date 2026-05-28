@@ -92,6 +92,8 @@ ModuleHub CMS پلتفرمی است که به شما امکان می‌دهد ب
 
 ## ۳. ساختار دایرکتوری و فایل‌ها روی سرور
 
+> **توجه (فاز ۰–۴):** کد واقعی هسته در `core/src/modules/` (TypeScript، compile → `dist/`) است. درخت زیر **نمای کلی** است؛ ماژول کش: `core/src/modules/package-cache/`.
+
 ```bash
 /opt/modulehub-cms/
 ├── core/                     # کد هسته (Express، روتینگ، مدیریت ماژول)
@@ -348,13 +350,32 @@ request → session parser
 
 ## ۸. کش پکیج متمرکز (Package Cache)
 
-**هدف:** جلوگیری از آپلود و نصب تکراری وابستگی‌های حجیم.
+**هدف:** جلوگیری از نصب تکراری وابستگی‌های حجیم بین ماژول‌های مختلف.
 
-**روش کار:**
-- هنگام آپلود ZIP، سیستم فایل‌های `package.json`، `requirements.txt`، `composer.json` را اسکن می‌کند.
-- از محتوای آن فایل‌ها یک هش SHA256 می‌سازد.
-- اگر دایرکتوری `/var/cache/modulehub/pkg/<hash>` وجود داشته باشد، یک symbolic link به آن در پوشه ماژول ایجاد می‌کند (برای `node_modules` یا `venv`).
-- در غیر این صورت، در یک دایرکتوری موقت دستور نصب را اجرا می‌کند (با تغییر **موقت** metric به رابط انتخاب‌شده در `system-settings.json`، پیش‌فرض `enp63s0`) و نتیجه را به `/var/cache/modulehub/pkg/<hash>/` منتقل می‌کند.
+**پیاده‌سازی (فاز ۴ — `core/src/modules/package-cache/`):**
+
+| مرحله | رفتار |
+|--------|--------|
+| trigger | بلافاصله بعد از استخراج ZIP در `POST /admin/upload` — قبل از wizard |
+| بدون manifest | هیچ نصب/لینکی — فقط extract (Static/HTML) |
+| scan | `package.json` · `requirements.txt` · `composer.json` در **ریشه** پوشه ماژول (فایل داخل زیرپوشه zip شناسایی نمی‌شود) |
+| hash | SHA256 از محتوای manifestها (ترتیب ثابت بر اساس نام فایل) |
+| cache hit | symlink در ماژول: `node_modules` · `venv` · `vendor` → `/var/cache/modulehub/pkg/<hash>/` |
+| cache miss | نصب داخل `<hash>/` با `network-metric-toggler.py` (رابط `packageInstallInterface`، پیش‌فرض `enp63s0`) سپس symlink |
+| LRU | وقتی مجموع > `maxPackageCacheGb` (۵ GB) — حذف قدیمی‌ترین entry (`.cache-meta.json`) |
+| پاسخ API | فیلد `dependencies` در JSON آپلود: `hash` · `installed` · `linkedTargets` · `message` |
+
+**مسیرها:**
+
+| محیط | کش |
+|------|-----|
+| سرور Linux | `/var/cache/modulehub/pkg/<hash>/` |
+| لوکال Windows | `storage/cache/pkg/` (یا `MODULEHUB_PACKAGE_CACHE_DIR`) |
+| لاگ ماژول (لوکال dev) | `storage/logs/modules/` اگر `MODULEHUB_MODULE_LOG_DIR` unset |
+
+**npm تحت systemd:** سرویس CMS معمولاً nvm در PATH ندارد — `resolveNpmExecutablePath()` از `~/.nvm/versions/node/v*/bin/npm` یا env `MODULEHUB_NPM_PATH`.
+
+**اسکریپت smoke:** `scripts/test-package-cache-manual.sh` — ZIP باید manifest در ریشه archive باشد (`cd mod && zip ..` نه `zip mod/`).
 
 ---
 

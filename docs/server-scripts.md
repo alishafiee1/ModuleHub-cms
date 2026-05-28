@@ -228,7 +228,9 @@ bash scripts/setup-server-dirs.sh
 
 | فایل | چیه |
 |------|-----|
-| `scripts/test-package-cache-manual.sh` | smoke فاز ۴ — دو ZIP یکسان؛ بار دوم باید cache hit باشد |
+| `scripts/test-package-cache-manual.sh` | smoke فاز ۴ — دو upload با fixture ZIP |
+| `scripts/build-phase4-test-zip.sh` | ساخت ZIP تست از `tests/fixtures/modules/phase4-cache-test/` |
+| `scripts/verify-phase4-cache.sh` | بررسی symlink، left-pad، diagnostics HTTP |
 | `config/systemd/modulehub-cms.service` | نمونه با مسیر `/opt` — ولی unit واقعی رو `install-systemd.sh` می‌سازه |
 | `config/nginx/modulehub-cms.conf.example` | وقتی بخوای از بیرون با `haderbash.ir` بیای تو CMS |
 | `.env.example` | الگوی `SESSION_SECRET` و `ADMIN_PASSWORD_HASH` |

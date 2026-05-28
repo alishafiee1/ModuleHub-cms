@@ -38,9 +38,19 @@ table th code {
 # چک‌لیست پیاده‌سازی و تست ModuleHub CMS
 
 > **پایان هر فاز:** unit test + `npm run lint` + JSDoc توابع public — [`code-rolls.md`](code-rolls.md)  
-> **TypeScript:** همهٔ `core/src/` — type برای IO ماژول‌ها، بدون `any`.
+> **TypeScript:** همهٔ `core/src/` — type برای IO ماژول‌ها، بدون `any`.  
+> **وضعیت (2026-05-28):** فاز **۰–۵** ✅ در کد و openspec · فاز **۶+** ⏳ — جزئیات unit: [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
 
-## فاز ۰: آماده‌سازی زیرساخت (۱ روز)
+| فاز | موضوع | وضعیت |
+|-----|--------|--------|
+| ۰–۱ | زیرساخت + صفحه اصلی | ✅ |
+| ۲ | wizard + ZIP | ✅ |
+| ۳ | runtime Start/Stop + `/modules/` | ✅ |
+| ۴ | کش پکیج | ✅ 2026-05-28 |
+| ۵ | ⚙ مدیریت ماژول (gear) | ✅ 2026-05-28 |
+| ۶+ | backup کامل · auth · … | ⏳ |
+
+## فاز ۰: آماده‌سازی زیرساخت (۱ روز) — ✅
 
 | # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |
 |---|-------|--------|------------------|----------|
@@ -53,7 +63,7 @@ table th code {
 
 ---
 
-## فاز ۱: هسته اولیه و صفحه اصلی (۲ روز)
+## فاز ۱: هسته اولیه و صفحه اصلی (۲ روز) — ✅
 
 | # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |
 |---|-------|--------|------------------|----------|
@@ -65,7 +75,7 @@ table th code {
 
 ---
 
-## فاز ۲: Add wizard – آپلود ZIP و مراحل اولیه (۳ روز)
+## فاز ۲: Add wizard – آپلود ZIP و مراحل اولیه (۳ روز) — ✅
 
 | # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |
 |---|-------|--------|------------------|----------|
@@ -78,7 +88,7 @@ table th code {
 
 ---
 
-## فاز ۳: اجرای ماژول (systemd-run و Docker) (۳ روز)
+## فاز ۳: اجرای ماژول (systemd-run و Docker) (۳ روز) — ✅
 
 | # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |
 |---|-------|--------|------------------|----------|
@@ -91,19 +101,26 @@ table th code {
 
 ---
 
-## فاز ۴: کش پکیج متمرکز (۲ روز)
+## فاز ۴: کش پکیج متمرکز (۲ روز) — ✅ انجام شد 2026-05-28
+
+> smoke سرور: `bash scripts/test-package-cache-manual.sh` · fixture: `tests/fixtures/modules/phase4-cache-test/` · verify: `bash scripts/verify-phase4-cache.sh <module-id>`  
+> **وابستگی‌ها:** `node_modules` در ZIP نه — manifest در **ریشه** ZIP · [`developer-guide.md` §۲.۱](developer-guide.md)
 
 | # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |
 |---|-------|--------|------------------|----------|
-| 4.1 | شناسایی فایل وابستگی | اسکن پوشه ماژول برای `package.json`, `requirements.txt`, `composer.json` | لیست فایل‌ها شناسایی شود | لاگ دیباگ |
-| 4.2 | محاسبه هش SHA256 | از محتویات فایل(ها) | هش یکتا ایجاد شود | `sha256sum file` مقایسه شود |
+| 4.1 | شناسایی فایل وابستگی | اسکن پوشه ماژول برای `package.json`, `requirements.txt`, `composer.json` | لیست فایل‌ها شناسایی شود | unit manifest-scanner |
+| 4.2 | محاسبه هش SHA256 | از محتوای فایل(ها) | هش یکتا ایجاد شود | unit hash.test |
 | 4.3 | بررسی کش | وجود دایرکتوری `/var/cache/modulehub/pkg/<hash>` | در صورت وجود، symbolic link ایجاد شود | `ls -la standalone-modules/<id>/node_modules` |
-| 4.4 | نصب در صورت عدم وجود کش | اجرای `npm install` یا `pip install` در دایرکتوری موقت با تغییر مسیر شبکه آزاد | خروجی نصب ذخیره و لینک شود | بررسی زمان نصب (کاهش در دفعات بعد) |
-| 4.5 | تست با دو ماژول مشابه | آپلود دو ماژول با `package.json` یکسان | بار دوم بدون نصب مجدد، instantly لینک شود | مقایسه زمان آپلود دوم |
+| 4.4 | نصب در صورت عدم وجود کش | `npm`/`pip`/`composer` با `network-metric-toggler` (رابط `enp63s0` موقت) | خروجی در کش + symlink | upload اول ~چند ثانیه |
+| 4.5 | تست با دو ماژول مشابه | fixture ZIP `phase4-cache-test` — Backend + diagnostics | بار دوم `installed:false` · diagnostics PASS | `build-phase4-test-zip.sh` + `test-package-cache-manual.sh` + `verify-phase4-cache.sh` |
+| 4.6 | LRU eviction | وقتی کش > `maxPackageCacheGb` (۵ GB) | قدیمی‌ترین entry حذف شود | unit lru-eviction |
+| 4.7 | npm تحت systemd | سرویس CMS بدون nvm در PATH | مسیر npm از `~/.nvm/versions/node/` یا `MODULEHUB_NPM_PATH` | لاگ upload بدون `npm: not found` |
 
 ---
 
-## فاز ۵: مدیریت ماژول (چرخ‌دنده) (۳ روز)
+## فاز ۵: مدیریت ماژول (چرخ‌دنده) (۳ روز) — ✅ انجام شد 2026-05-28
+
+> dev: `MODULEHUB_DEV_SUPER_ADMIN=1` · API زیر `/admin/module/:id/*`
 
 | # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |
 |---|-------|--------|------------------|----------|

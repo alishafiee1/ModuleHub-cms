@@ -100,12 +100,78 @@ const ModuleHubApi = (function createModuleHubApi() {
   }
 
   /**
-   * Stops a module by id (auth required — phase 4).
+   * Stops a module by id (auth required).
    * @param {string} moduleId - Module id
    * @returns {Promise<object>}
    */
   async function stopModule(moduleId) {
     return requestJson(`/admin/module/${moduleId}/stop`, { method: 'POST' });
+  }
+
+  /**
+   * Restarts a module (stop if running, then start).
+   * @param {string} moduleId - Module id
+   * @returns {Promise<object>}
+   */
+  async function restartModule(moduleId) {
+    return requestJson(`/admin/module/${moduleId}/restart`, { method: 'POST' });
+  }
+
+  /**
+   * Fetches tail of module log lines.
+   * @param {string} moduleId - Module id
+   * @returns {Promise<{ content: string, maxLines: number }>}
+   */
+  async function fetchModuleLogs(moduleId) {
+    return requestJson(`/admin/module/${moduleId}/logs`);
+  }
+
+  /**
+   * Opens full module log download in a new tab.
+   * @param {string} moduleId - Module id
+   */
+  function downloadModuleLogs(moduleId) {
+    window.open(`/admin/module/${moduleId}/logs/download`, '_blank');
+  }
+
+  /**
+   * Updates module settings (Super Admin).
+   * @param {string} moduleId - Module id
+   * @param {object} payload - PATCH body
+   * @returns {Promise<object>}
+   */
+  async function updateModule(moduleId, payload) {
+    return requestJson(`/admin/module/${moduleId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /**
+   * Deletes a module permanently (Super Admin).
+   * @param {string} moduleId - Module id
+   * @returns {Promise<object>}
+   */
+  async function deleteModule(moduleId) {
+    return requestJson(`/admin/module/${moduleId}`, { method: 'DELETE' });
+  }
+
+  /**
+   * Triggers browser download of module backup ZIP.
+   * @param {string} moduleId - Module id
+   */
+  function downloadModuleBackup(moduleId) {
+    window.open(`/admin/module/${moduleId}/backup`, '_blank');
+  }
+
+  /**
+   * Runs git pull and dependency reinstall for a module.
+   * @param {string} moduleId - Module id
+   * @returns {Promise<object>}
+   */
+  async function syncModuleGitHub(moduleId) {
+    return requestJson(`/admin/module/${moduleId}/github-sync`, { method: 'POST' });
   }
 
   return {
@@ -116,5 +182,12 @@ const ModuleHubApi = (function createModuleHubApi() {
     saveWizard,
     startModule,
     stopModule,
+    restartModule,
+    fetchModuleLogs,
+    downloadModuleLogs,
+    updateModule,
+    deleteModule,
+    downloadModuleBackup,
+    syncModuleGitHub,
   };
 })();
