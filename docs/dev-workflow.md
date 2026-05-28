@@ -68,12 +68,28 @@ curl http://127.0.0.1:4000/health
 
 ---
 
+## dual-WAN — چرا `git pull` fail می‌شود؟
+
+سرور دو کارت دارد: `ens4` (فیلتر) و **`enp63s0` (آزاد)**.  
+`git pull` و `npm` باید موقت از کارت آزاد بروند — **بدون تغییر دائمی metric.**
+
+اسکریپت: `bash scripts/run-with-free-wan.sh <دستور>` → اجرا → **برگشت خودکار route**
+
+```bash
+bash scripts/run-with-free-wan.sh git pull origin main
+bash scripts/run-with-free-wan.sh npm ci
+```
+
+`deploy-on-server.sh` و `install-to-opt.sh` همین کار را خودکار می‌کنند.
+
+---
+
 ## به‌روزرسانی (هر بار بعد از push)
 
 ```bash
 source ~/.nvm/nvm.sh && nvm use 20
 cd ~/ModuleHub-cms
-git pull origin main
+bash scripts/run-with-free-wan.sh git pull origin main
 
 # اگر pull گفت untracked overwrite — فایل محلی سرور را پاک کن یا: git stash -u
 bash scripts/install-to-opt.sh
@@ -120,6 +136,7 @@ sudo systemctl status modulehub-cms
 | `sudo: terminal required` | SSH با `-t` یا sudo broker — نه از agent بدون TTY |
 | `git pull` overwrite | فایل‌های ویرایش‌شده روی سرور را بردار؛ فقط از git بیاید |
 | health قطع | `cd /opt/modulehub-cms && npm ci --omit=dev && sudo systemctl restart modulehub-cms` |
+| `Failed to connect to github.com` | `bash scripts/run-with-free-wan.sh git pull origin main` |
 
 ---
 

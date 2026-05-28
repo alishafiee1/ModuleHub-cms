@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "tree": {
+    "id": "root",
+    "name": "خانه",
+    "type": "folder",
+    "parentId": null,
+    "children": [
+      {
+        "id": "folder-a",
+        "name": "پوشه A",
+        "type": "folder",
+        "parentId": "root",
+        "children": [
+          {
+            "id": "node-mod-1",
+            "name": "ماژول ۱",
+            "type": "module",
+            "moduleId": "mod-1",
+            "parentId": "folder-a"
+          }
+        ]
+      },
+      {
+        "id": "node-mod-2",
+        "name": "ماژول ۲",
+        "type": "module",
+        "moduleId": "mod-2",
+        "parentId": "root"
+      }
+    ]
+  },
+  "modules": {
+    "mod-1": {
+      "name": "گالری",
+      "status": "running",
+      "version": "1.0.0",
+      "docker": false,
+      "port": 4100,
+      "permissions": "network",
+      "resources": {
+        "cpu_limit": 0.5,
+        "ram_limit_mb": 512,
+        "swap_limit_mb": 128
+      },
+      "icon": "fas fa-images",
+      "thumbnail": "",
+      "managementPasswordHash": "$2b$12$example"
+    },
+    "mod-2": {
+      "name": "آمار",
+      "status": "stopped",
+      "version": "2.0.0",
+      "docker": true,
+      "port": 4200,
+      "permissions": "network",
+      "resources": {
+        "cpu_limit": 0.8,
+        "ram_limit_mb": 1024,
+        "swap_limit_mb": 256
+      },
+      "icon": "fas fa-chart-line",
+      "thumbnail": ""
+    }
+  }
+}

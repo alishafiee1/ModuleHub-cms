@@ -19,9 +19,10 @@ th, td { text-align: right; padding: 0.35em 0.5em; }
 1. لوکال: `lint` + `test` + `git push` (حتماً **`package-lock.json`** commit شود)
 2. سرور: `source ~/.nvm/nvm.sh && nvm use 20`
 3. `cd ~/ModuleHub-cms && git pull` (نه ویرایش دستی اسکریپت روی سرور)
-4. `bash scripts/install-to-opt.sh` → rsync + **`npm ci --omit=dev` در opt**
-5. `cd /opt/modulehub-cms && bash scripts/install-systemd.sh` (نیاز **ترمینال تعاملی** / sudo broker)
-6. `curl http://127.0.0.1:4000/health` → `{"status":"ok"}`
+4. `bash scripts/run-with-free-wan.sh git pull origin main` — **قبل از pull** اگر GitHub از ens4 نمی‌آید
+5. `bash scripts/install-to-opt.sh` → rsync + **`npm ci` با free WAN** در opt
+6. `cd /opt/modulehub-cms && bash scripts/install-systemd.sh` (نیاز **ترمینال تعاملی** / sudo broker)
+7. `curl http://127.0.0.1:4000/health` → `{"status":"ok"}`
 
 به‌روزرسانی روزانه: `cd /opt/modulehub-cms && git pull` یا pull در home + `install-to-opt` + `bash scripts/deploy-on-server.sh`
 
@@ -38,6 +39,7 @@ th, td { text-align: right; padding: 0.35em 0.5em; }
 | `git pull` با فایل untracked هم‌نام | خطای overwrite — حذف/انتقال فایل‌های محلی سرور (`docs/server-scripts.md` و …) یا `git stash -u` |
 | ویرایش `scripts/` روی سرور | conflict با pull — فقط لوکال + push |
 | `ufw allow 4000` برای دسترسی سایت | CMS فقط **`127.0.0.1:4000`** — بیرون از **Nginx :443** |
+| `git pull` / `npm` بدون free WAN | `Failed to connect to github.com` — **`bash scripts/run-with-free-wan.sh <cmd>`** |
 | فرض سرویس قدیمی روی 4000 = CMS جدید | ممکن است پروسه/کد قدیمی باشد؛ بعد از deploy حتماً **restart** + health |
 | `npm ci` بدون `package-lock.json` | از `npm install` یا commit کردن lock در repo |
 | deploy فقط در home بدون opt | systemd و `deploy-on-server.sh` فرض **`/opt/modulehub-cms`** دارند |
@@ -49,7 +51,7 @@ th, td { text-align: right; padding: 0.35em 0.5em; }
 ```bash
 source ~/.nvm/nvm.sh && nvm use 20
 cd ~/ModuleHub-cms
-git pull origin main
+bash scripts/run-with-free-wan.sh git pull origin main
 sed -i 's/\r$//' scripts/*.sh 2>/dev/null || true
 bash scripts/install-to-opt.sh
 cd /opt/modulehub-cms

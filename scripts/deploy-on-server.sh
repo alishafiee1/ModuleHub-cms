@@ -10,8 +10,10 @@ SYSTEMD_DEST="/etc/systemd/system/${SERVICE_NAME}.service"
 HEALTH_URL="${MODULEHUB_HEALTH_URL:-http://127.0.0.1:4000/health}"
 SKIP_PULL=false
 SKIP_BUILD=false
+SKIP_WAN=false
 DRY_RUN=false
 SUDO_KEEPALIVE_PID=""
+FREE_WAN_RUNNER=""
 
 usage() {
   cat <<'EOF'
@@ -29,7 +31,21 @@ Environment:
   MODULEHUB_APP_DIR      App root (default: /opt/modulehub-cms)
   MODULEHUB_SERVICE      systemd unit name (default: modulehub-cms)
   MODULEHUB_HEALTH_URL   Health check URL (default: http://127.0.0.1:4000/health)
+  MODULEHUB_PACKAGE_INSTALL_INTERFACE  NIC for git/npm (default: enp63s0)
+  MODULEHUB_SKIP_WAN=1   Skip temporary route toggle
 EOF
+}
+
+run_with_free_wan() {
+  if [[ "$SKIP_WAN" == true || "$DRY_RUN" == true ]]; then
+    run "$@"
+    return
+  fi
+  if [[ -x "${FREE_WAN_RUNNER}" || -f "${FREE_WAN_RUNNER}" ]]; then
+    run bash "${FREE_WAN_RUNNER}" "$@"
+  else
+    run "$@"
+  fi
 }
 
 log() {
@@ -74,6 +90,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --skip-pull) SKIP_PULL=true; shift ;;
     --skip-build) SKIP_BUILD=true; shift ;;
+    --skip-wan) SKIP_WAN=true; shift ;;
     --dry-run) DRY_RUN=true; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1" >&2; usage; exit 1 ;;
@@ -87,11 +104,12 @@ fi
 
 cd "$APP_DIR"
 log "Working directory: $APP_DIR"
+FREE_WAN_RUNNER="${SCRIPT_DIR}/run-with-free-wan.sh"
 
 if [[ "$SKIP_PULL" != true ]]; then
   if [[ -d .git ]]; then
-    log "git pull..."
-    run git pull --ff-only
+    log "git pull (free WAN if needed)..."
+    run_with_free_wan git pull --ff-only
   else
     log "WARN: not a git repo — skipping git pull"
   fi
@@ -107,11 +125,11 @@ if [[ ! -f .env ]]; then
 fi
 
 if [[ -f package-lock.json ]]; then
-  log "npm ci --omit=dev..."
-  run npm ci --omit=dev
+  log "npm ci --omit=dev (free WAN if needed)..."
+  run_with_free_wan npm ci --omit=dev
 else
   log "WARN: package-lock.json missing — using npm install --omit=dev"
-  run npm install --omit=dev
+  run_with_free_wan npm install --omit=dev
 fi
 
 if [[ "$SKIP_BUILD" != true ]]; then

@@ -87,7 +87,8 @@ table th code,
 | `install-systemd.sh` | CMS رو سرویس systemd می‌کنه که با روشن شدن سرور بالا بیاد |
 | `deploy-on-server.sh` | بعد از هر آپدیت کد: pull، build، restart، چک سلامت |
 | `install-to-opt.sh` | home → `/opt` + **`npm ci` در opt** |
-| `network-metric-toggler.py` | برای دو تا کارت شبکه — موقع npm install از اینترنت آزاد استفاده می‌کنه (بعداً) |
+| `run-with-free-wan.sh` | هر دستور (git/npm) را موقت از `enp63s0` می‌فرستد و برمی‌گرداند |
+| `network-metric-toggler.py` | موتور پایین — معمولاً مستقیم صدا نزن |
 
 ---
 
@@ -150,7 +151,23 @@ bash scripts/install-systemd.sh   # ترمینال با sudo
 
 ---
 
-## `network-metric-toggler.py` — برای dual-WAN
+## `run-with-free-wan.sh` — git و npm از اینترنت آزاد
+
+روی `ens4` گیت‌هاب و npm registry گیر می‌کند. این wrapper موقت route را از **`enp63s0`** می‌گذارد و **بعد از تمام دستور** برمی‌گرداند.
+
+```bash
+cd ~/ModuleHub-cms
+bash scripts/run-with-free-wan.sh git pull origin main
+bash scripts/run-with-free-wan.sh npm ci
+```
+
+NIC پیش‌فرض: `enp63s0` — یا `storage/system-settings.json` → `packageInstallInterface`
+
+`deploy-on-server.sh` و `install-to-opt.sh` خودکار از همین wrapper استفاده می‌کنند.
+
+---
+
+## `network-metric-toggler.py` — برای dual-WAN (پایین‌لایه)
 
 روی سرورت دو تا کارت شبکه داری (`ens4` فیلتر، `enp63s0` آزاد). وقتی ماژولی `npm install` می‌خواد، این اسکریپت موقتاً ترافیک رو از کارت آزاد رد می‌کنه و بعد برمی‌گردونه به حالت قبل.
 

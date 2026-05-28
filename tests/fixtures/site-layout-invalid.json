@@ -1,0 +1,19 @@
+{
+  "version": "1.0",
+  "tree": {
+    "id": "root",
+    "name": "خانه",
+    "type": "folder",
+    "parentId": null,
+    "children": [
+      {
+        "id": "broken-module",
+        "name": "Broken",
+        "type": "module",
+        "moduleId": "missing-module",
+        "parentId": "root"
+      }
+    ]
+  },
+  "modules": {}
+}

@@ -38,13 +38,14 @@ rsync -a --delete \
   --exclude standalone-modules \
   "${SOURCE_DIR}/" "${TARGET_DIR}/"
 
-log "Installing production dependencies in ${TARGET_DIR}..."
+FREE_WAN_RUNNER="${SOURCE_DIR}/scripts/run-with-free-wan.sh"
+log "Installing production dependencies in ${TARGET_DIR} (free WAN if needed)..."
 (
   cd "${TARGET_DIR}"
   if [[ -f package-lock.json ]]; then
-    npm ci --omit=dev
+    bash "${FREE_WAN_RUNNER}" npm ci --omit=dev
   else
-    npm install --omit=dev
+    bash "${FREE_WAN_RUNNER}" npm install --omit=dev
   fi
 )
 

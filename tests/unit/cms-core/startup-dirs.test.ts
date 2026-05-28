@@ -18,6 +18,10 @@ describe('ensureRequiredDirectories', () => {
   });
 
   it('creates storage/logs, storage/backups, and standalone-modules', async () => {
+    const seedSource = path.join(process.cwd(), 'docs', 'site-layout.json');
+    await fs.ensureDir(path.join(tempRoot, 'docs'));
+    await fs.copy(seedSource, path.join(tempRoot, 'docs', 'site-layout.json'));
+
     const { ensureRequiredDirectories } = await import(
       '../../../core/src/bootstrap/ensure-directories'
     );
@@ -26,5 +30,6 @@ describe('ensureRequiredDirectories', () => {
     expect(await fs.pathExists(path.join(tempRoot, 'storage', 'logs'))).toBe(true);
     expect(await fs.pathExists(path.join(tempRoot, 'storage', 'backups'))).toBe(true);
     expect(await fs.pathExists(path.join(tempRoot, 'standalone-modules'))).toBe(true);
+    expect(await fs.pathExists(path.join(tempRoot, 'storage', 'site-layout.json'))).toBe(true);
   });
 });

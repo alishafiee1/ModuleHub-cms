@@ -29,7 +29,7 @@ curl http://127.0.0.1:4000/health
 
 ```bash
 source ~/.nvm/nvm.sh && nvm use 20
-cd ~/ModuleHub-cms && git pull
+cd ~/ModuleHub-cms && bash scripts/run-with-free-wan.sh git pull
 bash scripts/install-to-opt.sh
 cd /opt/modulehub-cms && bash scripts/deploy-on-server.sh --skip-pull
 ```

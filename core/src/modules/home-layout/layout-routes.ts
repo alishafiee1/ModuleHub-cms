@@ -1,6 +1,6 @@
 import type { Request, Response, Router } from 'express';
 import { Router as createRouter } from 'express';
-import { getLogger } from '../logger';
+import { getCmsLogger } from '../logger';
 import { LayoutParseError } from './layout-parser';
 import { loadLayoutForApi } from './layout-store';
 
@@ -15,7 +15,7 @@ export async function getLayoutHandler(request: Request, response: Response): Pr
     const layout = await loadLayoutForApi();
     response.status(200).json(layout);
   } catch (error: unknown) {
-    const logger = getLogger();
+    const logger = getCmsLogger();
     if (error instanceof LayoutParseError) {
       logger.error('Layout parse failed', { error: error.message });
       response.status(500).json({ error: 'Invalid site layout configuration' });
