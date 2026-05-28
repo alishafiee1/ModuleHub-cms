@@ -1,5 +1,7 @@
 // admin/settings.js — Super Admin system settings form
 (function initSettingsPage() {
+  const HELP_DELAY_MS = 3000;
+
   const form = document.getElementById('settingsForm');
   const nicSection = document.getElementById('nicSection');
   const nicTextSection = document.getElementById('nicTextSection');
@@ -8,6 +10,194 @@
   let currentSettings = null;
   let networkInterfaces = [];
   let showNicSelector = false;
+  let helpTimerId = null;
+  let activeHelpLabel = null;
+
+  /** Simple Persian help texts keyed by data-help-key */
+  const SETTINGS_HELP_TEXTS = {
+    maxZipUploadMb: {
+      title: 'حداکثر حجم ZIP',
+      text: 'بزرگ‌ترین حجم فایل ZIP که می‌توانید آپلود کنید. اگر ماژول سنگین‌تر باشد، سرور خطای ۴۱۳ می‌دهد و آپلود رد می‌شود.',
+    },
+    portRangeStart: {
+      title: 'شروع بازه پورت',
+      text: 'کوچک‌ترین شماره پورتی که CMS برای ماژول‌های جدید (وقتی پورت دستی نمی‌دهید) در نظر می‌گیرد.',
+    },
+    portRangeEnd: {
+      title: 'پایان بازه پورت',
+      text: 'بزرگ‌ترین پورت مجاز برای تخصیص خودکار. باید از «شروع بازه» بزرگ‌تر باشد.',
+    },
+    cpu_limit: {
+      title: 'CPU پیش‌فرض',
+      text: 'سهم پردازنده برای ماژول تازه اضافه‌شده. عدد کوچک‌تر یعنی فشار کمتر روی سرور (مثلاً ۰.۵ یعنی نصف یک هسته).',
+    },
+    ram_limit_mb: {
+      title: 'RAM پیش‌فرض',
+      text: 'حافظهٔ RAM (مگابایت) که wizard برای ماژول جدید پیشنهاد می‌دهد. اگر کم باشد ماژول ممکن است crash کند.',
+    },
+    swap_limit_mb: {
+      title: 'Swap پیش‌فرض',
+      text: 'حافظهٔ swap اضطراری (مگابایت). وقتی RAM پر شود سیستم از swap استفاده می‌کند — خیلی زیاد نکنید.',
+    },
+    disk_iops: {
+      title: 'Disk IOPS',
+      text: 'محدودیت سرعت نوشتن/خواندن دیسک برای ماژول. عدد پایین‌تر یعنی ماژول کمتر دیسک را اشغال می‌کند.',
+    },
+    net_mbps: {
+      title: 'Network (Mbps)',
+      text: 'سقف پهنای باند شبکه برای ماژول (مگابیت بر ثانیه). برای جلوگیری از اشباع اینترنت سرور.',
+    },
+    maxConcurrentRunningModules: {
+      title: 'حداکثر ماژول همزمان',
+      text: 'چند ماژول می‌توانند هم‌زمان روی دکمه Start باشند. بعد از این تعداد، Start جدید خطای ۴۰۹ می‌دهد.',
+    },
+    logRetentionDays: {
+      title: 'نگهداری لاگ',
+      text: 'چند روز فایل‌های لاگ CMS و ماژول‌ها نگه داشته شوند. با logrotate هماهنگ است — قدیمی‌ها فشرده یا حذف می‌شوند.',
+    },
+    maxPackageCacheGb: {
+      title: 'حداکثر کش پکیج',
+      text: 'سقف فضای دیسک برای کش npm/pip/composer مشترک. وقتی پر شود قدیمی‌ترین کش‌ها (LRU) پاک می‌شوند.',
+    },
+    dependencyInstallTimeoutSec: {
+      title: 'تایم‌اوت نصب وابستگی',
+      text: 'حداکثر ثانیه‌ای که npm install یا pip install اجازه دارند طول بکشند. بعد از آن نصب قطع می‌شود.',
+    },
+    uploadTempCleanupHours: {
+      title: 'پاکسازی temp آپلود',
+      text: 'فایل‌های ZIP موقت بعد از آپلود چند ساعت در پوشه temp بمانند و سپس پاک شوند.',
+    },
+    logViewerMaxLines: {
+      title: 'حداکثر خطوط log viewer',
+      text: 'در دیالوگ ⚙ → مشاهده لاگ، چند خط آخر نشان داده شود (پیش‌فرض ۵۰).',
+    },
+    autoRestartOnCrash: {
+      title: 'راه‌اندازی مجدد خودکار',
+      text: 'اگر ماژول crash کند، CMS سعی می‌کند خودکار دوباره Start کند — تا سقف «حداکثر تلاش در ساعت».',
+    },
+    autoRestartMaxAttemptsPerHour: {
+      title: 'حداکثر تلاش در ساعت',
+      text: 'در یک ساعت چند بار auto-restart مجاز است. بیش از این، CMS دیگر خودکار start نمی‌کند تا loop بی‌نهایت نشود.',
+    },
+    packageInstallInterface: {
+      title: 'رابط شبکه نصب پکیج',
+      text: 'روی سرور دو خط اینترنت دارید؟ این کارت شبکه موقتاً برای npm/docker/git انتخاب می‌شود. مسیر دائمی Ubuntu عوض نمی‌شود.',
+    },
+    sessionTtlHours: {
+      title: 'Session Super Admin',
+      text: 'چند ساعت بعد از login، session ادمین اصلی منقضی شود. (فاز ۸ — login واقعی)',
+    },
+    loginRateLimitPerMinute: {
+      title: 'محدودیت login',
+      text: 'در هر دقیقه چند بار می‌توان رمز login را امتحان کرد. بیشتر → خطای ۴۲۹ (ضد brute-force).',
+    },
+    moduleManagerSessionTtlHours: {
+      title: 'Session Module Manager',
+      text: 'مدت session کسی که فقط با رمز یک ماژول وارد شده (نه Super Admin).',
+    },
+    modulePasswordMaxAttempts: {
+      title: 'حداکثر تلاش رمز ماژول',
+      text: 'چند بار می‌توان رمز ⚙ یک ماژول را اشتباه زد قبل از lockout.',
+    },
+    modulePasswordLockoutMinutes: {
+      title: 'مدت lockout',
+      text: 'بعد از تلاش‌های اشتباه، چند دقیقه ورود به همان ماژول مسدود می‌ماند.',
+    },
+  };
+
+  /**
+   * Clears pending help popup timer.
+   */
+  function clearHelpTimer() {
+    if (helpTimerId !== null) {
+      clearTimeout(helpTimerId);
+      helpTimerId = null;
+    }
+    activeHelpLabel = null;
+  }
+
+  /**
+   * Shows SweetAlert help popup for a settings field key.
+   * @param {string} helpKey - data-help-key value
+   */
+  function showSettingsHelp(helpKey) {
+    if (typeof Swal !== 'undefined' && Swal.isVisible()) {
+      return;
+    }
+    const help = SETTINGS_HELP_TEXTS[helpKey];
+    if (!help) {
+      return;
+    }
+    void Swal.fire({
+      title: help.title,
+      text: help.text,
+      icon: 'info',
+      confirmButtonText: 'بستن',
+    });
+  }
+
+  /**
+   * Starts 3s timer before showing help for a label element.
+   * @param {HTMLElement} label - Label with data-help-key
+   */
+  function startHelpTimer(label) {
+    clearHelpTimer();
+    activeHelpLabel = label;
+    const helpKey = label.getAttribute('data-help-key');
+    if (!helpKey) {
+      return;
+    }
+    helpTimerId = window.setTimeout(() => {
+      helpTimerId = null;
+      showSettingsHelp(helpKey);
+    }, HELP_DELAY_MS);
+  }
+
+  /**
+   * Wires hover and long-touch help on all labels inside the settings form.
+   */
+  function initSettingsHelpHints() {
+    if (!form) {
+      return;
+    }
+
+    form.addEventListener('mouseover', (event) => {
+      const label = event.target.closest('label[data-help-key]');
+      if (!label || !form.contains(label)) {
+        return;
+      }
+      if (label !== activeHelpLabel) {
+        startHelpTimer(label);
+      }
+    });
+
+    form.addEventListener('mouseout', (event) => {
+      const label = event.target.closest('label[data-help-key]');
+      if (!label) {
+        return;
+      }
+      const relatedTarget = event.relatedTarget;
+      if (!relatedTarget || !label.contains(relatedTarget)) {
+        clearHelpTimer();
+      }
+    });
+
+    form.addEventListener('touchstart', (event) => {
+      const label = event.target.closest('label[data-help-key]');
+      if (!label || !form.contains(label)) {
+        return;
+      }
+      startHelpTimer(label);
+    }, { passive: true });
+
+    form.addEventListener('touchend', () => {
+      clearHelpTimer();
+    });
+
+    form.addEventListener('touchcancel', () => {
+      clearHelpTimer();
+    });
+  }
 
   /**
    * Sets a numeric input value by element id.
@@ -42,6 +232,7 @@
 
     for (const iface of networkInterfaces) {
       const label = document.createElement('label');
+      label.setAttribute('data-help-key', 'packageInstallInterface');
       const radio = document.createElement('input');
       radio.type = 'radio';
       radio.name = 'packageInstallInterfaceRadio';
@@ -170,5 +361,6 @@
     }
   });
 
+  initSettingsHelpHints();
   void loadSettingsPage();
 })();
