@@ -2,19 +2,19 @@
 
 ## 1. فاز ۰ — زیرساخت (cms-core)
 
-- [ ] 1.1 ایجاد ساختار دایرکتوری پروژه: `core/src/`, `public/`, `standalone-modules/`, `storage/{logs,backups}/`, `thumbnails/`, `scripts/`, `tests/{unit,integration,fixtures}/`
-- [ ] 1.2 راه‌اندازی `package.json` — Express، TypeScript، Jest، ts-jest، ESLint، express-session، bcrypt، express-rate-limit، multer، adm-zip، winston، fs-extra
-- [ ] 1.3 پیاده‌سازی `core/src/server.ts` — listen `127.0.0.1:4000` + `GET /health`
-- [ ] 1.4 پیاده‌سازی `core/src/modules/logger/` — Winston با rotate روزانه ۱۴ روز
-- [ ] 1.5 کپی `config/systemd/modulehub-cms.service` و تست `systemctl enable --now`
-- [ ] 1.6 تنظیم Nginx — proxy `/` و `/admin` **بدون** محدودیت IP (auth در CMS)
-- [ ] 1.7 ایجاد `scripts/network-metric-toggler.py` — toggle موقت metric + restore
-- [ ] 1.8 ایجاد dirs سرور: `/var/log/modulehub/modules`, `/var/cache/modulehub/pkg`
-- [ ] 1.9 **Unit:** `tests/unit/cms-core/health.test.ts` — `GET /health` → 200 و `{ status: "ok" }`
-- [ ] 1.10 **Unit:** `tests/unit/cms-core/startup-dirs.test.ts` — ایجاد/بررسی `storage/logs/`، `storage/backups/`، `standalone-modules/`
-- [ ] 1.11 **Unit:** `tests/unit/logger/logger.test.ts` — فرمت log entry (method، path، status)
-- [ ] 1.12 تست دستی: `curl http://127.0.0.1:4000/health` → 200
-- [ ] 1.13 **بستن فاز:** `npm run lint` + JSDoc برای `server.ts` و `logger/`
+- [x] 1.1 ایجاد ساختار دایرکتوری پروژه: `core/src/`, `public/`, `standalone-modules/`, `storage/{logs,backups}/`, `thumbnails/`, `scripts/`, `tests/{unit,integration,fixtures}/`
+- [x] 1.2 راه‌اندازی `package.json` — Express، TypeScript، Jest، ts-jest، ESLint، express-session، bcrypt، express-rate-limit، multer، adm-zip، winston، fs-extra
+- [x] 1.3 پیاده‌سازی `core/src/server/index.ts` — listen `127.0.0.1:4000` + `GET /health`
+- [x] 1.4 پیاده‌سازی `core/src/modules/logger/` — Winston با rotate روزانه ۱۴ روز
+- [x] 1.5 کپی `config/systemd/modulehub-cms.service` و تست `systemctl enable --now` — `scripts/install-systemd.sh` (اجرا روی سرور)
+- [x] 1.6 تنظیم Nginx — proxy `/` و `/admin` **بدون** محدودیت IP (auth در CMS) — `config/nginx/modulehub-cms.conf.example`
+- [x] 1.7 ایجاد `scripts/network-metric-toggler.py` — toggle موقت metric + restore
+- [x] 1.8 ایجاد dirs سرور: `/var/log/modulehub/modules`, `/var/cache/modulehub/pkg` — `scripts/setup-server-dirs.sh`
+- [x] 1.9 **Unit:** `tests/unit/cms-core/health.test.ts` — `GET /health` → 200 و `{ status: "ok" }`
+- [x] 1.10 **Unit:** `tests/unit/cms-core/startup-dirs.test.ts` — ایجاد/بررسی `storage/logs/`، `storage/backups/`، `standalone-modules/`
+- [x] 1.11 **Unit:** `tests/unit/logger/logger.test.ts` — فرمت log entry (method، path، status)
+- [x] 1.12 تست دستی: `curl http://127.0.0.1:4000/health` → 200
+- [x] 1.13 **بستن فاز:** `npm run lint` + JSDoc برای `server/index.ts` و `logger/`
 
 ## 2. فاز ۱ — صفحه اصلی و layout (home-layout + admin-frontend)
 
