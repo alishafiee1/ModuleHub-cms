@@ -15,18 +15,32 @@ const ModuleDialogs = (function createModuleDialogs() {
       title: 'مرحله ۱: نوع اجرا و پورت',
       html: `
         <div style="text-align:right;">
-          <label><input type="checkbox" id="wiz-docker"> اجرا در Docker</label>
-          <label style="display:block; margin-top:8px;">
-            <input type="checkbox" id="wiz-needs-process" checked> نیاز به پروسه (Backend/Docker) — غیرفعال = Static/SPA
-          </label>
-          <label>پورت داخلی (خالی = خودکار ۴۱۰۰–۴۹۹۹)</label>
-          <input id="wiz-port" class="swal2-input" type="number" placeholder="مثلاً 4105 یا خالی">
-          <label>دسترسی‌ها</label>
-          <select id="wiz-permissions" class="swal2-input">
-            <option value="network">network</option>
-            <option value="network+volume">network+volume</option>
-            <option value="none">none</option>
-          </select>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-checkbox-label">
+              <input type="checkbox" id="wiz-docker"> 
+              <strong>اجرا در Docker</strong>
+            </label>
+          </div>
+          <div class="form-group" style="margin-bottom: 1.25rem;">
+            <label class="form-checkbox-label">
+              <input type="checkbox" id="wiz-needs-process" checked> 
+              <strong>نیاز به پروسه (Backend/Docker)</strong>
+            </label>
+            <div style="font-size:0.75rem; color:var(--text-desc); margin-top:4px; margin-right:24px;">غیرفعال = ماژول استاتیک (Static/SPA)</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="wiz-port">پورت داخلی</label>
+            <div style="font-size:0.75rem; color:var(--text-desc); margin-bottom:6px;">خالی = خودکار ۴۱۰۰–۴۹۹۹</div>
+            <input id="wiz-port" class="swal2-input" type="number" placeholder="مثلاً 4105">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="wiz-permissions">دسترسی‌ها</label>
+            <select id="wiz-permissions" class="swal2-select">
+              <option value="network">network</option>
+              <option value="network+volume">network+volume</option>
+              <option value="none">none</option>
+            </select>
+          </div>
         </div>
       `,
       focusConfirm: false,
@@ -70,20 +84,32 @@ const ModuleDialogs = (function createModuleDialogs() {
       title: 'تنظیمات ماژول: منابع، آیکون و تصویر کارت',
       html: `
         <div style="text-align:right;">
-          <label>نام ماژول</label>
-          <input id="mod-name" class="swal2-input" value="${escapeHtml(data.moduleName)}" placeholder="نام کارت">
-          <label>توضیحات</label>
-          <textarea id="mod-desc" class="swal2-textarea" placeholder="توضیحات کوتاه">${escapeHtml(data.moduleDesc)}</textarea>
-          <label>آیکون کارت</label>
-          <div id="icon-selector-container" class="icon-selector">${iconOptionsHtml}</div>
-          <input id="custom-icon" class="swal2-input" placeholder="آیکون سفارشی" value="${escapeHtml(data.icon)}">
-          <hr>
-          <label>CPU (هسته): <span id="cpu-val">${data.cpu_limit}</span></label>
-          <input type="range" id="cpu-limit" class="resource-slider" min="0.1" max="2" step="0.1" value="${data.cpu_limit}">
-          <label>RAM (MB): <span id="ram-val">${data.ram_limit_mb}</span></label>
-          <input type="range" id="ram-limit" class="resource-slider" min="128" max="4096" step="64" value="${data.ram_limit_mb}">
-          <label>Swap (MB): <span id="swap-val">${data.swap_limit_mb}</span></label>
-          <input type="range" id="swap-limit" class="resource-slider" min="0" max="1024" step="32" value="${data.swap_limit_mb}">
+          <div class="form-group">
+            <label class="form-label" for="mod-name">نام ماژول</label>
+            <input id="mod-name" class="swal2-input" value="${escapeHtml(data.moduleName)}" placeholder="نام کارت">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="mod-desc">توضیحات</label>
+            <textarea id="mod-desc" class="swal2-textarea" style="height: 80px;" placeholder="توضیحات کوتاه">${escapeHtml(data.moduleDesc)}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">آیکون کارت</label>
+            <div id="icon-selector-container" class="icon-selector">${iconOptionsHtml}</div>
+            <input id="custom-icon" class="swal2-input" placeholder="آیکون سفارشی" value="${escapeHtml(data.icon)}">
+          </div>
+          <hr style="border:0; border-top:1px solid var(--card-glass-border); margin: 1.5rem 0;">
+          <div class="form-group">
+            <label class="form-label">CPU (هسته): <span id="cpu-val" style="color:#06b6d4; font-weight:700;">${data.cpu_limit}</span></label>
+            <input type="range" id="cpu-limit" class="resource-slider" min="0.1" max="2" step="0.1" value="${data.cpu_limit}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">RAM (MB): <span id="ram-val" style="color:#06b6d4; font-weight:700;">${data.ram_limit_mb}</span></label>
+            <input type="range" id="ram-limit" class="resource-slider" min="128" max="4096" step="64" value="${data.ram_limit_mb}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Swap (MB): <span id="swap-val" style="color:#06b6d4; font-weight:700;">${data.swap_limit_mb}</span></label>
+            <input type="range" id="swap-limit" class="resource-slider" min="0" max="1024" step="32" value="${data.swap_limit_mb}">
+          </div>
         </div>
       `,
       focusConfirm: false,
@@ -234,27 +260,48 @@ const ModuleDialogs = (function createModuleDialogs() {
    */
   async function showModuleEditDialog(moduleMeta, isSuperAdmin) {
     const passwordFields = isSuperAdmin ? `
-      <label>رمز Module Manager (خالی = بدون تغییر)</label>
-      <input id="edit-mgmt-pass" type="password" class="swal2-input" placeholder="رمز جدید">
-      <label><input type="checkbox" id="edit-clear-pass"> حذف رمز Module Manager</label>
-      <label>آدرس GitHub (gitRepo)</label>
-      <input id="edit-git-repo" class="swal2-input" value="${escapeHtml(moduleMeta.gitRepo || '')}" placeholder="https://github.com/user/repo.git">
+      <hr style="border:0; border-top:1px solid var(--card-glass-border); margin: 1.5rem 0;">
+      <div class="form-group">
+        <label class="form-label" for="edit-mgmt-pass">رمز Module Manager</label>
+        <div style="font-size:0.75rem; color:var(--text-desc); margin-bottom:6px;">خالی = بدون تغییر</div>
+        <input id="edit-mgmt-pass" type="password" class="swal2-input" placeholder="رمز جدید">
+      </div>
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-checkbox-label">
+          <input type="checkbox" id="edit-clear-pass"> 
+          <strong>حذف رمز Module Manager</strong>
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="edit-git-repo">آدرس GitHub (gitRepo)</label>
+        <input id="edit-git-repo" class="swal2-input" value="${escapeHtml(moduleMeta.gitRepo || '')}" placeholder="https://github.com/user/repo.git">
+      </div>
     ` : '';
 
     const { value: result } = await Swal.fire({
       title: `ویرایش · ${escapeHtml(moduleMeta.name)}`,
       html: `
         <div style="text-align:right;">
-          <label>نام</label>
-          <input id="edit-name" class="swal2-input" value="${escapeHtml(moduleMeta.name)}">
-          <label>نسخه</label>
-          <input id="edit-version" class="swal2-input" value="${escapeHtml(moduleMeta.version)}">
-          <label>توضیحات</label>
-          <textarea id="edit-changelog" class="swal2-textarea">${escapeHtml(moduleMeta.changelog || '')}</textarea>
-          <label>CPU: <span id="edit-cpu-val">${moduleMeta.resources.cpu_limit}</span></label>
-          <input type="range" id="edit-cpu" class="resource-slider" min="0.1" max="2" step="0.1" value="${moduleMeta.resources.cpu_limit}">
-          <label>RAM (MB): <span id="edit-ram-val">${moduleMeta.resources.ram_limit_mb}</span></label>
-          <input type="range" id="edit-ram" class="resource-slider" min="128" max="4096" step="64" value="${moduleMeta.resources.ram_limit_mb}">
+          <div class="form-group">
+            <label class="form-label" for="edit-name">نام</label>
+            <input id="edit-name" class="swal2-input" value="${escapeHtml(moduleMeta.name)}">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-version">نسخه</label>
+            <input id="edit-version" class="swal2-input" value="${escapeHtml(moduleMeta.version)}">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-changelog">توضیحات</label>
+            <textarea id="edit-changelog" class="swal2-textarea" style="height: 80px;">${escapeHtml(moduleMeta.changelog || '')}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">CPU: <span id="edit-cpu-val" style="color:#06b6d4; font-weight:700;">${moduleMeta.resources.cpu_limit}</span></label>
+            <input type="range" id="edit-cpu" class="resource-slider" min="0.1" max="2" step="0.1" value="${moduleMeta.resources.cpu_limit}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">RAM (MB): <span id="edit-ram-val" style="color:#06b6d4; font-weight:700;">${moduleMeta.resources.ram_limit_mb}</span></label>
+            <input type="range" id="edit-ram" class="resource-slider" min="128" max="4096" step="64" value="${moduleMeta.resources.ram_limit_mb}">
+          </div>
           ${passwordFields}
         </div>
       `,
