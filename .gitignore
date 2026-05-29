@@ -29,3 +29,4 @@ Thumbs.db
 # Local-only docs (server IPs / personal notes)
 docs/server condition.md
 docs/dev-workflow.md
+core/src/modules/admin-auth/admin-users.json

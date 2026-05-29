@@ -74,8 +74,8 @@ export function createApp(): Application {
     next();
   });
 
-  app.use('/admin', createAdminCsrfProtectionMiddleware());
   app.use('/admin', createAdminLoginRouter());
+  app.use('/admin', createAdminCsrfProtectionMiddleware());
   app.use('/admin/module', createModuleAuthRouter());
   app.use('/admin/module', createModuleManagementRouter());
   app.use('/admin/backup', createBackupRestoreRouter());

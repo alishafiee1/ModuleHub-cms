@@ -16,12 +16,12 @@
   },
   "dependencies": {
     "adm-zip": "^0.5.16",
-    "bcrypt": "^6.0.0",
+    "bcrypt": "^5.1.0",
     "express": "^5.1.0",
-    "http-proxy-middleware": "^3.0.5",
     "express-rate-limit": "^8.1.0",
     "express-session": "^1.18.2",
     "fs-extra": "^11.3.0",
+    "http-proxy-middleware": "^3.0.5",
     "multer": "^2.0.2",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0"
