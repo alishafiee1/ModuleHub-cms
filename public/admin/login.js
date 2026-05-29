@@ -1,6 +1,9 @@
 (function initAdminLoginPage() {
   const form = document.getElementById('loginForm');
   const errorBox = document.getElementById('loginError');
+  const togglePasswordBtn = document.getElementById('togglePassword');
+  const passwordInput = document.getElementById('password');
+  const eyeIcon = document.getElementById('eyeIcon');
 
   /**
    * Shows login error message to the user.
@@ -9,6 +12,13 @@
   function showError(message) {
     errorBox.textContent = message;
   }
+
+  // Toggle Password Visibility
+  togglePasswordBtn.addEventListener('click', () => {
+    const isPassword = passwordInput.getAttribute('type') === 'password';
+    passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+    eyeIcon.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();

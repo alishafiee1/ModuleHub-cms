@@ -178,15 +178,13 @@ export function createUploadWizardRouter(): Router {
   const router = createRouter();
   const uploadWithLimit = createDynamicUploadMiddleware(createUploadMiddleware);
 
-  router.use(requireSuperAdminMiddleware);
-
-  router.post('/upload', uploadWithLimit, (request, response) => {
+  router.post('/upload', requireSuperAdminMiddleware, uploadWithLimit, (request, response) => {
     void postUploadHandler(request, response);
   });
-  router.post('/wizard/save', (request, response) => {
+  router.post('/wizard/save', requireSuperAdminMiddleware, (request, response) => {
     void postWizardSaveHandler(request, response);
   });
-  router.post('/folder', (request, response) => {
+  router.post('/folder', requireSuperAdminMiddleware, (request, response) => {
     void postFolderHandler(request, response);
   });
 

@@ -3,46 +3,332 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ورود Super Admin | ModuleHub CMS</title>
+    <title>ورود Super Admin | HaderBash CMS</title>
+    <!-- Google Fonts: Inter & Vazirmatn -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Vazirmatn:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        .login-page { max-width: 420px; margin: 4rem auto; padding: 1.5rem; }
-        .login-card { padding: 1.5rem; border-radius: 16px; background: var(--card-bg, #fff); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-        .login-card h1 { margin-top: 0; font-size: 1.4rem; }
-        .login-field { margin-bottom: 1rem; }
-        .login-field label { display: block; margin-bottom: 0.35rem; }
-        .login-field input { width: 100%; padding: 0.65rem; border-radius: 10px; border: 1px solid #ccc; }
-        .login-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.25rem; }
-        .login-actions button, .login-actions a { padding: 0.65rem 1.2rem; border-radius: 10px; border: none; cursor: pointer; text-decoration: none; }
-        .btn-primary { background: #2563eb; color: #fff; }
-        .btn-secondary { background: #64748b; color: #fff; display: inline-flex; align-items: center; }
-        .login-error { color: #dc2626; margin-top: 0.75rem; min-height: 1.25rem; }
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+            --glow-color: rgba(6, 182, 212, 0.4);
+            --card-glass-bg: rgba(255, 255, 255, 0.65);
+            --card-glass-border: rgba(255, 255, 255, 0.4);
+            --text-title: #0f172a;
+            --text-desc: #475569;
+            --input-border: rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark {
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #0891b2 100%);
+            --glow-color: rgba(8, 145, 178, 0.4);
+            --card-glass-bg: rgba(30, 41, 59, 0.65);
+            --card-glass-border: rgba(255, 255, 255, 0.08);
+            --text-title: #f8fafc;
+            --text-desc: #94a3b8;
+            --input-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-body);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 1.5rem;
+            position: relative;
+            overflow-x: hidden;
+            transition: background 0.3s ease;
+        }
+
+        /* Moving animated background bubbles/glows */
+        .bg-glow-1, .bg-glow-2 {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+            animation: floatGlow 12s infinite alternate ease-in-out;
+        }
+        .bg-glow-1 {
+            background: #4f46e5;
+            top: -10%;
+            right: -10%;
+        }
+        .bg-glow-2 {
+            background: #06b6d4;
+            bottom: -10%;
+            left: -10%;
+            animation-delay: -6s;
+        }
+
+        @keyframes floatGlow {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(40px) scale(1.15); }
+        }
+
+        .login-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .login-card {
+            background: var(--card-glass-bg);
+            backdrop-filter: blur(24px) saturate(190%);
+            -webkit-backdrop-filter: blur(24px) saturate(190%);
+            border: 1px solid var(--card-glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--primary-gradient);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header .icon-box {
+            width: 60px;
+            height: 60px;
+            background: var(--primary-gradient);
+            color: #fff;
+            border-radius: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 10px 20px -5px var(--glow-color);
+            animation: pulseIcon 3s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseIcon {
+            0% { transform: scale(1); box-shadow: 0 10px 20px -5px var(--glow-color); }
+            100% { transform: scale(1.05); box-shadow: 0 12px 25px -3px var(--glow-color); }
+        }
+
+        .login-header h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-title);
+            margin: 0;
+        }
+
+        .login-header p {
+            font-size: 0.875rem;
+            color: var(--text-desc);
+            margin: 0.5rem 0 0 0;
+        }
+
+        .login-field {
+            margin-bottom: 1.25rem;
+            position: relative;
+        }
+
+        .login-field label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-desc);
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group i.input-icon {
+            position: absolute;
+            right: 14px;
+            color: var(--text-desc);
+            opacity: 0.5;
+            font-size: 1.05rem;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.8rem 2.75rem 0.8rem 1rem;
+            border-radius: 14px;
+            border: 1px solid var(--input-border);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: #06b6d4;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 4px var(--glow-color);
+        }
+
+        .input-group input:focus + i.input-icon {
+            opacity: 0.9;
+            color: #06b6d4;
+        }
+
+        /* Password Visibility Toggle */
+        .toggle-password-btn {
+            position: absolute;
+            left: 14px;
+            background: none;
+            border: none;
+            color: var(--text-desc);
+            opacity: 0.5;
+            cursor: pointer;
+            outline: none;
+            font-size: 1rem;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s, color 0.2s;
+        }
+        .toggle-password-btn:hover {
+            opacity: 0.9;
+            color: #06b6d4;
+        }
+
+        .login-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.75rem;
+        }
+
+        .btn-submit {
+            flex: 2;
+            padding: 0.8rem;
+            border-radius: 14px;
+            border: none;
+            background: var(--primary-gradient);
+            color: #fff;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 8px 20px -6px var(--glow-color);
+            transition: all 0.25s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px -4px var(--glow-color);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-home {
+            flex: 1;
+            padding: 0.8rem;
+            border-radius: 14px;
+            border: 1px solid var(--input-border);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-title);
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.25s ease;
+        }
+
+        .btn-home:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--text-desc);
+        }
+
+        .login-error {
+            color: #ef4444;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 1rem;
+            min-height: 1.25rem;
+            transition: all 0.2s;
+        }
     </style>
+    <script>
+        // Apply theme immediately to prevent flashing
+        if (localStorage.getItem('modulehub-theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.addEventListener('DOMContentLoaded', () => document.body.classList.add('dark'));
+        }
+    </script>
 </head>
 <body class="rtl-container">
-<div class="login-page demo-container">
-    <div class="login-card">
-        <h1><i class="fas fa-user-shield"></i> ورود Super Admin</h1>
-        <p>برای مدیریت کامل CMS و افزودن محتوا وارد شوید.</p>
-        <form id="loginForm">
-            <div class="login-field">
-                <label for="username">نام کاربری</label>
-                <input id="username" name="username" type="text" autocomplete="username" required>
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="icon-box">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h1>ورود Super Admin</h1>
+                <p>برای مدیریت کامل CMS هادر باش وارد شوید.</p>
             </div>
-            <div class="login-field">
-                <label for="password">رمز عبور</label>
-                <input id="password" name="password" type="password" autocomplete="current-password" required>
-            </div>
-            <div class="login-actions">
-                <button type="submit" class="btn-primary">ورود</button>
-                <a href="/" class="btn-secondary"><i class="fas fa-home"></i> بازگشت</a>
-            </div>
-            <div id="loginError" class="login-error" role="alert"></div>
-        </form>
+            <form id="loginForm">
+                <div class="login-field">
+                    <label for="username">نام کاربری</label>
+                    <div class="input-group">
+                        <input id="username" name="username" type="text" autocomplete="username" placeholder="مثال: admin" required>
+                        <i class="fas fa-user input-icon"></i>
+                    </div>
+                </div>
+                <div class="login-field">
+                    <label for="password">رمز عبور</label>
+                    <div class="input-group">
+                        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+                        <i class="fas fa-lock input-icon"></i>
+                        <button type="button" id="togglePassword" class="toggle-password-btn" aria-label="Toggle Password Visibility">
+                            <i class="fas fa-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="login-actions">
+                    <button type="submit" class="btn-submit">ورود به پنل</button>
+                    <a href="/" class="btn-home"><i class="fas fa-home"></i> بازگشت</a>
+                </div>
+                <div id="loginError" class="login-error" role="alert"></div>
+            </form>
+        </div>
     </div>
-</div>
-<script src="/api-client.js"></script>
-<script src="/admin/login.js"></script>
+
+    <script src="/api-client.js"></script>
+    <script src="/admin/login.js"></script>
 </body>
 </html>

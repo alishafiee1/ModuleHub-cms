@@ -182,8 +182,7 @@ export function createRestoreRouter(): Router {
   const router = createRouter();
   const restoreUpload = createDynamicUploadMiddleware(createRestoreUploadMiddleware);
 
-  router.use(requireSuperAdminMiddleware);
-  router.post('/restore', restoreUpload, (request, response) => {
+  router.post('/restore', requireSuperAdminMiddleware, restoreUpload, (request, response) => {
     void postRestoreHandler(request, response);
   });
 

@@ -9,6 +9,7 @@ import {
   getCsrfTokenHandler,
   registerSessionMiddleware,
   requireCsrfMiddleware,
+  requireSuperAdminMiddleware,
 } from '../modules/admin-auth';
 import { createLayoutRouter } from '../modules/home-layout';
 import { requestLoggingMiddleware } from '../modules/logger';
@@ -57,6 +58,22 @@ export function createApp(): Application {
 
   app.use('/api', createLayoutRouter());
   app.use('/modules', createModuleServingRouter());
+  
+  // Protect all static assets inside /admin (like settings.html, settings.js) while allowing public login assets
+  app.use('/admin', (request, response, next) => {
+    const filePath = request.path;
+    if (filePath === '/login.html' || filePath === '/login.js') {
+      next();
+      return;
+    }
+    const hasExtension = /\.[a-zA-Z0-9]+$/.test(filePath);
+    if (hasExtension) {
+      requireSuperAdminMiddleware(request, response, next);
+      return;
+    }
+    next();
+  });
+
   app.use('/admin', createAdminCsrfProtectionMiddleware());
   app.use('/admin', createAdminLoginRouter());
   app.use('/admin/module', createModuleAuthRouter());
