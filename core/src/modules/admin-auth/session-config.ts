@@ -18,14 +18,16 @@ export function getSessionSecret(): string {
  * @returns Session middleware configured for ModuleHub CMS
  */
 export function createSessionMiddleware(): RequestHandler {
+  const isProduction = process.env.NODE_ENV === 'production';
   return session({
     name: 'modulehub.sid',
     secret: getSessionSecret(),
     resave: false,
     saveUninitialized: true,
+    proxy: isProduction,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       sameSite: 'strict',
       maxAge: 8 * 60 * 60 * 1000,
     },

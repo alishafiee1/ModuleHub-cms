@@ -87,12 +87,8 @@
    * Reloads layout and auth state from backend.
    */
   async function refreshFromServer() {
-    const [layout, status] = await Promise.all([
-      ModuleHubApi.loadLayout(),
-      ModuleHubApi.loadAuthStatus(),
-    ]);
-    siteLayout = layout;
-    authStatus = status;
+    authStatus = await ModuleHubApi.loadAuthStatus();
+    siteLayout = await ModuleHubApi.loadLayout();
     updateAdminLoginLink();
     renderAll();
   }

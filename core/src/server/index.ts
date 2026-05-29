@@ -42,6 +42,8 @@ function createAdminCsrfProtectionMiddleware() {
  */
 export function createApp(): Application {
   const app = express();
+  // purpose --- Nginx terminates TLS; trust X-Forwarded-Proto so Secure session cookies work ------
+  app.set('trust proxy', 1);
   registerSessionMiddleware(app);
   app.use(requestLoggingMiddleware);
   app.use(express.json());

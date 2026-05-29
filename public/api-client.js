@@ -51,7 +51,8 @@ const ModuleHubApi = (function createModuleHubApi() {
    */
   async function requestJson(url, options = {}) {
     const method = (options.method || 'GET').toUpperCase();
-    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !csrfToken) {
+    const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
+    if (isMutation && !csrfToken) {
       await ensureCsrfToken();
     }
 
@@ -64,6 +65,15 @@ const ModuleHubApi = (function createModuleHubApi() {
     if (!response.ok) {
       const errorBody = await response.json().catch(() => ({}));
       const message = errorBody.error || `Request failed (${response.status})`;
+      if (
+        isMutation
+        && response.status === 403
+        && !options._csrfRetried
+        && String(message).toLowerCase().includes('csrf')
+      ) {
+        await ensureCsrfToken();
+        return requestJson(url, { ...options, _csrfRetried: true });
+      }
       throw new Error(message);
     }
 
