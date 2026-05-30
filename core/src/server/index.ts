@@ -5,6 +5,7 @@ import { ensureRequiredDirectories } from '../bootstrap/ensure-directories';
 import { PATHS } from '../config/paths';
 import {
   createAdminLoginRouter,
+  createAdminProtectedRouter,
   createModuleAuthRouter,
   getCsrfTokenHandler,
   registerSessionMiddleware,
@@ -76,6 +77,7 @@ export function createApp(): Application {
 
   app.use('/admin', createAdminLoginRouter());
   app.use('/admin', createAdminCsrfProtectionMiddleware());
+  app.use('/admin', createAdminProtectedRouter());
   app.use('/admin/module', createModuleAuthRouter());
   app.use('/admin/module', createModuleManagementRouter());
   app.use('/admin/backup', createBackupRestoreRouter());

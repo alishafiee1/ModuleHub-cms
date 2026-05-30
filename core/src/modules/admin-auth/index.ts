@@ -1,5 +1,6 @@
 export {
   createAdminLoginRouter,
+  createAdminProtectedRouter,
   createModuleAuthRouter,
   getCsrfTokenHandler,
   postModuleAuthHandler,

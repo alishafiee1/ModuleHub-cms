@@ -56,10 +56,11 @@ const ModuleHubApi = (function createModuleHubApi() {
       await ensureCsrfToken();
     }
 
+    const { headers: extraHeaders, ...restOptions } = options;
     const response = await fetch(url, {
+      ...restOptions,
       credentials: 'same-origin',
-      headers: buildHeaders(options.headers || {}),
-      ...options,
+      headers: buildHeaders(extraHeaders || {}),
     });
 
     if (!response.ok) {

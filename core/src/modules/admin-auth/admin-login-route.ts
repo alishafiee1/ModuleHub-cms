@@ -145,22 +145,33 @@ export async function postAdminChangePasswordHandler(request: Request, response:
 }
 
 /**
- * Public admin login routes (no auth middleware).
- * @returns Router for login and logout
+ * Public admin login routes (no CSRF — user is not authenticated yet).
+ * @returns Router for GET/POST /login only
  */
 export function createAdminLoginRouter(): Router {
   const router = createRouter();
   const loginRateLimiter = createLoginRateLimiter();
-  const logoutRateLimiter = createLoginRateLimiter();
 
   router.get('/login', getAdminLoginHandler);
   router.post('/login', loginRateLimiter, (request, response) => {
     void postAdminLoginHandler(request, response);
   });
-  router.post('/logout', logoutRateLimiter, (request, response) => {
+
+  return router;
+}
+
+/**
+ * Authenticated admin routes that require CSRF (registered after CSRF middleware).
+ * @returns Router for logout and change-password
+ */
+export function createAdminProtectedRouter(): Router {
+  const router = createRouter();
+  const rateLimiter = createLoginRateLimiter();
+
+  router.post('/logout', rateLimiter, (request, response) => {
     postAdminLogoutHandler(request, response);
   });
-  router.post('/change-password', loginRateLimiter, (request, response) => {
+  router.post('/change-password', rateLimiter, (request, response) => {
     void postAdminChangePasswordHandler(request, response);
   });
 
