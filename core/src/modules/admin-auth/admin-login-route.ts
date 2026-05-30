@@ -1,17 +1,13 @@
 import type { Request, Response, Router } from 'express';
 import { Router as createRouter } from 'express';
 import path from 'path';
+import fs from 'fs-extra';
 import { PATHS } from '../../config/paths';
 import { readSiteLayout } from '../home-layout/layout-store';
 import { loadSystemSettings } from '../system-settings';
-import {
-  clearAuthSession,
-  createLoginRateLimiter,
-  establishModuleManagerSession,
-  establishSuperAdminSession,
-} from './auth-session';
+import { clearAuthSession, createLoginRateLimiter, establishSuperAdminSession, establishModuleManagerSession } from './auth-session';
 import { findAdminUser } from './admin-users-loader';
-import { verifyPassword } from './bcrypt-verify';
+import { hashPassword, verifyPassword } from './bcrypt-verify';
 import { ensureSessionCsrfToken } from './csrf';
 import {
   clearModuleAuthLockout,
@@ -76,7 +72,14 @@ export async function postAdminLoginHandler(request: Request, response: Response
  * @param response - Express response
  */
 export function postAdminLogoutHandler(request: Request, response: Response): void {
+  // Ensure CSRF token is present and valid
+  ensureSessionCsrfToken(request);
+  // Clear server‑side session data
   clearAuthSession(request);
+  // Clear authentication cookie if used (adjust cookie name as needed)
+  if (response.clearCookie) {
+    response.clearCookie('sessionId');
+  }
   response.status(200).json({ message: 'Logged out' });
 }
 
@@ -91,19 +94,74 @@ export function getCsrfTokenHandler(request: Request, response: Response): void 
 }
 
 /**
+ * Handles POST /admin/change-password — allows authenticated Super Admin to change password.
+ * @param request - Express request
+ * @param response - Express response
+ */
+export async function postAdminChangePasswordHandler(request: Request, response: Response): Promise<void> {
+  // Only authenticated super-admins can change passwords
+  if (request.session.authScope !== 'super-admin' && !isDevSuperAdminEnabled()) {
+    response.status(401).json({ error: 'Authentication required' });
+    return;
+  }
+
+  const currentPassword = String(request.body?.currentPassword ?? '');
+  const newPassword = String(request.body?.newPassword ?? '');
+
+  if (!currentPassword || !newPassword) {
+    response.status(400).json({ error: 'Current password and new password are required' });
+    return;
+  }
+
+  if (newPassword.length < 8) {
+    response.status(400).json({ error: 'New password must be at least 8 characters' });
+    return;
+  }
+
+  const username = request.session.username ?? 'admin';
+  const adminUser = await findAdminUser(username);
+  if (!adminUser) {
+    response.status(401).json({ error: 'Admin user not found' });
+    return;
+  }
+
+  const passwordMatches = await verifyPassword(currentPassword, adminUser.passwordHash);
+  if (!passwordMatches) {
+    response.status(401).json({ error: 'Current password is incorrect' });
+    return;
+  }
+
+  // Hash the new password and update the admin-users.json file
+  const newHash = await hashPassword(newPassword);
+  const usersFilePath = PATHS.adminUsers;
+  const usersFile = await fs.readJson(usersFilePath) as { users: Array<{ username: string; passwordHash: string }> };
+  const userEntry = usersFile.users.find((u) => u.username.toLowerCase() === username.toLowerCase());
+  if (userEntry) {
+    userEntry.passwordHash = newHash;
+    await fs.writeJson(usersFilePath, usersFile, { spaces: 4 });
+  }
+
+  response.status(200).json({ message: 'Password changed successfully' });
+}
+
+/**
  * Public admin login routes (no auth middleware).
  * @returns Router for login and logout
  */
 export function createAdminLoginRouter(): Router {
   const router = createRouter();
   const loginRateLimiter = createLoginRateLimiter();
+  const logoutRateLimiter = createLoginRateLimiter();
 
   router.get('/login', getAdminLoginHandler);
   router.post('/login', loginRateLimiter, (request, response) => {
     void postAdminLoginHandler(request, response);
   });
-  router.post('/logout', (request, response) => {
+  router.post('/logout', logoutRateLimiter, (request, response) => {
     postAdminLogoutHandler(request, response);
+  });
+  router.post('/change-password', loginRateLimiter, (request, response) => {
+    void postAdminChangePasswordHandler(request, response);
   });
 
   return router;
