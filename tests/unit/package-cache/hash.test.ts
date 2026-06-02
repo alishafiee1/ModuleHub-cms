@@ -33,4 +33,10 @@ describe('package-cache hash', () => {
     const manifests = [buildManifest('{"name":"demo"}')];
     expect(buildManifestPayload(manifests)).toBe('package.json:{"name":"demo"}');
   });
+
+  it('normalizes CRLF line endings before hashing', () => {
+    const unix = [buildManifest('{"name":"demo"}\n')];
+    const windows = [buildManifest('{"name":"demo"}\r\n')];
+    expect(computeManifestHash(unix)).toBe(computeManifestHash(windows));
+  });
 });

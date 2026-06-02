@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="${MODULEHUB_APP_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
 CMS_URL="${MODULEHUB_CMS_URL:-http://127.0.0.1:4000}"
-EXPECTED_HASH="75a508b59d9b6f181fe942b28fa2296c082dbf1181b793bd1bd17d7ae2f73af5"
+EXPECTED_HASH="7064c31c899b1d8c9f847a6de82080a5892647a1717e461351651213bbc69c5f"
 
 log() { printf '[verify-phase4] %s\n' "$*"; }
 fail() { log "FAIL: $*"; exit 1; }

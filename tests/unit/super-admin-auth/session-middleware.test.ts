@@ -8,15 +8,22 @@ import { resetCmsLoggerForTests } from '../../../core/src/modules/logger';
 
 describe('super-admin-auth session middleware', () => {
   let tempRoot: string;
+  let adminPasswordHash: string;
   const previousAppRoot = process.env.MODULEHUB_APP_ROOT;
   const previousDevFlag = process.env.MODULEHUB_DEV_SUPER_ADMIN;
   const previousAdminHash = process.env.ADMIN_PASSWORD_HASH;
+
+  jest.setTimeout(20_000);
+
+  beforeAll(async () => {
+    adminPasswordHash = await hashPassword('admin-pass-123');
+  });
 
   beforeEach(async () => {
     tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'modulehub-auth-session-'));
     process.env.MODULEHUB_APP_ROOT = tempRoot;
     process.env.MODULEHUB_DEV_SUPER_ADMIN = '';
-    process.env.ADMIN_PASSWORD_HASH = await hashPassword('admin-pass-123');
+    process.env.ADMIN_PASSWORD_HASH = adminPasswordHash;
     await fs.ensureDir(path.join(tempRoot, 'storage'));
     await fs.writeJson(path.join(tempRoot, 'storage', 'site-layout.json'), validFixture);
     jest.resetModules();

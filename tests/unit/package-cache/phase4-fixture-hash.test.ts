@@ -13,7 +13,7 @@ const FIXTURE_DIR = path.join(
 
 /** Documented hash for phase4-cache-test fixture package.json */
 export const PHASE4_CACHE_TEST_EXPECTED_HASH =
-  '75a508b59d9b6f181fe942b28fa2296c082dbf1181b793bd1bd17d7ae2f73af5';
+  '7064c31c899b1d8c9f847a6de82080a5892647a1717e461351651213bbc69c5f';
 
 describe('phase4-cache-test fixture', () => {
   it('has stable manifest hash matching README and verify script', async () => {

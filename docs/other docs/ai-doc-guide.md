@@ -1,37 +1,49 @@
 <style>
 body, p, h1, h2, h3, h4, h5, h6, li, ul, ol {
-    font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
-    direction: rtl;
-    text-align: right;
+  font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
+  direction: rtl;
+  text-align: right;
 }
-
 pre, code {
-    direction: ltr;
-    text-align: left;
+  direction: ltr;
+  text-align: left;
 }
 
+/* جدول‌های markdown — RTL + راست‌چین همهٔ سلول‌ها (پیش‌نمایش VS Code / Cursor) */
+.markdown-body table,
+.markdown-preview-section table,
 table {
-    direction: rtl;
-    text-align: right;
-    width: 100%;
-    border-collapse: collapse;
+  direction: rtl !important;
+  text-align: right !important;
+  width: 100%;
+  border-collapse: collapse;
+  margin-inline-start: 0;
+  margin-inline-end: auto;
 }
-
-thead th, tbody td {
-    text-align: right;
-    vertical-align: top;
-    padding: 0.35em 0.5em;
+.markdown-body th,
+.markdown-body td,
+.markdown-preview-section th,
+.markdown-preview-section td,
+table thead th,
+table tbody td,
+table th,
+table td {
+  text-align: right !important;
+  direction: rtl;
+  vertical-align: top;
+  padding: 0.35em 0.5em;
 }
-
-table td code, table th code {
-    direction: ltr;
-    unicode-bidi: embed;
-    text-align: left;
-    display: inline-block;
+/* نام فایل داخل سلول — LTR ولی چسبیده به راست سلول */
+table td code,
+table th code,
+.markdown-body table td code,
+.markdown-body table th code {
+  direction: ltr;
+  unicode-bidi: embed;
+  text-align: right !important;
+  display: inline-block;
 }
 </style>
-
-<div dir="rtl" style="text-align:right;">
 
 # راهنمای مستندسازی برای AI — ModuleHub CMS
 
@@ -168,4 +180,4 @@ table td code, table th code {
 - [ ] پیش‌فرض عددی فقط در design + example JSON است؟
 - [ ] proposal هنوز برای غیرفنی قابل خواندن است؟
 
-</div>
+

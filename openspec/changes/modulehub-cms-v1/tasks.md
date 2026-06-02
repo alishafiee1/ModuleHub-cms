@@ -160,8 +160,8 @@
 
 ## 11. فاز ۹ — تست یکپارچگی و استقرار
 
-- [ ] 11.1 **Gate:** `npm run test` — همه unit testها سبز
-- [ ] 11.2 **Gate:** `npm run lint` — بدون خطا
+- [x] 11.1 **Gate:** `npm run test` — همه unit testها سبز (116/116 — 2026-06-01)
+- [x] 11.2 **Gate:** `npm run lint` — بدون خطا
 - [ ] 11.3 E2E: login → + → ZIP → wizard → start → کلیک کارت
 - [ ] 11.4 dual-WAN npm install
 - [ ] 11.5 OOM → crashed
@@ -169,5 +169,5 @@
 - [ ] 11.7 Module Manager از WAN
 - [ ] 11.8 backup/restore
 - [ ] 11.9 ۵ ماژول همزمان
-- [ ] 11.10 Deploy `/opt/modulehub-cms` — [`docs/dev-workflow.md`](../../../docs/dev-workflow.md) + `./scripts/deploy-on-server.sh`
-- [ ] 11.11 README + `test-results.log`
+- [ ] 11.10 Deploy `/opt/modulehub-cms` — build + restart انجام شد 2026-06-01؛ تأیید نهایی live
+- [x] 11.11 README + `test-results.log` — log به‌روز 2026-06-01
