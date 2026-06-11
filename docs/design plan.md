@@ -1,39 +1,51 @@
 <style>
 body, p, h1, h2, h3, h4, h5, h6, li, ul, ol {
-    font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
-    direction: rtl;
-    text-align: right;
+  font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
+  direction: rtl;
+  text-align: right;
 }
-
 pre, code {
-    direction: ltr;
-    text-align: left;
+  direction: ltr;
+  text-align: left;
 }
-
+.markdown-body table,
+.markdown-preview-section table,
 table {
-    direction: rtl;
-    text-align: right;
-    width: 100%;
-    border-collapse: collapse;
-    margin-inline-start: 0;
-    margin-inline-end: auto;
+  direction: rtl !important;
+  text-align: right !important;
+  width: 100%;
+  border-collapse: collapse;
+  margin-inline-start: 0;
+  margin-inline-end: auto;
 }
-
-thead th,
-tbody td {
-    text-align: right;
-    vertical-align: top;
-    padding: 0.35em 0.5em;
+.markdown-body th,
+.markdown-body td,
+.markdown-preview-section th,
+.markdown-preview-section td,
+table thead th,
+table tbody td,
+table th,
+table td {
+  text-align: right !important;
+  direction: rtl;
+  vertical-align: top;
+  padding: 0.35em 0.5em;
 }
-
 table td code,
-table th code {
-    direction: ltr;
-    unicode-bidi: embed;
-    text-align: left;
-    display: inline-block;
+table th code,
+.markdown-body table td code,
+.markdown-body table th code {
+  direction: ltr;
+  unicode-bidi: embed;
+  text-align: right !important;
+  display: inline-block;
+}
+.task-list-item input[type="checkbox"],
+input.task-list-item-checkbox {
+  margin: 0 0.5em 0 0 !important;
 }
 </style>
+
 
 
 # ModuleHub CMS – پروپزال جامع
@@ -65,15 +77,29 @@ ModuleHub CMS پلتفرمی است که به شما امکان می‌دهد ب
 
 ## ۲. معماری کلی
 
-```
-[کاربر اینترنت/LAN] ← (443) Nginx → reverse proxy → ModuleHub CMS (127.0.0.1:4000)
-                                    │
-                                    ├─ /              → صفحه عمومی (کارت‌ها)
-                                    ├─ /admin/login   → Super Admin (Session)
-                                    └─ /admin/*       → محافظت Session در CMS (نه IP در Nginx)
-[Super Admin] ← login از اینترنت/LAN → session cookie → همه عملیات CMS
-[Module Manager] ← رمز ماژول → session محدود moduleId → start/stop/log همان ماژول
-[SSH] ← cli.js روی سرور
+```mermaid
+flowchart TB
+    User["کاربر اینترنت / LAN"]
+    Nginx["Nginx — HTTPS :443"]
+    CMS["ModuleHub CMS — 127.0.0.1:4000"]
+
+    User -->|reverse proxy| Nginx --> CMS
+
+    CMS --> Home["/ — صفحه عمومی (کارت‌ها)"]
+    CMS --> Login["/admin/login — ورود Super Admin"]
+    CMS --> Admin["/admin/* — محافظت Session در CMS (نه IP در Nginx)"]
+
+  subgraph Auth["احراز هویت و دسترسی"]
+    SA["Super Admin"]
+    MM["Module Manager"]
+    CLI["SSH — cli.js"]
+  end
+
+    SA -->|login + session cookie| Login
+    SA -->|همه عملیات CMS| Admin
+    MM -->|رمز ماژول → session محدود moduleId| Admin
+    MM -->|start / stop / log همان ماژول| Admin
+    CLI -->|مدیریت مستقیم روی سرور| CMS
 ```
 
 **مؤلفه‌ها:**

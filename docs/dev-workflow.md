@@ -45,7 +45,6 @@ table th code,
 }
 </style>
 
-<div dir="rtl" style="text-align:right;">
 
 # کار روزانه — از PC تا haderbash.ir
 
@@ -377,4 +376,3 @@ sudo systemctl status modulehub-cms --no-pager
 | خطاهای تکراری | [`AI-common-mistakes/`](AI-common-mistakes/readme.md) |
 | سازنده ماژول | [`developer-guide.md`](developer-guide.md) |
 
-</div>

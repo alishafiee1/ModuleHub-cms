@@ -9,8 +9,6 @@ pre, code {
   direction: ltr;
   text-align: left;
 }
-
-/* جدول‌های markdown — RTL + راست‌چین همهٔ سلول‌ها (پیش‌نمایش VS Code / Cursor) */
 .markdown-body table,
 .markdown-preview-section table,
 table {
@@ -34,7 +32,6 @@ table td {
   vertical-align: top;
   padding: 0.35em 0.5em;
 }
-/* نام فایل داخل سلول — LTR ولی چسبیده به راست سلول */
 table td code,
 table th code,
 .markdown-body table td code,
@@ -43,6 +40,10 @@ table th code,
   unicode-bidi: embed;
   text-align: right !important;
   display: inline-block;
+}
+.task-list-item input[type="checkbox"],
+input.task-list-item-checkbox {
+  margin: 0 0.5em 0 0 !important;
 }
 </style>
 ---
