@@ -50,14 +50,14 @@ input.task-list-item-checkbox {
 
 # ModuleHub CMS – پروپزال جامع
 
-## سامانه‌ی مدیریت محتوای ماژولار برای سایت نقاب (decoy) با قابلیت افزودن ماژول‌های مستقل بدون تغییر در کد هسته
+## سامانه‌ی مدیریت محتوای ماژولار با قابلیت افزودن ماژول‌های مستقل بدون تغییر در کد هسته
 
 ---
 
 ## ۱. مقدمه و هدف
 
 ModuleHub CMS پلتفرمی است که به شما امکان می‌دهد بدون دستکاری کد اصلی سایت، بخش‌های جدید (گالری، وبلاگ آموزشی، داشبورد زنده، فروشگاه کوچک و …) را به صورت ماژول‌های مستقل اضافه کنید.  
-این سیستم به‌طور ویژه برای سرور **`ash@192.168.88.50`** طراحی شده که دارای دو کارت شبکه (`ens4` فیلترشده، `enp63s0` آزاد) و نقش **نقاب (decoy)** برای سرویس `3x-ui` (VLESS Reality) را ایفا می‌کند. ترافیک کاربران عادی و مدیریت سایت از مسیر `ens4` (اینترنت داخلی/فیلترشده) عبور می‌کند و هیچ تداخلی با خروجی Xray ندارد.
+روی Ubuntu با Nginx به‌عنوان reverse proxy و CMS روی `127.0.0.1:4000` اجرا می‌شود. در سرورهای با **دو NIC**، نصب npm/docker می‌تواند موقتاً از رابط ثانویه انجام شود بدون تغییر دائمی default route سیستم.
 
 **اهداف کلیدی:**
 - افزودن ماژول‌های جدید از طریق آپلود فایل ZIP و پاسخ به چند سؤال ساده (بدون نیاز به دستنویس `manifest.json`).
@@ -153,7 +153,7 @@ flowchart TB
 
 /var/cache/modulehub/pkg/     # کش پکیج‌های هش‌شده (<hash>/)
 /var/log/modulehub/modules/   # لاگ‌های جداگانه هر ماژول (<module-id>.log)
-/etc/nginx/sites-available/haderbash.ir   # تنظیمات Nginx
+/etc/nginx/sites-available/example.com   # تنظیمات Nginx (نمونه: config/nginx/modulehub-cms.conf.example)
 /etc/systemd/system/modulehub-cms.service # سرویس هسته
 ```
 
@@ -168,7 +168,7 @@ flowchart TB
 
 ### ۴.۲ نصب هسته CMS
 
-راهنمای کامل deploy روزانه: **`docs/dev-workflow.md`**
+راهنمای کامل deploy: **`docs/deploy-guide.md`**
 
 ```bash
 git clone https://github.com/alishafiee1/ModuleHub-cms.git /opt/modulehub-cms
@@ -178,34 +178,11 @@ chmod +x scripts/deploy-on-server.sh
 ./scripts/deploy-on-server.sh
 ```
 
-### ۴.۳ تنظیم Nginx (فایل `haderbash.ir`)
+### ۴.۳ تنظیم Nginx
 
 > **تغییر:** محدودیت IP از Nginx حذف می‌شود — امنیت `/admin` در CMS با Session (سطح ۲).
 
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name haderbash.ir;
-
-    location / {
-        proxy_pass http://127.0.0.1:4000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /admin {
-        proxy_pass http://127.0.0.1:4000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # ... SSL و decoy برای Reality روی 8443
-}
-```
+فایل نمونه: **`config/nginx/modulehub-cms.conf.example`** — `server_name example.com`، proxy به `127.0.0.1:4000` برای `/`، `/admin` و `/modules/`.
 
 ### ۴.۴ ابزار خط فرمان (برای مدیریت مستقیم روی سرور)
 ```bash
@@ -219,7 +196,7 @@ node scripts/cli.js --help
 
 ## ۵. نحوه اضافه کردن ماژول توسط ادمین (بدون کدنویسی)
 
-1. وارد شوید: `https://haderbash.ir/admin/login` (از اینترنت یا LAN).
+1. وارد شوید: `https://example.com/admin/login` (از اینترنت یا LAN).
 2. در صفحه اصلی (بعد از login)، کارت **➕** را ببینید.
 3. گزینه **«آپلود ZIP»** را انتخاب کنید.
 4. فایل ZIP پروژه خود را آپلود کنید (می‌تواند شامل هر نوع محتوای وب یا اپلیکیشن باشد).
@@ -438,7 +415,7 @@ request → session parser
 | **حداکثر تلاش رمز ماژول** | ۵ | قبل از lockout |
 | **مدت lockout رمز ماژول (دقیقه)** | ۱۵ | `modulePasswordLockoutMinutes` |
 
-**رادیو باکس رابط شبکه** (فقط ≥۲ NIC فعال): لیست از `ip -o link show up` — انتخاب رابط برای عملیات نصب. CMS با `network-metric-toggler` موقتاً metric را عوض و **restore** می‌کند. مسیر دائمی Ubuntu از پنل وب عوض **نمی‌شود** (ریسک dual-WAN / Xray).
+**رادیو باکس رابط شبکه** (فقط ≥۲ NIC فعال): لیست از `ip -o link show up` — انتخاب رابط برای عملیات نصب. CMS با `network-metric-toggler` موقتاً metric را عوض و **restore** می‌کند. مسیر دائمی Ubuntu از پنل وب عوض **نمی‌شود** (ریسک خراب شدن default route سیستم).
 
 **API (پیاده‌سازی 2026-05-29):** `GET /admin/settings` (صفحه) · `GET /admin/settings/data` · `POST /admin/settings` — `core/src/modules/system-settings/` · multer limit از `maxZipUploadMb` در هر upload.
 
@@ -503,10 +480,9 @@ request → session parser
 | `tasks.md` | چک‌لیست — فقط تسک و تست |
 | `system-settings.example.json` | پیش‌فرض‌های واقعی — منبع عدد |
 | `site-layout.json` | نمونه schema ماژول |
-| `server condition.md` | وضعیت زنده سرور — به‌روز دستی |
+| `deploy-guide.md` | استقرار عمومی روی Ubuntu + Nginx |
 | `module-hosting-guide.md` | Static vs Backend vs Docker — چالش سرور |
 | `developer-guide.md` | ZIP ماژول، wizard، base path — v0 spec |
-| `dev-workflow.md` | لوکال → git push → deploy روی سرور |
 | `code-rolls.md` | قواعد کد برای AI |
 
 **AI معمولاً این‌ها را رعایت نمی‌کند — ممنوع:**
@@ -556,7 +532,7 @@ modulehub-cms/
 
 ## ۱۵. جمع‌بندی
 
-ModuleHub CMS پلتفرمی است که **امنیت، جداسازی، و سهولت توسعه** را با هم ترکیب می‌کند. با حذف API خارجی و استفاده از مکانیزم‌های بومی لینوکس، هم به عنوان یک سایت نقاب مطمئن برای 3x-ui عمل می‌کند و هم به شما قدرت افزودن هر نوع محتوای وب را بدون دخالت در کد اصلی می‌دهد.
+ModuleHub CMS پلتفرمی است که **امنیت، جداسازی، و سهولت توسعه** را با هم ترکیب می‌کند. با حذف API خارجی و استفاده از مکانیزم‌های بومی لینوکس، به شما قدرت افزودن هر نوع محتوای وب را بدون دخالت در کد اصلی می‌دهد.
 
 **مزایای کلیدی:**
 - ✓ بدون تغییر در کد هسته

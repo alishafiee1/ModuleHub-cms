@@ -84,11 +84,11 @@ my-site.zip
 
 > **کمبود doc:** persistence و DB هنوز در `tasks.md` تست نشده — فاز بعدی.
 
-### ۳.۵ شبکه dual-WAN (نصب vs اجرا)
+### ۳.۵ شبکه dual-NIC (نصب vs اجرا)
 
 | فاز | رابط | توضیح |
 |-----|------|--------|
-| **نinstall** (`npm`, `docker pull`) | `enp63s0` موقت | `network-metric-toggler` + restore |
+| **نinstall** (`npm`, `docker pull`) | secondary NIC موقت | `network-metric-toggler` + restore |
 | **سرو Static به کاربر** | از nginx/CMS | ترافیک عادی سایت |
 | **Runtime outbound** (ماژول به API خارجی) | **تعریف نشده کامل** | اگر ماژول در runtime به GitHub نیاز دارد → Docker + egress یا proxy داخلی |
 
@@ -96,7 +96,7 @@ my-site.zip
 
 ### ۳.۶ امنیت
 
-- CMS روی `:4000` روی همه interfaceها (طبق `server condition.md`) — nginx LAN محدودیت `/admin` را دارد، نه کل CMS.
+- CMS روی `:4000` bind می‌شود — nginx reverse proxy برای HTTPS و `/admin` auth در لایه CMS.
 - ماژول PHP/Node با `eval`/shell خطرناک — محدودیت cgroups جایگزین sandbox نیست.
 - Docker: `cap_drop: ALL`, `read_only` where possible (`code-rolls.md`).
 

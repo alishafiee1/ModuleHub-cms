@@ -68,11 +68,11 @@ input.task-list-item-checkbox {
 
 | # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |
 |---|-------|--------|------------------|----------|
-| 0.1 | ایجاد دایرکتوری‌ها | `mkdir -p /opt/modulehub-cms/{core,public,standalone-modules,storage/{logs,backups},thumbnails,scripts}`<br>`mkdir -p /var/log/modulehub/modules`<br>`mkdir -p /var/cache/modulehub/pkg` | دایرکتوری‌ها با مالکیت `ash:ash` ایجاد شوند | `ls -la /opt/modulehub-cms` و `ls /var/cache/modulehub/pkg` |
+| 0.1 | ایجاد دایرکتوری‌ها | `mkdir -p /opt/modulehub-cms/{core,public,standalone-modules,storage/{logs,backups},thumbnails,scripts}`<br>`mkdir -p /var/log/modulehub/modules`<br>`mkdir -p /var/cache/modulehub/pkg` | دایرکتوری‌ها با مالکیت deploy user ایجاد شوند | `ls -la /opt/modulehub-cms` و `ls /var/cache/modulehub/pkg` |
 | 0.2 | کپی سرویس systemd | کپی `modulehub-cms.service` به `/etc/systemd/system/` | فایل با محتوای صحیح وجود داشته باشد | `cat /etc/systemd/system/modulehub-cms.service` |
 | 0.3 | نصب وابستگی‌های Node.js | `npm init -y && npm install express multer adm-zip winston fs-extra` | فایل `package.json` و `node_modules` | `npm list --depth=0` |
 | 0.4 | راه‌اندازی سرویس | `systemctl daemon-reload && systemctl enable modulehub-cms --now` | سرویس active (running) | `systemctl status modulehub-cms` |
-| 0.5 | تنظیم Nginx | proxy `/` و `/admin` بدون محدودیت IP — auth در CMS | Nginx syntax ok, reload | `nginx -t && curl -I https://haderbash.ir/admin/login` |
+| 0.5 | تنظیم Nginx | proxy `/` و `/admin` بدون محدودیت IP — auth در CMS | Nginx syntax ok, reload | `nginx -t && curl -I https://example.com/admin/login` |
 | 0.6 | تست connectivity از ens4 و enp63s0 | اجرای `curl --interface ens4 https://google.com` و `curl --interface enp63s0 https://github.com` | هر دو پاسخ ۲۰۰ (ens4 محدودیت دارد ولی google کار می‌کند) | مشاهده خروجی curl |
 
 ---
@@ -177,7 +177,7 @@ input.task-list-item-checkbox {
 
 ## فاز ۷.۵: تنظیمات سراسری ادمین (۲ روز) — ✅ کد 2026-05-29
 
-> **UI:** `https://haderbash.ir/admin/settings` (یا لینک «Super Admin» در هدر) · تا فاز ۸: `MODULEHUB_DEV_SUPER_ADMIN=1`  
+> **UI:** `https://example.com/admin/settings` (یا لینک «Super Admin» در هدر) · تا فاز ۸: `MODULEHUB_DEV_SUPER_ADMIN=1`  
 > **API:** `GET /admin/settings/data` · `POST /admin/settings` · ماژول `core/src/modules/system-settings/`
 
 | # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |

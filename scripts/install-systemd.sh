@@ -38,7 +38,10 @@ if [[ ! -f "${APP_DIR}/.env" ]]; then
   echo "[install-systemd] WARN: ${APP_DIR}/.env missing — copy from .env.example" >&2
 fi
 
-log "APP_DIR=${APP_DIR}"
+SERVICE_USER="${MODULEHUB_SERVICE_USER:-$(whoami)}"
+SERVICE_GROUP="${MODULEHUB_SERVICE_GROUP:-${SERVICE_USER}}"
+
+log "APP_DIR=${APP_DIR} SERVICE_USER=${SERVICE_USER}"
 
 cat > "${GENERATED_UNIT}" <<EOF
 [Unit]
@@ -47,8 +50,8 @@ After=network.target docker.service
 
 [Service]
 Type=simple
-User=ash
-Group=ash
+User=${SERVICE_USER}
+Group=${SERVICE_GROUP}
 WorkingDirectory=${APP_DIR}
 EnvironmentFile=${APP_DIR}/.env
 ExecStart=/usr/bin/node ${APP_DIR}/dist/core/src/server/index.js

@@ -12,7 +12,7 @@ table td code, table th code { direction: ltr; unicode-bidi: embed; text-align: 
 
 ## Context
 
-ModuleHub CMS یک پلتفرم greenfield است که روی سرور `ash@192.168.88.50` (Ubuntu 22.04+، dual-WAN) به‌عنوان سایت نقاب برای `3x-ui` عمل می‌کند. Nginx روی HTTPS به CMS روی `127.0.0.1:4000` پروکسی می‌کند. **امنیت admin در لایه CMS** — Session Super Admin + Module Manager (نه محدودیت IP در Nginx).
+ModuleHub CMS یک پلتفرم greenfield است که روی Ubuntu 22.04+ با Nginx (HTTPS → `127.0.0.1:4000`) اجرا می‌شود. در سرورهای dual-NIC، نصب وابستگی‌ها از رابط ثانویه با `network-metric-toggler` انجام می‌شود. **امنیت admin در لایه CMS** — Session Super Admin + Module Manager (نه محدودیت IP در Nginx).
 
 **مرجع:** `docs/design plan.md` §۶.۵، `docs/system-settings.example.json`
 
@@ -35,7 +35,7 @@ ModuleHub CMS یک پلتفرم greenfield است که روی سرور `ash@192.
 - 2FA/TOTP (فاز بعد)
 - کتابخانه ماژول آماده
 - API REST عمومی بدون auth
-- VPN-only admin
+- IP-only admin without session auth
 
 ## Decisions
 

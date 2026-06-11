@@ -502,14 +502,14 @@
     createFloatingIcons();
 
     // ======================== دارک مود یکپارچه با استفاده از postMessage (ارتباط با CMS) ========================
-    let currentTheme = localStorage.getItem('haderbash-theme') === 'dark' ? 'dark' : 'light';
+    let currentTheme = localStorage.getItem('modulehub-theme') === 'dark' ? 'dark' : 'light';
     if (currentTheme === 'dark') document.body.classList.add('dark');
 
     const darkToggle = document.getElementById('darkToggleMain');
     darkToggle.addEventListener('click', () => {
         const isDark = document.body.classList.toggle('dark');
         currentTheme = isDark ? 'dark' : 'light';
-        localStorage.setItem('haderbash-theme', currentTheme);
+        localStorage.setItem('modulehub-theme', currentTheme);
         
         // ارسال پیام به iframe برای تغییر تم CMS (اگر لود شده باشد)
         const cmsIframe = document.getElementById('cmsIframe');
@@ -628,10 +628,10 @@
                 // هماهنگ‌سازی تم سایت اصلی با CMS در صورت تمایل (اختیاری)
                 if (event.data.theme === 'dark' && !document.body.classList.contains('dark')) {
                     document.body.classList.add('dark');
-                    localStorage.setItem('haderbash-theme', 'dark');
+                    localStorage.setItem('modulehub-theme', 'dark');
                 } else if (event.data.theme === 'light' && document.body.classList.contains('dark')) {
                     document.body.classList.remove('dark');
-                    localStorage.setItem('haderbash-theme', 'light');
+                    localStorage.setItem('modulehub-theme', 'light');
                 }
             }
         });

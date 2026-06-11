@@ -1,7 +1,7 @@
 {
   "name": "modulehub-cms",
   "version": "0.1.0",
-  "description": "Modular CMS for haderbash.ir — module cards, runtime, admin",
+  "description": "Modular CMS — module cards, runtime, admin",
   "private": true,
   "main": "dist/core/src/server/index.js",
   "scripts": {

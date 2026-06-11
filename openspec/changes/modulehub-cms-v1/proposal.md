@@ -1,6 +1,6 @@
 ## Why
 
-ModuleHub CMS باید به‌عنوان هستهٔ سایت نقاب `haderbash.ir` پیاده‌سازی شود تا بدون تغییر کد اصلی، ماژول‌های مستقل (Static، SPA، Backend، Docker) از طریق کارت‌های صفحهٔ اصلی اضافه، اجرا و مدیریت شوند. مستندات کامل (`docs/proposal.md`، `design plan.md`، `tasks.md`، `Demo designe/`) و دمو UI آماده است؛ اکنون نیاز به یک change ساختاریافته با فازبندی و specهای قابل اجرا داریم.
+ModuleHub CMS باید به‌عنوان هستهٔ CMS ماژولار روی `example.com` (یا دامنهٔ شما) پیاده‌سازی شود تا بدون تغییر کد اصلی، ماژول‌های مستقل (Static، SPA، Backend، Docker) از طریق کارت‌های صفحهٔ اصلی اضافه، اجرا و مدیریت شوند.
 
 ## What Changes
 
@@ -21,7 +21,7 @@ ModuleHub CMS باید به‌عنوان هستهٔ سایت نقاب `haderbash
 - پشتیبان‌گیری و بازیابی کامل
 - نسخه‌گذاری ماژول و لاگ متمرکز
 - یکپارچگی dual-WAN (`network-metric-toggler`) برای نصب وابستگی
-- استقرار با Nginx + systemd روی `ash@192.168.88.50`
+- استقرار با Nginx + systemd روی Ubuntu (`deploy@203.0.113.1` در docs — IP نمونه RFC5737)
 
 ## Capabilities
 
@@ -50,7 +50,7 @@ ModuleHub CMS باید به‌عنوان هستهٔ سایت نقاب `haderbash
 - **کد جدید:** `core/`، `public/`، `scripts/`، `config/`
 - **ذخیره‌سازی:** `storage/site-layout.json`، `storage/system-settings.json`، `storage/admin-users.json`
 - **سرور:** `/opt/modulehub-cms/`، `/var/log/modulehub/modules/`، `/var/cache/modulehub/pkg/`
-- **زیرساخت:** Nginx (`haderbash.ir`) — proxy بدون IP restrict؛ auth در CMS
+- **زیرساخت:** Nginx (`example.com`) — proxy بدون IP restrict؛ auth در CMS
 - **وابستگی‌ها:** Express، TypeScript، Jest، ESLint، express-session، bcrypt، express-rate-limit، multer، adm-zip، winston، fs-extra
 - **استاندارد کد:** TypeScript + JSDoc — `design.md` §۱۲، `docs/code-rolls.md`
 - **امنیت:** HTTPS + Session + CSRF؛ Super Admin از اینترنت؛ Module Manager scoped؛ Docker `cap_drop: ALL`

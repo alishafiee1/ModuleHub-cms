@@ -9,7 +9,7 @@ APP_HOME="${MODULEHUB_SOURCE:-${HOME}/ModuleHub-cms}"
 cd "${APP_HOME}"
 
 rm -f docs/server-scripts.md "docs/user rolls.md" scripts/install-to-opt.sh 2>/dev/null || true
-git checkout -- README.md docs/dev-workflow.md scripts/ 2>/dev/null || true
+git checkout -- README.md docs/deploy-guide.md scripts/ 2>/dev/null || true
 git pull origin main
 
 for shell_script in scripts/*.sh; do

@@ -15,6 +15,7 @@ storage/backups/*
 storage/upload-temp/
 storage/site-layout.json
 storage/system-settings.json
+storage/admin-users.json
 
 # Uploaded / generated on server
 standalone-modules/*
@@ -27,9 +28,12 @@ thumbnails/*
 Thumbs.db
 
 # Local-only docs (server IPs / personal notes)
+/docs-personal/
+/docs-for-ai/
+/chats with ai/
 docs/dev-workflow.md
 core/src/modules/admin-auth/admin-users.json
-/docs personal
-/docs for AI
-/undefined
+
+# Local broker runtime (token + socket)
+runtime/
 /storage

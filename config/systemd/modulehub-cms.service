@@ -4,8 +4,8 @@ After=network.target docker.service
 
 [Service]
 Type=simple
-User=ash
-Group=ash
+User=deploy
+Group=deploy
 WorkingDirectory=/opt/modulehub-cms
 EnvironmentFile=/opt/modulehub-cms/.env
 ExecStart=/usr/bin/node /opt/modulehub-cms/dist/core/src/server/index.js

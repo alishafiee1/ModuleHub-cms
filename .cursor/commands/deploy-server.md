@@ -1,6 +1,6 @@
 # Deploy ModuleHub CMS to production server
 
-You have SSH access to `ash@192.168.88.50`. Deploy only after changes are pushed to GitHub (`main`). The server uses **dual-WAN**: `git pull` and `npm` need temporary free internet via `enp63s0` (`run-with-free-wan.sh`).
+You have SSH access to `deploy@203.0.113.1` (replace with your server). Deploy only after changes are pushed to GitHub (`main`). On **dual-NIC** hosts, `git pull` and `npm` may need temporary secondary route via `run-with-free-wan.sh`.
 
 ## Architecture (do not confuse paths)
 
@@ -28,7 +28,7 @@ Stop if lint/test/build fail. Do not push secrets.
 
 ## Phase B — Server deploy (recommended)
 
-SSH as user `ash` (bash). One command after push:
+SSH as deploy user (bash). One command after push:
 
 ```bash
 source ~/.nvm/nvm.sh && nvm use 20
@@ -56,7 +56,7 @@ curl -sf http://127.0.0.1:4000/health
 curl -s http://127.0.0.1:4000/api/auth/status
 ```
 
-Success: health returns `{"status":"ok"}`. Tell user to hard-refresh browser (`Ctrl+Shift+R`) on `https://haderbash.ir`.
+Success: health returns `{"status":"ok"}`. Tell user to hard-refresh browser (`Ctrl+Shift+R`) on `https://example.com` (or `MODULEHUB_PUBLIC_URL`).
 
 ## Phase B — Recovery (git pull “would be overwritten”)
 
@@ -79,7 +79,7 @@ If UI shows `Super Admin session required` or `isSuperAdmin:false`:
 
 ```bash
 python3 ~/ModuleHub-cms/scripts/run_via_broker.py \
-  'bash /home/ash/ModuleHub-cms/scripts/enable-dev-admin-on-server.sh'
+  'bash ~/ModuleHub-cms/scripts/enable-dev-admin-on-server.sh'
 ```
 
 Re-check: `curl -s http://127.0.0.1:4000/api/auth/status` → `"isSuperAdmin":true`.
@@ -99,7 +99,7 @@ Re-check: `curl -s http://127.0.0.1:4000/api/auth/status` → `"isSuperAdmin":tr
 python3 ~/ModuleHub-cms/scripts/run_via_broker.py 'systemctl restart modulehub-cms'
 ```
 
-If broker is missing or fails, **stop and ask the user** to either: (1) run `ssh -t ash@192.168.88.50` once and enter sudo password, (2) configure passwordless sudo for `systemctl`/`cp` for user `ash`, or (3) start broker: `python3 ~/ModuleHub-cms/scripts/sudo_broker.py` (socket at `/home/ash/3x-ui/sudo_broker.sock`).
+If broker is missing or fails, **stop and ask the user** to either: (1) run `ssh -t deploy@your-server` once and enter sudo password, (2) configure passwordless sudo for `systemctl`/`cp`, or (3) start broker: `python3 ~/ModuleHub-cms/scripts/sudo_broker.py` (socket at `~/ModuleHub-cms/runtime/sudo_broker.sock`).
 
 If `run-with-free-wan` crashes (`ip route add` error): `export MODULEHUB_SKIP_WAN=1` and retry pull/deploy (user must ensure GitHub is reachable another way).
 
@@ -121,4 +121,4 @@ If `run-with-free-wan` crashes (`ip route add` error): `export MODULEHUB_SKIP_WA
 - On Ubuntu SSH use `export VAR=1`, never PowerShell `$env:VAR`.
 - After deploy, report: git commit hash pulled, health curl output, auth status, any sudo/broker errors verbatim.
 
-Reference: `docs/dev-workflow.md`, `docs/deploy-notes-for-ai.md`.
+Reference: `docs/deploy-guide.md`, `docs/other docs/deploy-notes-for-ai.md`.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# purpose --- Temporarily prefer free WAN (enp63s0) as system default route for npm/git tests ------
+# purpose --- Temporarily prefer secondary NIC as system default route for npm/git tests ------
 set -euo pipefail
 
 INTERFACE_FREE="${MODULEHUB_FREE_INTERFACE:-enp63s0}"
@@ -23,8 +23,8 @@ run_sudo() {
   if python3 "${HOME}/ModuleHub-cms/scripts/broker-sudo.py" "${command_text}" 2>/dev/null; then
     return 0
   fi
-  if [[ -x "${HOME}/3x-ui/sudo_broker.py" ]]; then
-    python3 "${HOME}/3x-ui/sudo_broker.py" "${command_text}" 2>/dev/null && return 0
+  if [[ -f "${HOME}/ModuleHub-cms/scripts/run_via_broker.py" ]]; then
+    python3 "${HOME}/ModuleHub-cms/scripts/run_via_broker.py" "${command_text}" 2>/dev/null && return 0
   fi
   sudo bash -c "${command_text}"
 }

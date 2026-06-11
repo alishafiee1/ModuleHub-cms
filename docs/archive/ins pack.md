@@ -209,8 +209,8 @@ finally → restoreRoutes + clear temp flags
 **ریسک ۷ — ۳۰s برای npm بزرگ**  
 راه‌حل: ۳۰s فقط probe؛ install timeout جدا (از settings).
 
-**ریسک ۸ — Xray / کاربران 3x-ui**  
-تغییر metric موقت معمولاً sendThrough را خراب نمی‌کند؛ با این حال نصب را در ساعات کم‌ترافیک تست کن. probe با `curl --interface` امن‌تر از حذف routeهای ens4 است.
+**ریسک ۸ — default route سیستم**  
+تغییر metric موقت معمولاً default route دائمی را خراب نمی‌کند؛ با این حال نصب را در ساعات کم‌ترافیک تست کن. probe با `curl --interface` امن‌تر از حذف routeهای primary NIC است.
 
 ---
 

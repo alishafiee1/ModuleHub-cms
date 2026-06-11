@@ -30,7 +30,7 @@ resolve_broker_socket() {
     printf '%s' "${SUDO_BROKER_SOCKET}"
     return 0
   fi
-  printf '%s' "${HOME}/3x-ui/sudo_broker.sock"
+  printf '%s' "${HOME}/ModuleHub-cms/runtime/sudo_broker.sock"
 }
 
 sudo_exec_cleanup() {

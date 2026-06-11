@@ -24,13 +24,14 @@ def get_user_home() -> Path:
 
 
 USER_HOME = get_user_home()
+BROKER_RUNTIME_DIR = USER_HOME / "ModuleHub-cms" / "runtime"
 
 SOCKET_PATH = (
     Path(os.environ["SUDO_BROKER_SOCKET"]).expanduser()
     if os.environ.get("SUDO_BROKER_SOCKET")
-    else USER_HOME / "3x-ui" / "sudo_broker.sock"
+    else BROKER_RUNTIME_DIR / "sudo_broker.sock"
 )
-TOKEN_PATH = USER_HOME / ".x-ui-server-setup" / "broker.token"
+TOKEN_PATH = BROKER_RUNTIME_DIR / "broker.token"
 
 
 def sudo_validate(password: str) -> bool:

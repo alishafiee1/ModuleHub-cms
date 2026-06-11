@@ -355,7 +355,7 @@ write_summary() {
   log_step "summary"
   log_ok "deploy complete"
   log_info "commit: $(git_short_sha "${home_clone}") ${head_sha}"
-  log_info "site: https://haderbash.ir (hard refresh: Ctrl+Shift+R)"
+  log_info "site: ${MODULEHUB_PUBLIC_URL:-https://example.com} (hard refresh: Ctrl+Shift+R)"
 }
 
 main() {

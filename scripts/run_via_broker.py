@@ -9,15 +9,33 @@ import socket
 import sys
 from pathlib import Path
 
-SOCKET_PATH = Path(os.environ.get("SUDO_BROKER_SOCKET", "")).expanduser() if os.environ.get("SUDO_BROKER_SOCKET") else Path.home() / "3x-ui" / "sudo_broker.sock"
-TOKEN_PATH = Path.home() / ".x-ui-server-setup" / "broker.token"
+
+def get_user_home() -> Path:
+    """Resolve the original user's home directory even when running under sudo."""
+    sudo_user = os.environ.get("SUDO_USER")
+    if sudo_user:
+        home_path = Path("/home") / sudo_user
+        if home_path.exists():
+            return home_path
+    return Path.home()
+
+
+USER_HOME = get_user_home()
+BROKER_RUNTIME_DIR = USER_HOME / "ModuleHub-cms" / "runtime"
+
+SOCKET_PATH = (
+    Path(os.environ["SUDO_BROKER_SOCKET"]).expanduser()
+    if os.environ.get("SUDO_BROKER_SOCKET")
+    else BROKER_RUNTIME_DIR / "sudo_broker.sock"
+)
+TOKEN_PATH = BROKER_RUNTIME_DIR / "broker.token"
 
 
 def send_command(command: str) -> dict:
     """Send command to broker and return response dict."""
     if not SOCKET_PATH.exists():
         raise FileNotFoundError(
-            "Broker not running. Start: sudo python3 ~/3x-ui/sudo_broker.py"
+            "Broker not running. Start: python3 ~/ModuleHub-cms/scripts/sudo_broker.py"
         )
     token = TOKEN_PATH.read_text(encoding="utf-8").strip()
     payload = json.dumps({"token": token, "command": command})

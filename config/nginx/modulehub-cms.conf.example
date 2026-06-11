@@ -1,9 +1,9 @@
-# purpose --- Example Nginx site for haderbash.ir → ModuleHub CMS (127.0.0.1:4000) ------
+# purpose --- Example Nginx site for example.com → ModuleHub CMS (127.0.0.1:4000) ------
 # Copy to /etc/nginx/sites-available/ and symlink sites-enabled. No IP restrict on /admin — auth in CMS.
 
 server {
     listen 443 ssl http2;
-    server_name haderbash.ir www.haderbash.ir;
+    server_name example.com www.example.com;
 
     # ssl_certificate /path/to/fullchain.pem;
     # ssl_certificate_key /path/to/privkey.pem;

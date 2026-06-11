@@ -48,7 +48,7 @@ input.task-list-item-checkbox {
 
 # استقرار — نکات برای AI (فشرده)
 
-> **مرجع اصلی عملیات:** [`dev-workflow.md`](dev-workflow.md) — قبل از پیشنهاد SSH/deploy آن را بخوان.  
+> **مرجع اصلی عملیات:** [`deploy-guide.md`](deploy-guide.md) — قبل از پیشنهاد SSH/deploy آن را بخوان.  
 > خطاهای این پروژه: [`AI-common-mistakes/`](AI-common-mistakes/readme.md)
 
 ---
@@ -119,7 +119,7 @@ bash scripts/deploy-full.sh
 
 **SCP از ویندوز:** فایل‌های untracked روی clone با pull تداخل دارند — یا فقط از git استفاده کن، یا بعد از SCP حتماً `reset --hard` بزن.
 
-**ادمین موقت (تا فاز ۸):** `python3 ~/ModuleHub-cms/scripts/run_via_broker.py 'bash /home/ash/ModuleHub-cms/scripts/enable-dev-admin-on-server.sh'` → `isSuperAdmin:true`
+**ادمین موقت (تا فاز ۸):** `python3 ~/ModuleHub-cms/scripts/run_via_broker.py 'bash ~/ModuleHub-cms/scripts/enable-dev-admin-on-server.sh'` → `isSuperAdmin:true`
 
 **`install-to-opt`:** `.env` در `/opt` را **overwrite نمی‌کند** (rsync `--exclude .env`)
 

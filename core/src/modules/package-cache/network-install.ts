@@ -89,7 +89,7 @@ export function resolveNpmExecutablePath(): string {
     return process.env.MODULEHUB_NPM_PATH;
   }
   if (process.platform === 'linux') {
-    const homeDirectory = process.env.HOME ?? '/home/ash';
+    const homeDirectory = process.env.HOME ?? '/home/deploy';
     const versionsDirectory = path.join(homeDirectory, '.nvm', 'versions', 'node');
     try {
       const versionDirectories = fs.readdirSync(versionsDirectory)

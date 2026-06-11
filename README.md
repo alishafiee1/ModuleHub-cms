@@ -1,12 +1,13 @@
 # ModuleHub CMS
 
-Modular CMS for [haderbash.ir](https://haderbash.ir) — add site modules via ZIP upload without changing core code.
+Modular CMS — add site modules via ZIP upload without changing core code.
 
 ## Quick start (local)
 
 ```bash
 npm install
 npm run build
+cp .env.example .env   # set SESSION_SECRET and ADMIN_PASSWORD_HASH
 # Until phase 8 auth: enable admin UI locally
 set MODULEHUB_DEV_SUPER_ADMIN=1   # Windows CMD
 npm run dev
@@ -35,21 +36,21 @@ curl http://127.0.0.1:4000/health
 
 ## Server deploy
 
-**مرجع:** [docs/dev-workflow.md](docs/dev-workflow.md) (لوکال + سرور + بازیابی)
+**Reference:** [docs/deploy-guide.md](docs/deploy-guide.md)
 
 ```bash
 source ~/.nvm/nvm.sh && nvm use 20
 bash ~/ModuleHub-cms/scripts/deploy-full.sh
 ```
 
-Manual steps: [docs/dev-workflow.md](docs/dev-workflow.md) §۲ · `.gitattributes` keeps `*.sh` as LF for Linux deploy
+`.gitattributes` keeps `*.sh` as LF for Linux deploy.
 
-- [docs/server-scripts.md](docs/server-scripts.md) — اسکریپت‌ها
-- [docs/other docs/deploy-notes-for-ai.md](docs/other%20docs/deploy-notes-for-ai.md) — خلاصه برای AI
-- [docs/AI-common-mistakes/](docs/AI-common-mistakes/readme.md) — خطاهای ثبت‌شده deploy
-- [docs/session-walkthrough.md](docs/session-walkthrough.md) — گزارش جلسات (عامیانه)
+- [docs/server-scripts.md](docs/server-scripts.md) — scripts
+- [docs/other docs/deploy-notes-for-ai.md](docs/other%20docs/deploy-notes-for-ai.md) — AI deploy summary
+- [docs/AI-common-mistakes/](docs/AI-common-mistakes/readme.md) — logged deploy mistakes
+- [docs/session-walkthrough.md](docs/session-walkthrough.md) — session notes
 
-**Cursor:** `/sync-docs` — بروزرسانی docs بعد از کار
+**Cursor:** `/sync-docs` — update docs after work
 
 ## Docs
 

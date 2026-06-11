@@ -50,9 +50,9 @@ input.task-list-item-checkbox {
 # اسکریپت‌های سرور — یه راهنمای ساده
 
 این داکیومنت فقط می‌گه هر اسکریپت **کی** و **برای چی** اجرا می‌شه.  
-اگه می‌خوای کل فرایند روزانه (git pull، تست، …) رو ببینی → [`dev-workflow.md`](dev-workflow.md)
+اگه می‌خوای کل فرایند deploy رو ببینی → [`deploy-guide.md`](deploy-guide.md)
 
-سرور ما: `ash@192.168.88.50` — جایی که قراره CMS بیاد بالا.
+سرور نمونه در docs: `deploy@203.0.113.1` — IP تست RFC5737 (جایگزین با سرور خودت).
 
 ---
 
@@ -170,7 +170,7 @@ NIC پیش‌فرض: `enp63s0` — یا `storage/system-settings.json` → `pack
 
 ## `network-metric-toggler.py` — برای dual-WAN (پایین‌لایه)
 
-روی سرورت دو تا کارت شبکه داری (`ens4` فیلتر، `enp63s0` آزاد). وقتی ماژولی `npm install` می‌خواد، این اسکریپت موقتاً ترافیک رو از کارت آزاد رد می‌کنه و بعد برمی‌گردونه به حالت قبل.
+روی سرورهای dual-NIC دو کارت شبکه داری (مثلاً `eth0` primary، `eth1` secondary). وقتی ماژولی `npm install` می‌خواد، این اسکریپت موقتاً ترافیک دانلود را از رابط ثانویه رد می‌کند و بعد metric را restore می‌کند.
 
 ```bash
 python3 scripts/network-metric-toggler.py --interface enp63s0 --command "npm install"
@@ -233,8 +233,8 @@ bash scripts/setup-server-dirs.sh
 | `scripts/build-phase4-test-zip.sh` | ساخت ZIP تست از `tests/fixtures/modules/phase4-cache-test/` |
 | `scripts/verify-phase4-cache.sh` | بررسی symlink، left-pad، diagnostics HTTP |
 | `config/systemd/modulehub-cms.service` | نمونه با مسیر `/opt` — ولی unit واقعی رو `install-systemd.sh` می‌سازه |
-| `config/nginx/modulehub-cms.conf.example` | وقتی بخوای از بیرون با `haderbash.ir` بیای تو CMS |
+| `config/nginx/modulehub-cms.conf.example` | وقتی بخوای از بیرون با `example.com` بیای تو CMS |
 | `.env.example` | الگوی `SESSION_SECRET` و `ADMIN_PASSWORD_HASH` |
 
-سوالی موند؟ اول [`dev-workflow.md`](dev-workflow.md) رو ببین، بعد توی ترمینال سرور همون دستورهای بالا رو بزن.
+سوالی موند؟ اول [`deploy-guide.md`](deploy-guide.md) رو ببین، بعد توی ترمینال سرور همون دستورهای بالا رو بزن.
 

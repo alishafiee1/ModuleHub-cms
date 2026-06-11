@@ -19,7 +19,7 @@ const cmsPlaceholder = document.getElementById('cmsPlaceholder');
 const floatingBg = document.getElementById('floatingBg');
 
 // ========== Theme Management ==========
-let currentTheme = localStorage.getItem('haderbash-theme') || 'light';
+let currentTheme = localStorage.getItem('modulehub-theme') || 'light';
 
 // Apply initial theme
 if (currentTheme === 'dark') {
@@ -34,7 +34,7 @@ if (currentTheme === 'dark') {
 darkToggle.addEventListener('click', () => {
     const isDark = document.body.classList.toggle('dark');
     currentTheme = isDark ? 'dark' : 'light';
-    localStorage.setItem('haderbash-theme', currentTheme);
+    localStorage.setItem('modulehub-theme', currentTheme);
     updateDarkToggleIcon(isDark);
     
     // Send theme change to CMS iframe
@@ -256,13 +256,13 @@ function setupCMSThemeSync() {
             if (cmsTheme === 'dark' && !document.body.classList.contains('dark')) {
                 document.body.classList.add('dark');
                 currentTheme = 'dark';
-                localStorage.setItem('haderbash-theme', 'dark');
+                localStorage.setItem('modulehub-theme', 'dark');
                 updateDarkToggleIcon(true);
                 updateAllFloatingIconsColors();
             } else if (cmsTheme === 'light' && document.body.classList.contains('dark')) {
                 document.body.classList.remove('dark');
                 currentTheme = 'light';
-                localStorage.setItem('haderbash-theme', 'light');
+                localStorage.setItem('modulehub-theme', 'light');
                 updateDarkToggleIcon(false);
                 updateAllFloatingIconsColors();
             }

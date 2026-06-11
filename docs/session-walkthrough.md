@@ -62,7 +62,7 @@ input.task-list-item-checkbox {
 - **نتیجه:** `system-settings/` + `/admin/settings` · ۱۰۲ unit test · deploy-full موفق (`334f9ac`) · logrotate نصب (`/etc/logrotate.d/modulehub-cms`)
 - **deploy-full پرسید:** logrotate [y] · nginx [y] · dev Super Admin [y] — همه y · health OK
 - **هشدار deploy:** تغییر محلی `scripts/` روی clone — push + deploy-full؛ نه SCP
-- **باقی:** تست دستی 9.9 (settings روی haderbash.ir) · فاز ۸ auth
+- **باقی:** تست دستی 9.9 (settings روی example.com) · فاز ۸ auth
 
 ### 2026-05-29 — deploy-full + SCP/CRLF + discard clone
 - **درخواست:** `/sync-docs` · اسکریپت deploy یکپارچه · SCP به سرور · خطای `pipefail` و git pull
@@ -104,13 +104,13 @@ input.task-list-item-checkbox {
 
 ### 2026-05-28 — فاز ۳ runtime + deploy سایت
 - **درخواست (~صبح):** شروع فاز ۳؛ اجرای ماژول، Start/Stop، باز شدن `/modules/`
-- **نتیجه (~ظهر):** کد runtime، تست ۴۵/۴۵، deploy روی `192.168.88.50`؛ health سبز
-- **مشکل بعدی:** در haderbash.ir تغییر نمی‌دید — `script.js` قدیمی در `/opt`
+- **نتیجه (~ظهر):** کد runtime، تست ۴۵/۴۵، deploy روی سرور؛ health سبز
+- **مشکل بعدی:** در example.com تغییر نمی‌دید — `script.js` قدیمی در `/opt`
 - **رفع (~بعدازظهر):** SCP + `install-to-opt`؛ ادمین با `enable-dev-admin-on-server.sh` — «درست شد»
 
 ### 2026-05-28 — ادمین قفل + `.gitignore`
 - **درخواست:** ورود ادمین خطا `Super Admin session required`؛ چه push نشود
-- **نتیجه:** `MODULEHUB_DEV` با systemd drop-in؛ `.gitignore` برای `storage/` و ماژول‌ها؛ `dev-workflow` بازنویسی ساده
+- **نتیجه:** `MODULEHUB_DEV` با systemd drop-in؛ `.gitignore` برای `storage/` و ماژول‌ها؛ deploy-guide عمومی
 
 ---
 

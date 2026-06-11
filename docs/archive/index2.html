@@ -523,9 +523,9 @@
     const darkToggleBtn = document.getElementById('darkToggleMain');
     darkToggleBtn.addEventListener('click', () => {
         document.body.classList.toggle('dark');
-        localStorage.setItem('haderbash-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        localStorage.setItem('modulehub-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
     });
-    if (localStorage.getItem('haderbash-theme') === 'dark') document.body.classList.add('dark');
+    if (localStorage.getItem('modulehub-theme') === 'dark') document.body.classList.add('dark');
 
     // دکمه‌های ناوبری و اسکرول به بخش CMS
     document.getElementById('navCms')?.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('cmsRoot').scrollIntoView({ behavior: 'smooth' }); });

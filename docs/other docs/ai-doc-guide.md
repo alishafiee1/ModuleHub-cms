@@ -68,12 +68,12 @@ input.task-list-item-checkbox {
 | `tasks.md` | پیاده‌ساز / QA | **چک‌لیست** | فاز، تسک، خروجی، روش تست |
 | `system-settings.example.json` | کد | **داده** | پیش‌فرض‌های عددی — منبع حقیقت |
 | `site-layout.json` | کد | **نمونه schema** | ساختار ماژول در JSON |
-| `server condition.md` | عملیات | **گزارش زنده** | IP، NIC، سرویس‌ها — به‌روز دستی |
+| `server condition.md` | عملیات (شخصی) | **گزارش زنده** | در `docs-personal/` — gitignore |
 | `module-hosting-guide.md` | توسعه‌دهنده | **فنی** | Static/Backend/Docker، base path |
 | `developer-guide.md` | سازنده ماژول | **عملی** | ZIP، wizard، تست local — v0 |
-| `dev-workflow.md` | توسعه‌دهنده / AI | **عملی — مرجع deploy** | لوکال Windows vs سرور، فازها، بازیابی |
+| `deploy-guide.md` | توسعه‌دهنده / AI | **عملی — مرجع deploy** | استقرار عمومی Ubuntu + Nginx |
 | `server-scripts.md` | عملیات | **محاوره‌ای** | هر اسکریپت چه می‌کند |
-| `deploy-notes-for-ai.md` | **AI فقط** | **فشرده** | ارجاع به dev-workflow + جدول اشتباه |
+| `deploy-notes-for-ai.md` | **AI فقط** | **فشرده** | ارجاع به deploy-guide + جدول اشتباه |
 | `session-walkthrough.md` | تو + AI | **گزارش جلسه** | درخواست/نتیجه عامیانه · `/sync-docs` |
 | `AI-common-mistakes/` | AI | **لاگ خطا** | خطاهای مخصوص این repo |
 | `code-rolls.md` | AI هنگام کدنویسی | **قواعد کد** | TypeScript، امنیت، تست |
@@ -143,7 +143,7 @@ input.task-list-item-checkbox {
 
 - radio در settings = **فقط** برای npm / docker pull / git — **موقت**
 - بعد از عملیات: **restore** metric (`network-metric-toggler`)
-- **هرگز** در docs یا کد: «تغییر default route دائمی از پنل» — ریسک Xray / 3x-ui
+- **هرگز** در docs یا کد: «تغییر default route دائمی از پنل» — ریسک خراب شدن default route سیستم
 
 ---
 
@@ -165,7 +165,7 @@ input.task-list-item-checkbox {
 
 ## استقرار سرور — AI قبل از پیشنهاد دستور
 
-1. بخوان: [`dev-workflow.md`](dev-workflow.md) (اصلی) · [`deploy-notes-for-ai.md`](deploy-notes-for-ai.md) (خلاصه)
+1. بخوان: [`deploy-guide.md`](deploy-guide.md) (اصلی) · [`deploy-notes-for-ai.md`](deploy-notes-for-ai.md) (خلاصه)
 2. ویندوز: `$env:VAR` · سرور Linux: `export VAR` — هرگز مخلوط نکن
 3. سرور: `deploy-on-server.sh` — نه `npm run dev`
 4. SSH + systemd: `-t` / sudo broker · اسکریپت: `bash scripts/...`

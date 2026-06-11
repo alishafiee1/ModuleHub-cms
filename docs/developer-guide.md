@@ -14,7 +14,7 @@ table td code, table th code { direction: ltr; unicode-bidi: embed; text-align: 
 
 > **وضعیت:** هسته در `core/` — فاز ۰–۷.۵ (layout + wizard + runtime + package-cache + backup-restore + settings).  
 > ماژول بعد از wizard با `status: stopped` ثبت می‌شود؛ از ⚙ **Start** سپس `/modules/<id>/` باز می‌شود.  
-> deploy و توسعه: [`dev-workflow.md`](dev-workflow.md) · چک‌لیست: [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
+> deploy و توسعه: [`deploy-guide.md`](deploy-guide.md) · چک‌لیست: [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
 
 ---
 
@@ -200,7 +200,7 @@ npx serve . -l 8080
 | CSS/JS لود نمی‌شود | base path | §۴ |
 | `crashed` | RAM کم | RAM در چرخ‌دنده ↑ |
 | `ModuleNotFoundError` | وابستگی | `package.json` در ریشه ZIP |
-| npm timeout | اینترنت فیلتر | رابط شبکه در `/admin/settings` |
+| npm timeout | رابط شبکه ثانویه | رابط شبکه در `/admin/settings` |
 
 لاگ: `/var/log/modulehub/modules/<module-id>.log`
 
@@ -223,7 +223,7 @@ npx serve . -l 8080
 | GET | `/admin/settings/data` | JSON تنظیمات + لیست NIC |
 | POST | `/admin/settings` | ذخیره partial settings (validation) |
 
-تا فاز ۸: `MODULEHUB_DEV_SUPER_ADMIN=1` در `.env` برای تست admin — [`dev-workflow.md` §۳](dev-workflow.md)
+تا فاز ۸: `MODULEHUB_DEV_SUPER_ADMIN=1` در `.env` برای تست admin — [`deploy-guide.md`](deploy-guide.md)
 
 ### ۹.۱ بکاپ و restore کامل (فاز ۶ — بدون UI)
 
@@ -270,5 +270,5 @@ hash ثابت fixture در README همان ماژول — unit: `tests/unit/pack
 | معماری و تنظیمات | `design plan.md` |
 | چک‌لیست پیاده‌سازی | `openspec/changes/modulehub-cms-v1/tasks.md` |
 | نمونه JSON ماژول | `site-layout.json` |
-| deploy | `dev-workflow.md` |
+| deploy | `deploy-guide.md` |
 | معرفی ساده | `proposal.md` |

@@ -82,7 +82,7 @@ alwaysApply: false
 | فایل | چه زمانی |
 |------|----------|
 | `docs/deploy-notes-for-ai.md` | deploy، sudo broker، env، مسیرها |
-| `docs/dev-workflow.md` | روتین pull/deploy/discard |
+| `docs/deploy-guide.md` | روتین pull/deploy/discard |
 | `docs/developer-guide.md` | API/فاز جدید |
 | `README.md` | فاز یا دستور جدید در یک خط |
 | `openspec/.../tasks.md` | تیک کارهای تمام‌شده |

@@ -8,7 +8,7 @@ This command will be available in chat with /sync-docs
 
 **این فایل mirror پروژه است.** محتوای کامل در global command:
 
-`C:\Users\alish\.cursor\commands\sync-docs.md`
+`~/.cursor/commands/sync-docs.md` (global Cursor command — path varies by user)
 
 Agent: همان چک‌لیست §۰–§۸ global را اجرا کن. مسیرهای legacy این repo:
 
