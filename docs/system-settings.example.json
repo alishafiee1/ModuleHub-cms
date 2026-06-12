@@ -22,5 +22,7 @@
   "loginRateLimitPerMinute": 5,
   "moduleManagerSessionTtlHours": 4,
   "modulePasswordMaxAttempts": 5,
-  "modulePasswordLockoutMinutes": 15
+  "modulePasswordLockoutMinutes": 15,
+  "homePageBackgroundMode": "none",
+  "homePageIconTheme": "mixed"
 }

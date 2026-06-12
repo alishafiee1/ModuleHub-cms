@@ -65,11 +65,22 @@ export interface PublicModuleEntry {
   hasManagementPassword: boolean;
 }
 
-/** API payload for GET /api/layout */
-export interface LayoutApiResponse {
+/** Home page visual appearance from system settings */
+export interface HomePageAppearance {
+  backgroundMode: 'none' | 'floating-icons';
+  iconTheme: 'nature' | 'technology' | 'tools' | 'vehicles' | 'mixed';
+}
+
+/** Layout tree payload without appearance (internal mapper output) */
+export interface LayoutApiCore {
   version: string;
   tree: LayoutTreeNode;
   modules: Record<string, PublicModuleEntry>;
+}
+
+/** API payload for GET /api/layout */
+export interface LayoutApiResponse extends LayoutApiCore {
+  appearance: HomePageAppearance;
 }
 
 /** Breadcrumb segment for folder navigation */

@@ -88,21 +88,36 @@ body.dark {
     --text-desc: #94a3b8;
 }
 
+html {
+    overflow-x: clip;
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: var(--bg-body);
     color: var(--text-primary);
-    padding: 1.8rem 1.5rem;
+    padding: 1rem;
     direction: rtl;
     position: relative;
-    min-height: 100vh;
-    overflow-x: hidden;
+    min-height: 100dvh;
+    overflow-x: clip;
     transition: background 0.3s ease;
+}
+
+/* Decorative overlay — above cards/hero, clicks pass through to UI below */
+#homeFloatingCanvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
 }
 
 /* Moving animated background bubbles/glows */
 .bg-glow-1, .bg-glow-2 {
-    position: absolute;
+    position: fixed;
     width: 450px;
     height: 450px;
     border-radius: 50%;
@@ -114,13 +129,15 @@ body {
 }
 .bg-glow-1 {
     background: #4f46e5;
-    top: -10%;
-    right: -10%;
+    top: 0;
+    right: 0;
+    transform: translate(15%, -15%);
 }
 .bg-glow-2 {
     background: #06b6d4;
-    bottom: -10%;
-    left: -10%;
+    bottom: 0;
+    left: 0;
+    transform: translate(-15%, 15%);
     animation-delay: -6s;
 }
 
@@ -192,6 +209,8 @@ body {
     display: flex;
     gap: 15px;
     align-items: center;
+    position: relative;
+    z-index: 3;
 }
 
 .dark-toggle,
@@ -399,9 +418,33 @@ body.dark .breadcrumb-item { color: #7ab3c8; }
 
 .grid-cards {
     padding: 2rem;
+    padding-top: calc(2rem + 12px);
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
     gap: 1.8rem;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.grid-cards.grid-cards--navigating {
+    opacity: 0.92;
+    transform: scale(0.99);
+}
+
+@keyframes cardConnectIn {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.97);
+        box-shadow: 0 4px 12px -8px rgba(0, 0, 0, 0.08);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        box-shadow: var(--card-shadow);
+    }
+}
+
+.card.card-enter {
+    animation: cardConnectIn 0.28s ease-out both;
 }
 
 .loading-state {
@@ -424,9 +467,25 @@ body.dark .breadcrumb-item { color: #7ab3c8; }
 }
 
 .card:hover {
-    transform: translateY(-8px) scale(1.02);
+    transform: translateY(-6px) scale(1.02);
     border-color: #06b6d4;
     box-shadow: var(--card-hover-shadow), 0 0 15px rgba(6, 182, 212, 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .card:hover {
+        transform: none;
+    }
+    .card.card-enter {
+        animation: none;
+    }
+    .grid-cards.grid-cards--navigating {
+        opacity: 1;
+        transform: none;
+    }
+    .bg-glow-1, .bg-glow-2 {
+        animation: none;
+    }
 }
 
 .card-content { padding: 1.4rem 1.2rem 1.2rem; }

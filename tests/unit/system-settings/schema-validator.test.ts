@@ -41,4 +41,22 @@ describe('system-settings schema-validator', () => {
       maxZipUploadMb: 0,
     })).toThrow(/maxZipUploadMb/);
   });
+
+  it('rejects invalid homePageBackgroundMode', () => {
+    const result = validateSystemSettingsSchema({
+      ...DEFAULT_SYSTEM_SETTINGS,
+      homePageBackgroundMode: 'waves',
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((message) => message.includes('homePageBackgroundMode'))).toBe(true);
+  });
+
+  it('rejects invalid homePageIconTheme', () => {
+    const result = validateSystemSettingsSchema({
+      ...DEFAULT_SYSTEM_SETTINGS,
+      homePageIconTheme: 'space',
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((message) => message.includes('homePageIconTheme'))).toBe(true);
+  });
 });

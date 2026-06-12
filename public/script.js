@@ -2,8 +2,11 @@
 (function initModuleHubHome() {
   const ROOT_ID = 'root';
   let siteLayout = null;
+  let siteAppearance = { backgroundMode: 'none', iconTheme: 'mixed' };
   let currentFolderId = ROOT_ID;
   let authStatus = { isSuperAdmin: false, managedModuleIds: [] };
+  let lastContentHeight = 0;
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /**
    * Finds a node in the layout tree by id.
@@ -116,6 +119,7 @@
     if (!options.replace && validFolderId === currentFolderId) {
       return;
     }
+    const isFolderChange = validFolderId !== currentFolderId;
     currentFolderId = validFolderId;
     const url = buildFolderUrl(validFolderId);
     const state = { folderId: validFolderId };
@@ -124,7 +128,45 @@
     } else {
       history.pushState(state, '', url);
     }
+
+    if (!options.replace && isFolderChange && !prefersReducedMotion) {
+      const grid = document.getElementById('cardsGrid');
+      grid.classList.add('grid-cards--navigating');
+      window.setTimeout(() => {
+        grid.classList.remove('grid-cards--navigating');
+        renderAll();
+      }, 120);
+      return;
+    }
     renderAll();
+  }
+
+  /**
+   * Staggered enter animation for cards after grid render.
+   * @param {HTMLElement} container - Cards grid element
+   */
+  function applyCardEnterAnimations(container) {
+    if (prefersReducedMotion) {
+      return;
+    }
+    const cards = container.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+      card.classList.add('card-enter');
+      card.style.animationDelay = `${index * 40}ms`;
+    });
+  }
+
+  /**
+   * Scrolls to top when breadcrumb/grid height changes (avoids stray scroll offset).
+   */
+  function maybeScrollToTopAfterLayout() {
+    const breadcrumb = document.getElementById('breadcrumbArea');
+    const grid = document.getElementById('cardsGrid');
+    const contentHeight = (breadcrumb?.offsetHeight || 0) + (grid?.offsetHeight || 0);
+    if (contentHeight !== lastContentHeight) {
+      lastContentHeight = contentHeight;
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
   }
 
   /**
@@ -160,6 +202,12 @@
   async function refreshFromServer() {
     authStatus = await ModuleHubApi.loadAuthStatus();
     siteLayout = await ModuleHubApi.loadLayout();
+    if (siteLayout.appearance) {
+      siteAppearance = siteLayout.appearance;
+    }
+    if (window.HomeFloatingBackground) {
+      window.HomeFloatingBackground.updateAppearance(siteAppearance);
+    }
     updateAdminLoginLink();
     currentFolderId = resolveValidFolderId(currentFolderId);
     renderAll();
@@ -280,6 +328,8 @@
     }
 
     container.innerHTML = html || '<div class="loading-state">این پوشه خالی است.</div>';
+    applyCardEnterAnimations(container);
+    requestAnimationFrame(() => maybeScrollToTopAfterLayout());
 
     container.querySelectorAll('.card:not(.add-card)').forEach((card) => {
       card.addEventListener('click', (event) => {
@@ -603,6 +653,9 @@
       const nowDark = document.body.classList.contains('dark');
       localStorage.setItem('modulehub-theme', nowDark ? 'dark' : 'light');
       label.textContent = nowDark ? 'لایت مود' : 'دارک مود';
+      if (window.HomeFloatingBackground) {
+        window.HomeFloatingBackground.updateTheme();
+      }
     });
   }
 
@@ -616,6 +669,9 @@
   });
 
   initDarkMode();
+  if (window.HomeFloatingBackground) {
+    window.HomeFloatingBackground.init();
+  }
   AdminMenu.mount('adminAuthMenuHost', { onAfterLogout: refreshFromServer });
 
   refreshFromServer()

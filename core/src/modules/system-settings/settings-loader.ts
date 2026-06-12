@@ -30,6 +30,8 @@ export const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
   moduleManagerSessionTtlHours: 4,
   modulePasswordMaxAttempts: 5,
   modulePasswordLockoutMinutes: 15,
+  homePageBackgroundMode: 'none',
+  homePageIconTheme: 'mixed',
 };
 
 /**

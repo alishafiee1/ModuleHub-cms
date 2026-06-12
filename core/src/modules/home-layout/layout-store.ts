@@ -1,8 +1,10 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { PATHS } from '../../config/paths';
+import { loadSystemSettings } from '../system-settings/settings-loader';
+import { toHomePageAppearance } from '../system-settings/home-appearance';
 import { LayoutParseError, parseSiteLayout } from './layout-parser';
-import type { LayoutApiResponse, ModuleEntry, PublicModuleEntry, SiteLayoutDocument } from './types';
+import type { LayoutApiCore, LayoutApiResponse, ModuleEntry, PublicModuleEntry, SiteLayoutDocument } from './types';
 
 /**
  * Maps internal module entry to public API shape (strips password hash).
@@ -35,7 +37,7 @@ export function toPublicModuleEntry(entry: ModuleEntry): PublicModuleEntry {
  * @param layout - Parsed site layout
  * @returns Layout payload for GET /api/layout
  */
-export function toLayoutApiResponse(layout: SiteLayoutDocument): LayoutApiResponse {
+export function toLayoutApiResponse(layout: SiteLayoutDocument): LayoutApiCore {
   const modules: Record<string, PublicModuleEntry> = {};
   for (const [moduleId, entry] of Object.entries(layout.modules)) {
     modules[moduleId] = toPublicModuleEntry(entry);
@@ -90,8 +92,14 @@ export async function readSiteLayout(): Promise<SiteLayoutDocument> {
  * @returns Layout API response
  */
 export async function loadLayoutForApi(): Promise<LayoutApiResponse> {
-  const layout = await readSiteLayout();
-  return toLayoutApiResponse(layout);
+  const [layout, settings] = await Promise.all([
+    readSiteLayout(),
+    loadSystemSettings(),
+  ]);
+  return {
+    ...toLayoutApiResponse(layout),
+    appearance: toHomePageAppearance(settings),
+  };
 }
 
 /**

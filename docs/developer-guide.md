@@ -211,7 +211,7 @@ npx serve . -l 8080
 
 | متد | مسیر | توضیح |
 |-----|------|--------|
-| GET | `/api/layout` | درخت + ماژول‌ها |
+| GET | `/api/layout` | درخت + ماژول‌ها + `appearance` (بک‌گراند صفحه اصلی) |
 | GET | `/api/auth/status` | وضعیت session (فاز ۸ کامل می‌شود) |
 | POST | `/admin/upload` | ZIP → `standalone-modules/<id>/` |
 | POST | `/admin/wizard/save` | ثبت در `site-layout.json` |
@@ -250,6 +250,25 @@ curl -X POST "http://127.0.0.1:4000/admin/backup/restore/modulehub-full-....zip"
 ```
 
 CLI: `node scripts/cli.js backup --output /tmp/full.zip` · راهنمای کامل: [`backup-restore.md`](backup-restore.md)
+
+### ۹.۲ ظاهر صفحه اصلی (`system-settings.json`)
+
+| فیلد | مقادیر | پیش‌فرض |
+|------|--------|---------|
+| `homePageBackgroundMode` | `none` \| `floating-icons` | `none` |
+| `homePageIconTheme` | `nature` \| `technology` \| `tools` \| `vehicles` \| `mixed` | `mixed` |
+
+`GET /api/layout` فیلد `appearance: { backgroundMode, iconTheme }` برمی‌گرداند (بدون لاگین).
+
+**فرانت:** `public/home-floating-background.js` + `public/assets/home-icon-themes.json`
+
+**بیلد آیکون‌ها (Lucide):**
+
+```bash
+npm run build:icons
+```
+
+اسکریپت: `scripts/build-home-icon-themes.js` — قبل از deploy در صورت به‌روزرسانی `lucide` اجرا شود.
 
 ---
 

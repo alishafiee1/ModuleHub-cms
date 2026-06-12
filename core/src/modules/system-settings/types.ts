@@ -1,3 +1,15 @@
+/** Home page background effect mode */
+export type HomePageBackgroundMode = 'none' | 'floating-icons';
+
+/** Lucide icon theme category for floating home background */
+export type HomePageIconTheme = 'nature' | 'technology' | 'tools' | 'vehicles' | 'mixed';
+
+/** Public appearance slice exposed via GET /api/layout */
+export interface HomePageAppearance {
+  backgroundMode: HomePageBackgroundMode;
+  iconTheme: HomePageIconTheme;
+}
+
 /** Global CMS settings persisted in storage/system-settings.json */
 export interface SystemSettings {
   maxZipUploadMb: number;
@@ -24,4 +36,6 @@ export interface SystemSettings {
   moduleManagerSessionTtlHours: number;
   modulePasswordMaxAttempts: number;
   modulePasswordLockoutMinutes: number;
+  homePageBackgroundMode: HomePageBackgroundMode;
+  homePageIconTheme: HomePageIconTheme;
 }

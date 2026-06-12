@@ -34,6 +34,10 @@ describe('GET /api/layout', () => {
     expect(response.body.modules['mod-1'].hasManagementPassword).toBe(true);
     expect(response.body.modules['mod-1'].managementPasswordHash).toBeUndefined();
     expect(response.body.modules['mod-2'].status).toBe('stopped');
+    expect(response.body.appearance).toEqual({
+      backgroundMode: 'none',
+      iconTheme: 'mixed',
+    });
   });
 
   it('returns auth status with csrf token', async () => {

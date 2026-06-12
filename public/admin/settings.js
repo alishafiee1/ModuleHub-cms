@@ -29,6 +29,8 @@
     moduleManagerSessionTtlHours: { title: 'Session Module Manager', text: 'مدت session ورود با رمز ماژول.' },
     modulePasswordMaxAttempts: { title: 'حداکثر تلاش رمز ماژول', text: 'چند بار رمز ⚙ اشتباه قبل از lockout.' },
     modulePasswordLockoutMinutes: { title: 'مدت lockout', text: 'مدت مسدودیت پس از تلاش‌های اشتباه.' },
+    homePageBackgroundMode: { title: 'پس‌زمینه صفحه اصلی', text: 'بدون بک‌گراند یا آیکون‌های Lucide شناور روی canvas.' },
+    homePageIconTheme: { title: 'دسته آیکون', text: 'طبیعت، تکنولوژی، ابزار، وسایل یا ترکیبی تصادفی از همه.' },
   };
 
   /** @type {Array<{ id: string, title: string, icon: string, summary: (s: object) => string, dialogType?: string }>} */
@@ -67,6 +69,27 @@
       title: 'رابط شبکه نصب پکیج',
       icon: 'fa-network-wired',
       summary: (s) => `رابط: ${s.packageInstallInterface || '—'}`,
+    },
+    {
+      id: 'home-appearance',
+      title: 'ظاهر صفحه اصلی',
+      icon: 'fa-palette',
+      summary: (s) => {
+        const modeLabels = { none: 'بدون بک‌گراند', 'floating-icons': 'آیکون شناور' };
+        const themeLabels = {
+          nature: 'طبیعت',
+          technology: 'تکنولوژی',
+          tools: 'ابزار',
+          vehicles: 'وسایل',
+          mixed: 'ترکیبی',
+        };
+        const mode = modeLabels[s.homePageBackgroundMode] || 'بدون بک‌گراند';
+        if (s.homePageBackgroundMode !== 'floating-icons') {
+          return mode;
+        }
+        return `${mode} · ${themeLabels[s.homePageIconTheme] || 'ترکیبی'}`;
+      },
+      dialogType: 'home-appearance',
     },
     {
       id: 'auth',
@@ -171,6 +194,31 @@
       + fieldHtml('modulePasswordLockoutMinutes', 'مدت lockout (دقیقه)', 'modulePasswordLockoutMinutes', 'number', s.modulePasswordLockoutMinutes, 'min="1"');
   }
 
+  function buildHomeAppearanceHtml(s) {
+    const mode = s.homePageBackgroundMode || 'none';
+    const theme = s.homePageIconTheme || 'mixed';
+    const radio = (value, label, checked, disabled = false, title = '') => `
+      <label style="display:block;margin:0.35rem 0;${disabled ? 'opacity:0.5;' : ''}" title="${title}">
+        <input type="radio" name="swal-bg-mode" value="${value}" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''}>
+        ${label}
+      </label>`;
+    return `
+      <div class="swal-home-appearance" style="text-align:right;">
+        <p style="font-weight:600;margin-bottom:0.35rem;">حالت پس‌زمینه</p>
+        ${radio('none', 'بدون بک‌گراند', mode === 'none')}
+        ${radio('floating-icons', 'آیکون‌های شناور', mode === 'floating-icons')}
+        ${radio('future', 'پیشنهادات آتی (امواج، ذرات)', false, true, 'به زودی')}
+        <p style="font-weight:600;margin:1rem 0 0.35rem;">دسته آیکون</p>
+        <select id="swal-homePageIconTheme" class="swal2-input" style="width:100%;box-sizing:border-box;">
+          <option value="nature" ${theme === 'nature' ? 'selected' : ''}>طبیعت</option>
+          <option value="technology" ${theme === 'technology' ? 'selected' : ''}>تکنولوژی</option>
+          <option value="tools" ${theme === 'tools' ? 'selected' : ''}>ابزار</option>
+          <option value="vehicles" ${theme === 'vehicles' ? 'selected' : ''}>وسایل نقلیه</option>
+          <option value="mixed" ${theme === 'mixed' ? 'selected' : ''}>ترکیبی تصادفی</option>
+        </select>
+      </div>`;
+  }
+
   const DIALOG_BUILDERS = {
     'upload-port': buildUploadPortHtml,
     resources: buildResourcesHtml,
@@ -243,6 +291,13 @@
         modulePasswordLockoutMinutes: readSwalNumber('modulePasswordLockoutMinutes'),
       };
     }
+    if (cardId === 'home-appearance') {
+      const selectedMode = document.querySelector('input[name="swal-bg-mode"]:checked')?.value || 'none';
+      return {
+        homePageBackgroundMode: selectedMode === 'floating-icons' ? 'floating-icons' : 'none',
+        homePageIconTheme: document.getElementById('swal-homePageIconTheme')?.value || 'mixed',
+      };
+    }
     return {};
   }
 
@@ -264,6 +319,27 @@
 
     if (card.dialogType === 'backup') {
       await BackupSettingsDialog.openDialog(currentSettings.maxZipUploadMb);
+      return;
+    }
+
+    if (card.dialogType === 'home-appearance') {
+      const result = await Swal.fire({
+        title: card.title,
+        html: buildHomeAppearanceHtml(currentSettings),
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'ذخیره',
+        cancelButtonText: 'انصراف',
+        width: '28rem',
+      });
+      if (!result.isConfirmed) return;
+      try {
+        const payload = buildPayloadForCard('home-appearance');
+        await saveSettingsPayload(payload);
+        await Swal.fire({ icon: 'success', title: 'ذخیره شد', text: 'ظاهر صفحه اصلی به‌روز شد.', timer: 2000, showConfirmButton: false });
+      } catch (error) {
+        await Swal.fire({ icon: 'error', title: 'ذخیره ناموفق', text: error.message });
+      }
       return;
     }
 

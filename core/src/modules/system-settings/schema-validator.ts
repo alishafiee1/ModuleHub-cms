@@ -119,6 +119,22 @@ export function validateSystemSettingsSchema(
     errors.push('packageInstallInterface must be a non-empty string');
   }
 
+  const backgroundModes = ['none', 'floating-icons'];
+  if (
+    typeof settings.homePageBackgroundMode !== 'string'
+    || !backgroundModes.includes(settings.homePageBackgroundMode)
+  ) {
+    errors.push('homePageBackgroundMode must be one of: none, floating-icons');
+  }
+
+  const iconThemes = ['nature', 'technology', 'tools', 'vehicles', 'mixed'];
+  if (
+    typeof settings.homePageIconTheme !== 'string'
+    || !iconThemes.includes(settings.homePageIconTheme)
+  ) {
+    errors.push('homePageIconTheme must be one of: nature, technology, tools, vehicles, mixed');
+  }
+
   return { valid: errors.length === 0, errors };
 }
 
