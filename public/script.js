@@ -57,6 +57,77 @@
   }
 
   /**
+   * Reads folder id from URL query string.
+   * @returns {string|null}
+   */
+  function getFolderIdFromUrl() {
+    const folderId = new URLSearchParams(window.location.search).get('folder');
+    return folderId?.trim() || null;
+  }
+
+  /**
+   * Builds browser URL for a folder view.
+   * @param {string} folderId - Target folder id
+   * @returns {string}
+   */
+  function buildFolderUrl(folderId) {
+    if (!folderId || folderId === ROOT_ID) {
+      return '/';
+    }
+    return `/?folder=${encodeURIComponent(folderId)}`;
+  }
+
+  /**
+   * Returns folder id if it exists in layout, otherwise root.
+   * @param {string} folderId - Candidate folder id
+   * @returns {string}
+   */
+  function resolveValidFolderId(folderId) {
+    if (!siteLayout?.tree || !folderId || folderId === ROOT_ID) {
+      return ROOT_ID;
+    }
+    const node = findNodeById(siteLayout.tree, folderId);
+    return node?.type === 'folder' ? folderId : ROOT_ID;
+  }
+
+  /**
+   * Returns parent folder id for breadcrumb back navigation.
+   * @param {string} folderId - Current folder id
+   * @returns {string}
+   */
+  function getParentFolderId(folderId) {
+    const path = buildBreadcrumbPath(folderId);
+    if (path.length < 2) {
+      return ROOT_ID;
+    }
+    return path[path.length - 2].id;
+  }
+
+  /**
+   * Navigates to a folder and syncs browser history.
+   * @param {string} folderId - Target folder id
+   * @param {{ replace?: boolean }} [options] - Use replaceState instead of pushState
+   */
+  function navigateToFolder(folderId, options = {}) {
+    if (!siteLayout?.tree) {
+      return;
+    }
+    const validFolderId = resolveValidFolderId(folderId);
+    if (!options.replace && validFolderId === currentFolderId) {
+      return;
+    }
+    currentFolderId = validFolderId;
+    const url = buildFolderUrl(validFolderId);
+    const state = { folderId: validFolderId };
+    if (options.replace) {
+      history.replaceState(state, '', url);
+    } else {
+      history.pushState(state, '', url);
+    }
+    renderAll();
+  }
+
+  /**
    * Returns localized status label and CSS class.
    * @param {string} status - running | stopped | crashed
    * @returns {{ label: string, cssClass: string }}
@@ -90,6 +161,7 @@
     authStatus = await ModuleHubApi.loadAuthStatus();
     siteLayout = await ModuleHubApi.loadLayout();
     updateAdminLoginLink();
+    currentFolderId = resolveValidFolderId(currentFolderId);
     renderAll();
   }
 
@@ -119,8 +191,7 @@
         const folderId = element.getAttribute('data-folder');
         const folderNode = findNodeById(siteLayout.tree, folderId);
         if (folderNode && folderNode.type === 'folder') {
-          currentFolderId = folderId;
-          renderAll();
+          navigateToFolder(folderId);
         }
       });
     });
@@ -136,6 +207,22 @@
 
     const children = folderNode.children || [];
     let html = '';
+
+    if (currentFolderId !== ROOT_ID) {
+      const parentFolderId = getParentFolderId(currentFolderId);
+      const parentPath = buildBreadcrumbPath(currentFolderId);
+      const parentName = parentPath[parentPath.length - 2]?.name || 'خانه';
+      html += `
+        <div class="card back-card" data-type="back" data-folder="${parentFolderId}">
+          <div class="card-content">
+            <div class="card-icon">
+              <div class="card-icon-img"><i class="fas fa-arrow-right"></i></div>
+            </div>
+            <div class="card-title">بازگشت</div>
+            <div class="card-desc">${parentName}</div>
+          </div>
+        </div>`;
+    }
 
     for (const child of children) {
       const isFolder = child.type === 'folder';
@@ -161,9 +248,9 @@
           </div>`
         : '';
 
-      const description = isFolder
-        ? 'پوشه مجازی'
-        : (moduleMeta?.changelog || 'ماژول مستقل');
+      const descriptionHtml = !isFolder && moduleMeta?.changelog
+        ? `<div class="card-desc">${moduleMeta.changelog}</div>`
+        : '';
 
       html += `
         <div class="card ${isFolder ? 'folder-card' : 'module-card'}" data-id="${child.id}" data-type="${child.type}" data-module-id="${child.moduleId || ''}">
@@ -175,7 +262,7 @@
               </div>
             </div>
             <div class="card-title">${displayName}</div>
-            <div class="card-desc">${description}</div>
+            ${descriptionHtml}
             ${statusHtml}
             ${resourceHint}
           </div>
@@ -188,7 +275,6 @@
           <div class="card-content">
             <i class="fas fa-plus-circle"></i>
             <div class="card-title">افزودن محتوا</div>
-            <div class="card-desc">پوشه جدید / آپلود ZIP</div>
           </div>
         </div>`;
     }
@@ -200,11 +286,14 @@
         if (event.target.closest('.gear-icon')) {
           return;
         }
-        const nodeId = card.getAttribute('data-id');
         const nodeType = card.getAttribute('data-type');
+        if (nodeType === 'back') {
+          navigateToFolder(card.getAttribute('data-folder'));
+          return;
+        }
+        const nodeId = card.getAttribute('data-id');
         if (nodeType === 'folder') {
-          currentFolderId = nodeId;
-          renderAll();
+          navigateToFolder(nodeId);
           return;
         }
         const targetModuleId = card.getAttribute('data-module-id');
@@ -517,15 +606,24 @@
     });
   }
 
-  document.getElementById('cacheInfoChip').addEventListener('click', () => {
-    void ModuleDialogs.showCacheInfoDialog();
+  window.addEventListener('popstate', (event) => {
+    if (!siteLayout?.tree) {
+      return;
+    }
+    const folderId = event.state?.folderId ?? getFolderIdFromUrl() ?? ROOT_ID;
+    currentFolderId = resolveValidFolderId(folderId);
+    renderAll();
   });
 
   initDarkMode();
   AdminMenu.mount('adminAuthMenuHost', { onAfterLogout: refreshFromServer });
 
-  refreshFromServer().catch((error) => {
-    document.getElementById('cardsGrid').innerHTML =
-      `<div class="loading-state">خطا در بارگذاری: ${error.message}</div>`;
-  });
+  refreshFromServer()
+    .then(() => {
+      navigateToFolder(resolveValidFolderId(getFolderIdFromUrl() || ROOT_ID), { replace: true });
+    })
+    .catch((error) => {
+      document.getElementById('cardsGrid').innerHTML =
+        `<div class="loading-state">خطا در بارگذاری: ${error.message}</div>`;
+    });
 })();

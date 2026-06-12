@@ -397,29 +397,6 @@ body {
 body.dark .breadcrumb-item { color: #7ab3c8; }
 .breadcrumb-item:hover { text-decoration: underline; }
 
-.features-banner {
-    background: var(--feature-bg);
-    padding: 0.7rem 2rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    font-size: 0.8rem;
-    border-bottom: 1px solid var(--border-light);
-}
-
-.feature-chip {
-    background: var(--feature-chip);
-    border-radius: 40px;
-    padding: 0.2rem 1rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text-secondary);
-    cursor: default;
-}
-
-#cacheInfoChip { cursor: pointer; }
-
 .grid-cards {
     padding: 2rem;
     display: grid;
@@ -546,17 +523,19 @@ body.dark .breadcrumb-item { color: #7ab3c8; }
 .folder-card { border-right: 5px solid #2c7da0; }
 .module-card { border-right: 5px solid #2e9c6b; }
 
-.demo-note {
-    background: var(--note-bg);
-    padding: 0.8rem 2rem;
-    font-size: 0.75rem;
-    color: var(--note-text);
-    border-top: 1px solid var(--border-light);
+.back-card {
+    background: rgba(6, 182, 212, 0.06);
+    border: 1px dashed rgba(6, 182, 212, 0.45);
+    border-right: 5px solid #64748b;
 }
 
-.demo-note code {
-    direction: ltr;
-    unicode-bidi: embed;
+.back-card .card-icon-img {
+    color: #0891b2;
+    font-size: 1.75rem;
+}
+
+.back-card:hover {
+    border-color: #0891b2;
 }
 
 @media (max-width: 700px) {

@@ -197,6 +197,11 @@ const AdminMenu = (function createAdminMenu() {
       void showChangePasswordDialog();
       return;
     }
+    if (action === 'cache-info') {
+      closeMenu();
+      void ModuleDialogs.showCacheInfoDialog();
+      return;
+    }
     if (action === 'logout') {
       void handleLogout();
     }
@@ -270,6 +275,9 @@ const AdminMenu = (function createAdminMenu() {
           </a>
           <button type="button" class="admin-dropdown-item" data-admin-menu-action="change-password">
             <i class="fas fa-key"></i> تغییر رمز عبور
+          </button>
+          <button type="button" class="admin-dropdown-item" data-admin-menu-action="cache-info">
+            <i class="fas fa-database"></i> اطلاعات کش پکیج
           </button>
           <button type="button" class="admin-dropdown-item admin-dropdown-item-danger" data-admin-menu-action="logout">
             <i class="fas fa-sign-out-alt"></i> خروج
