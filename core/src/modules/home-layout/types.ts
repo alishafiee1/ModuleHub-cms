@@ -32,8 +32,19 @@ export interface ModuleEntry {
   managementPermissions?: string[];
 }
 
-/** Card display width in grid columns — 1 (small), 2 (medium), 4 (full row) */
+/** @deprecated Legacy card width — migrated to cardGrid on read */
 export type CardSpan = 1 | 2 | 4;
+
+/**
+ * Absolute position on the 30×9 card canvas.
+ * purpose --- source of truth for card layout (cart view pattern) ---
+ */
+export interface CardGridPosition {
+  col: number;
+  row: number;
+  colSpan: number;
+  rowSpan: number;
+}
 
 /** Background source type for a card */
 export type CardBackgroundType = 'none' | 'color' | 'image';
@@ -62,16 +73,18 @@ export interface LayoutTreeNode {
   parentId: string | null;
   children?: LayoutTreeNode[];
   moduleId?: string;
-  /** Card width in grid columns; omitted/undefined means 1 (default) */
+  /** @deprecated Migrated to cardGrid — may appear briefly before lazy migration */
   cardSpan?: CardSpan;
+  /** Position and size on the 30×9 canvas */
+  cardGrid?: CardGridPosition;
   /** Custom card background (color or image + opacity); omitted means default glass style */
   cardBackground?: CardBackground;
 }
 
 /** Payload for PATCH /admin/folder/:folderId/cards */
 export interface FolderCardsUpdatePayload {
-  /** Ordered list of nodes; determines new children order, cardSpan, and cardBackground */
-  cards: Array<{ nodeId: string; cardSpan?: CardSpan; cardBackground?: CardBackground | null }>;
+  /** Ordered list of nodes; order + cardGrid + cardBackground */
+  cards: Array<{ nodeId: string; cardGrid?: CardGridPosition; cardBackground?: CardBackground | null }>;
 }
 
 /** Parsed site-layout document */

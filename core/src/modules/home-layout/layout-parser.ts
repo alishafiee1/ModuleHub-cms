@@ -1,4 +1,5 @@
-import type { CardBackground, CardBackgroundType, CardSpan, LayoutTreeNode, ModuleEntry, SiteLayoutDocument } from './types';
+import type { CardBackground, CardBackgroundType, CardGridPosition, CardSpan, LayoutTreeNode, ModuleEntry, SiteLayoutDocument } from './types';
+import { assertValidCardGrid } from './migrate-card-grid';
 import { assertValidSemver } from './version-validator';
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
@@ -59,6 +60,38 @@ function parseCardBackground(raw: unknown, nodeId: string): CardBackground | und
   }
 
   return bg;
+}
+
+/**
+ * purpose --- validates and parses cardGrid from raw JSON ---
+ * @param raw - Unvalidated object from JSON
+ * @param nodeId - Node id for error messages
+ */
+function parseCardGrid(raw: unknown, nodeId: string): CardGridPosition | undefined {
+  if (raw === undefined || raw === null) {
+    return undefined;
+  }
+
+  if (typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new LayoutParseError(`Node "${nodeId}" cardGrid must be an object`);
+  }
+
+  const obj = raw as Record<string, unknown>;
+  const grid: CardGridPosition = {
+    col: Number(obj.col),
+    row: Number(obj.row),
+    colSpan: Number(obj.colSpan),
+    rowSpan: Number(obj.rowSpan),
+  };
+
+  try {
+    assertValidCardGrid(grid, nodeId);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'invalid cardGrid';
+    throw new LayoutParseError(message);
+  }
+
+  return grid;
 }
 
 /** Thrown when site-layout JSON fails validation */
@@ -154,6 +187,11 @@ function parseTreeNode(raw: unknown, modules: Record<string, ModuleEntry>): Layo
       throw new LayoutParseError(`Node "${node.id}" has invalid cardSpan — must be 1, 2, or 4`);
     }
     node.cardSpan = cardSpanRaw as CardSpan;
+  }
+
+  const cardGrid = parseCardGrid(raw.cardGrid, node.id);
+  if (cardGrid !== undefined) {
+    node.cardGrid = cardGrid;
   }
 
   const cardBg = parseCardBackground(raw.cardBackground, node.id);

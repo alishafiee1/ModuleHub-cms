@@ -396,7 +396,7 @@ const ModuleHubApi = (function createModuleHubApi() {
   /**
    * Saves card order, spans, and backgrounds for a folder (Super Admin).
    * @param {string} folderId - Folder node id
-   * @param {Array<{ nodeId: string, cardSpan?: number, cardBackground?: object|null }>} cards - Ordered card list
+   * @param {Array<{ nodeId: string, cardGrid?: object, cardBackground?: object|null }>} cards - Ordered card list
    * @returns {Promise<{ ok: boolean }>}
    */
   async function saveFolderCards(folderId, cards) {
@@ -461,7 +461,7 @@ const ModuleHubApi = (function createModuleHubApi() {
     /**
      * Saves card order, spans, and backgrounds for a folder (Super Admin).
      * @param {string} folderId - Folder node id
-     * @param {Array<{ nodeId: string, cardSpan?: number, cardBackground?: object|null }>} cards
+     * @param {Array<{ nodeId: string, cardGrid?: object, cardBackground?: object|null }>} cards
      * @returns {Promise<{ ok: boolean }>}
      */
     saveFolderCards,

@@ -1,9 +1,10 @@
 import validFixture from '../../fixtures/site-layout-valid.json';
 import { parseSiteLayout } from '../../../core/src/modules/home-layout/layout-parser';
 import { applyFolderCardsUpdate } from '../../../core/src/modules/home-layout/folder-cards-update';
+import { migrateSiteLayoutCardGrid } from '../../../core/src/modules/home-layout/migrate-card-grid';
 
 describe('applyFolderCardsUpdate — cardBackground', () => {
-  const baseLayout = parseSiteLayout(validFixture);
+  const baseLayout = migrateSiteLayoutCardGrid(parseSiteLayout(validFixture)).layout;
 
   function getNode(layout: ReturnType<typeof parseSiteLayout>, nodeId: string) {
     return layout.tree.children?.find((c) => c.id === nodeId);
@@ -12,8 +13,15 @@ describe('applyFolderCardsUpdate — cardBackground', () => {
   it('sets a color cardBackground on a node', () => {
     const updated = applyFolderCardsUpdate(baseLayout, 'root', {
       cards: [
-        { nodeId: 'folder-a', cardBackground: { type: 'color', color: '#ff0000' } },
-        { nodeId: 'node-mod-2' },
+        {
+          nodeId: 'folder-a',
+          cardGrid: { col: 0, row: 0, colSpan: 7, rowSpan: 3 },
+          cardBackground: { type: 'color', color: '#ff0000' },
+        },
+        {
+          nodeId: 'node-mod-2',
+          cardGrid: { col: 7, row: 0, colSpan: 15, rowSpan: 3 },
+        },
       ],
     });
     expect(getNode(updated, 'folder-a')?.cardBackground).toEqual({ type: 'color', color: '#ff0000' });
@@ -22,8 +30,12 @@ describe('applyFolderCardsUpdate — cardBackground', () => {
   it('sets an image cardBackground on a node', () => {
     const updated = applyFolderCardsUpdate(baseLayout, 'root', {
       cards: [
-        { nodeId: 'folder-a' },
-        { nodeId: 'node-mod-2', cardBackground: { type: 'image', imageUrl: '/card-backgrounds/abc.webp', backgroundOpacity: 90, overlayOpacity: 50 } },
+        { nodeId: 'folder-a', cardGrid: { col: 0, row: 0, colSpan: 7, rowSpan: 3 } },
+        {
+          nodeId: 'node-mod-2',
+          cardGrid: { col: 7, row: 0, colSpan: 15, rowSpan: 3 },
+          cardBackground: { type: 'image', imageUrl: '/card-backgrounds/abc.webp', backgroundOpacity: 90, overlayOpacity: 50 },
+        },
       ],
     });
     expect(getNode(updated, 'node-mod-2')?.cardBackground).toEqual({
@@ -37,8 +49,8 @@ describe('applyFolderCardsUpdate — cardBackground', () => {
   it('removes cardBackground when null is passed', () => {
     const updated = applyFolderCardsUpdate(baseLayout, 'root', {
       cards: [
-        { nodeId: 'folder-a' },
-        { nodeId: 'node-mod-2', cardBackground: null },
+        { nodeId: 'folder-a', cardGrid: { col: 0, row: 0, colSpan: 7, rowSpan: 3 } },
+        { nodeId: 'node-mod-2', cardGrid: { col: 7, row: 0, colSpan: 15, rowSpan: 3 }, cardBackground: null },
       ],
     });
     expect(getNode(updated, 'node-mod-2')?.cardBackground).toBeUndefined();
@@ -47,8 +59,8 @@ describe('applyFolderCardsUpdate — cardBackground', () => {
   it('preserves existing cardBackground when not provided in payload', () => {
     const updated = applyFolderCardsUpdate(baseLayout, 'root', {
       cards: [
-        { nodeId: 'folder-a' },
-        { nodeId: 'node-mod-2' },
+        { nodeId: 'folder-a', cardGrid: { col: 0, row: 0, colSpan: 7, rowSpan: 3 } },
+        { nodeId: 'node-mod-2', cardGrid: { col: 7, row: 0, colSpan: 15, rowSpan: 3 } },
       ],
     });
     expect(getNode(updated, 'node-mod-2')?.cardBackground).toEqual(
@@ -60,8 +72,8 @@ describe('applyFolderCardsUpdate — cardBackground', () => {
     expect(() =>
       applyFolderCardsUpdate(baseLayout, 'root', {
         cards: [
-          { nodeId: 'folder-a' },
-          { nodeId: 'node-mod-2', cardBackground: { type: 'rainbow' } as never },
+          { nodeId: 'folder-a', cardGrid: { col: 0, row: 0, colSpan: 7, rowSpan: 3 } },
+          { nodeId: 'node-mod-2', cardGrid: { col: 7, row: 0, colSpan: 15, rowSpan: 3 }, cardBackground: { type: 'rainbow' } as never },
         ],
       }),
     ).toThrow('must be none|color|image');
@@ -71,8 +83,8 @@ describe('applyFolderCardsUpdate — cardBackground', () => {
     expect(() =>
       applyFolderCardsUpdate(baseLayout, 'root', {
         cards: [
-          { nodeId: 'folder-a' },
-          { nodeId: 'node-mod-2', cardBackground: { type: 'color', color: 'notahex' } },
+          { nodeId: 'folder-a', cardGrid: { col: 0, row: 0, colSpan: 7, rowSpan: 3 } },
+          { nodeId: 'node-mod-2', cardGrid: { col: 7, row: 0, colSpan: 15, rowSpan: 3 }, cardBackground: { type: 'color', color: 'notahex' } },
         ],
       }),
     ).toThrow('6-digit hex');
@@ -82,8 +94,8 @@ describe('applyFolderCardsUpdate — cardBackground', () => {
     expect(() =>
       applyFolderCardsUpdate(baseLayout, 'root', {
         cards: [
-          { nodeId: 'folder-a' },
-          { nodeId: 'node-mod-2', cardBackground: { type: 'image', imageUrl: '/thumbnails/hack.jpg' } },
+          { nodeId: 'folder-a', cardGrid: { col: 0, row: 0, colSpan: 7, rowSpan: 3 } },
+          { nodeId: 'node-mod-2', cardGrid: { col: 7, row: 0, colSpan: 15, rowSpan: 3 }, cardBackground: { type: 'image', imageUrl: '/thumbnails/hack.jpg' } },
         ],
       }),
     ).toThrow('/card-backgrounds/');
@@ -93,8 +105,8 @@ describe('applyFolderCardsUpdate — cardBackground', () => {
     expect(() =>
       applyFolderCardsUpdate(baseLayout, 'root', {
         cards: [
-          { nodeId: 'folder-a' },
-          { nodeId: 'node-mod-2', cardBackground: { type: 'color', color: '#123456', overlayOpacity: 150 } },
+          { nodeId: 'folder-a', cardGrid: { col: 0, row: 0, colSpan: 7, rowSpan: 3 } },
+          { nodeId: 'node-mod-2', cardGrid: { col: 7, row: 0, colSpan: 15, rowSpan: 3 }, cardBackground: { type: 'color', color: '#123456', overlayOpacity: 150 } },
         ],
       }),
     ).toThrow('0–100');
@@ -103,8 +115,8 @@ describe('applyFolderCardsUpdate — cardBackground', () => {
   it('reorders children when cards list order changes', () => {
     const updated = applyFolderCardsUpdate(baseLayout, 'root', {
       cards: [
-        { nodeId: 'node-mod-2' },
-        { nodeId: 'folder-a' },
+        { nodeId: 'node-mod-2', cardGrid: { col: 0, row: 3, colSpan: 15, rowSpan: 3 } },
+        { nodeId: 'folder-a', cardGrid: { col: 0, row: 0, colSpan: 7, rowSpan: 3 } },
       ],
     });
     expect(updated.tree.children?.[0].id).toBe('node-mod-2');
@@ -115,10 +127,32 @@ describe('applyFolderCardsUpdate — cardBackground', () => {
     expect(() =>
       applyFolderCardsUpdate(baseLayout, 'root', {
         cards: [
-          { nodeId: 'folder-a' },
-          { nodeId: 'ghost-node' },
+          { nodeId: 'folder-a', cardGrid: { col: 0, row: 0, colSpan: 7, rowSpan: 3 } },
+          { nodeId: 'ghost-node', cardGrid: { col: 7, row: 0, colSpan: 7, rowSpan: 3 } },
         ],
       }),
     ).toThrow('not a child');
+  });
+
+  it('rejects deprecated cardSpan in payload', () => {
+    expect(() =>
+      applyFolderCardsUpdate(baseLayout, 'root', {
+        cards: [
+          { nodeId: 'folder-a', cardSpan: 2 } as never,
+          { nodeId: 'node-mod-2', cardGrid: { col: 7, row: 0, colSpan: 15, rowSpan: 3 } },
+        ],
+      }),
+    ).toThrow('cardSpan is deprecated');
+  });
+
+  it('rejects invalid cardGrid colSpan', () => {
+    expect(() =>
+      applyFolderCardsUpdate(baseLayout, 'root', {
+        cards: [
+          { nodeId: 'folder-a', cardGrid: { col: 0, row: 0, colSpan: 2, rowSpan: 3 } },
+          { nodeId: 'node-mod-2', cardGrid: { col: 7, row: 0, colSpan: 15, rowSpan: 3 } },
+        ],
+      }),
+    ).toThrow('colSpan must be 3');
   });
 });

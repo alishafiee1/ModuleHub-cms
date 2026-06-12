@@ -4,6 +4,7 @@ import { PATHS } from '../../config/paths';
 import { loadSystemSettings } from '../system-settings/settings-loader';
 import { toHomePageAppearance } from '../system-settings/home-appearance';
 import { LayoutParseError, parseSiteLayout } from './layout-parser';
+import { migrateSiteLayoutCardGrid } from './migrate-card-grid';
 import type { LayoutApiCore, LayoutApiResponse, ModuleEntry, PublicModuleEntry, SiteLayoutDocument } from './types';
 
 /**
@@ -84,7 +85,12 @@ export async function readSiteLayout(): Promise<SiteLayoutDocument> {
     throw new LayoutParseError('site-layout.json is not valid JSON');
   }
 
-  return parseSiteLayout(parsed);
+  const layout = parseSiteLayout(parsed);
+  const { layout: migratedLayout, migrated } = migrateSiteLayoutCardGrid(layout);
+  if (migrated) {
+    await writeSiteLayout(migratedLayout);
+  }
+  return migratedLayout;
 }
 
 /**

@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Vazirmatn:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/css/card-canvas.css">
     <script src="/theme.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
@@ -45,8 +46,13 @@
     <div class="breadcrumb-area" id="breadcrumbArea"></div>
 
     <canvas id="homeFloatingCanvas" aria-hidden="true"></canvas>
-    <div id="cardsGrid" class="grid-cards">
-        <div class="loading-state"><i class="fas fa-spinner fa-spin"></i> در حال بارگذاری...</div>
+    <div id="cardCanvas" class="card-canvas" aria-label="شبکه کارت‌ها">
+        <div class="grid-background" aria-hidden="true"></div>
+        <div class="grid-nodes" aria-hidden="true"></div>
+        <div id="ghostLayer" class="ghost-layer"></div>
+        <div id="cardsWrapper" class="cards-wrapper">
+            <div class="loading-state card-canvas-empty"><i class="fas fa-spinner fa-spin"></i> در حال بارگذاری...</div>
+        </div>
     </div>
 </div>
 
@@ -54,6 +60,7 @@
 <script src="/admin-menu.js"></script>
 <script src="/dialog.js"></script>
 <script src="/home-floating-background.js"></script>
+<script type="module" src="/js/card-canvas/card-canvas-app.js"></script>
 <script src="/card-layout-editor.js"></script>
 <script src="/script.js"></script>
 </body>

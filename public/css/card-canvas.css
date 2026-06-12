@@ -1,0 +1,266 @@
+/**
+ * استایل بوم گرید کارت — embedded در صفحه اصلی ModuleHub
+ * Card canvas styles — absolute grid inside home page layout.
+ */
+
+.card-canvas {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  aspect-ratio: 30 / 9;
+  min-height: 280px;
+  margin: 0 auto;
+  padding: 0 2rem 2rem;
+  touch-action: none;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(45, 90, 130, 0.12), transparent 70%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+body.dark .card-canvas {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(45, 90, 130, 0.2), transparent 70%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.5) 0%, rgba(15, 23, 42, 0.2) 100%);
+}
+
+.card-canvas--navigating {
+  opacity: 0.92;
+  transform: scale(0.99);
+}
+
+.card-canvas--edit-mode .grid-background,
+.card-canvas--edit-mode .grid-nodes {
+  opacity: 1;
+}
+
+.grid-background,
+.grid-nodes,
+.ghost-layer,
+.cards-wrapper {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.grid-nodes {
+  background-image: radial-gradient(circle at 1px 1px, rgba(100, 170, 220, 0.35) 1px, transparent 1px);
+  opacity: 0.25;
+  z-index: 1;
+}
+
+body.dark .grid-nodes {
+  background-image: radial-gradient(circle at 1px 1px, rgba(120, 190, 230, 0.45) 1px, transparent 1px);
+  opacity: 0.35;
+}
+
+.ghost-layer {
+  z-index: 5;
+}
+
+.cards-wrapper {
+  z-index: 10;
+  pointer-events: none;
+}
+
+.cards-wrapper .card-canvas-item,
+.cards-wrapper .back-card {
+  pointer-events: auto;
+}
+
+.snap-ghost {
+  display: none;
+  position: absolute;
+  border: 2px dashed rgba(255, 200, 90, 0.9);
+  border-radius: 18px;
+  background: rgba(255, 200, 90, 0.07);
+  box-shadow: 0 0 0 1px rgba(255, 200, 90, 0.2);
+  transition:
+    left 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card-canvas-item,
+.card-canvas .back-card {
+  position: absolute;
+  margin: 0;
+  min-height: 0;
+  will-change: left, top, width, height;
+  transition:
+    left 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.card-canvas-item:hover {
+  transform: translateY(-4px) scale(1.01);
+}
+
+.card-canvas--edit-mode .card-canvas-item {
+  cursor: grab;
+}
+
+.card-canvas-item.is-dragging,
+.card-canvas-item.is-resizing {
+  cursor: grabbing;
+  transform: scale(1.01);
+  z-index: 30;
+  transition: none;
+  box-shadow: 0 0 0 2px rgba(255, 220, 100, 0.85), 0 22px 40px -14px rgba(0, 0, 0, 0.35);
+}
+
+.card-canvas-item.is-settling {
+  z-index: 25;
+}
+
+.card-canvas-item.snap-preview {
+  outline: 2px dashed rgba(255, 210, 90, 0.75);
+  outline-offset: 3px;
+}
+
+.card-canvas-item .card-content {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0.85rem 0.9rem 2.2rem;
+}
+
+.card-canvas-item .card-title {
+  font-size: clamp(0.75rem, 2vw, 1.05rem);
+  margin-bottom: 4px;
+}
+
+.card-canvas-item .card-desc {
+  font-size: clamp(0.65rem, 1.8vw, 0.78rem);
+  -webkit-line-clamp: 2;
+}
+
+.card-resource-hint {
+  font-size: 0.6rem;
+  margin-top: 4px;
+  color: var(--text-secondary);
+}
+
+.card-canvas-item.card--edit-mode .gear-icon {
+  display: none;
+}
+
+.card-canvas-item .card-bg-btn {
+  font-size: 0.85rem;
+  color: #66819b;
+  background: var(--gear-bg);
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+  pointer-events: auto;
+}
+
+.card-canvas-item .card-bg-btn:hover {
+  background: var(--gear-hover);
+  color: #1f3f57;
+}
+
+.resize-handle {
+  position: absolute;
+  left: 7px;
+  bottom: 7px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  background: rgba(12, 18, 26, 0.72);
+  color: rgba(255, 255, 255, 0.92);
+  cursor: nwse-resize;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+body:not(.dark) .resize-handle {
+  background: rgba(255, 255, 255, 0.85);
+  color: #334155;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.resize-icon {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  fill: none;
+  transform: rotate(90deg);
+  pointer-events: none;
+}
+
+.card-canvas-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+.card-canvas-add-btn {
+  position: absolute;
+  top: 12px;
+  inset-inline-start: 12px;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--card-glass-border);
+  border-radius: 999px;
+  background: var(--card-glass-bg);
+  backdrop-filter: blur(12px);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--card-shadow);
+  pointer-events: auto;
+}
+
+.card-canvas-add-btn:hover {
+  border-color: #06b6d4;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+  .card-canvas {
+    padding: 0 1rem 1.5rem;
+    min-height: 220px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-canvas-item:hover {
+    transform: none;
+  }
+  .card-canvas--navigating {
+    opacity: 1;
+    transform: none;
+  }
+}

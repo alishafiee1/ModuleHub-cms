@@ -1,9 +1,9 @@
 import type { Request, Response } from 'express';
 import { readSiteLayout, writeSiteLayout } from './layout-store';
 import { findNodeById } from './layout-tree';
-import type { CardBackground, CardSpan, FolderCardsUpdatePayload, LayoutTreeNode, SiteLayoutDocument } from './types';
+import { assertValidCardGrid } from './migrate-card-grid';
+import type { CardBackground, CardGridPosition, FolderCardsUpdatePayload, LayoutTreeNode, SiteLayoutDocument } from './types';
 
-const VALID_SPANS: ReadonlySet<number> = new Set([1, 2, 4]);
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 const CARD_BG_IMAGE_PREFIX = '/card-backgrounds/';
 
@@ -39,7 +39,7 @@ function assertValidCardBackground(bg: unknown, nodeId: string): void {
 
 /**
  * purpose --- validates and applies a folder cards reorder/resize request ---
- * Ensures all nodeIds belong to the folder and cardSpan values are legal.
+ * Ensures all nodeIds belong to the folder and cardGrid values are legal.
  * @param layout - Current site layout
  * @param folderId - Folder to update
  * @param payload - Cards update body from request
@@ -72,11 +72,14 @@ export function applyFolderCardsUpdate(
     if (!existingById.has(entry.nodeId)) {
       throw new Error(`Node "${entry.nodeId}" is not a child of folder "${folderId}"`);
     }
-    if (entry.cardSpan !== undefined && !VALID_SPANS.has(entry.cardSpan)) {
-      throw new Error(`Invalid cardSpan for node "${entry.nodeId}" — must be 1, 2, or 4`);
+    if (entry.cardGrid !== undefined) {
+      assertValidCardGrid(entry.cardGrid, entry.nodeId);
     }
     if (entry.cardBackground !== undefined && entry.cardBackground !== null) {
       assertValidCardBackground(entry.cardBackground, entry.nodeId);
+    }
+    if ((entry as { cardSpan?: number }).cardSpan !== undefined) {
+      throw new Error(`cardSpan is deprecated — use cardGrid for node "${entry.nodeId}"`);
     }
   }
 
@@ -90,9 +93,8 @@ export function applyFolderCardsUpdate(
     const original = existingById.get(entry.nodeId) as LayoutTreeNode;
     const updated: LayoutTreeNode = { ...original };
 
-    if (entry.cardSpan !== undefined) {
-      updated.cardSpan = entry.cardSpan as CardSpan;
-    } else {
+    if (entry.cardGrid !== undefined) {
+      updated.cardGrid = entry.cardGrid as CardGridPosition;
       delete updated.cardSpan;
     }
 

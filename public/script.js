@@ -23,40 +23,6 @@
   }
 
   /**
-   * purpose --- builds CSS variable style string and layer HTML for card custom background ---
-   * @param {object|null|undefined} bg - cardBackground from layout node
-   * @returns {{ bgClass: string, bgStyle: string, bgLayerHtml: string }}
-   */
-  function buildCardBackgroundAttrs(bg) {
-    if (!bg || bg.type === 'none') {
-      return { bgClass: '', bgStyle: '', bgLayerHtml: '' };
-    }
-
-    const bgOpacity = (bg.backgroundOpacity ?? 100) / 100;
-    const overlayOpacity = (bg.overlayOpacity ?? 45) / 100;
-
-    let extraClass = '';
-    const styleParts = [
-      `--card-bg-opacity:${bgOpacity}`,
-      `--card-overlay-opacity:${overlayOpacity}`,
-    ];
-
-    if (bg.type === 'color' && bg.color) {
-      styleParts.unshift(`--card-bg-color:${bg.color}`);
-      extraClass = ' card--has-bg card--bg-color';
-    } else if (bg.type === 'image' && bg.imageUrl) {
-      // single quotes inside url() — safe inside HTML style="..."
-      styleParts.unshift(`--card-bg-image:url('${bg.imageUrl}')`);
-      extraClass = ' card--has-bg card--bg-image';
-    }
-
-    const style = `${styleParts.join(';')};`;
-    const layerHtml = '<div class="card-bg-layer" aria-hidden="true"></div><div class="card-overlay" aria-hidden="true"></div>';
-
-    return { bgClass: extraClass, bgStyle: style, bgLayerHtml: layerHtml };
-  }
-
-  /**
    * Finds a node in the layout tree by id.
    * @param {object} node - Tree node
    * @param {string} nodeId - Target id
@@ -79,9 +45,9 @@
   }
 
   /**
-   * purpose --- merges saved folder card order/spans/backgrounds into in-memory siteLayout ---
+   * purpose --- merges saved folder card order/grid/backgrounds into in-memory siteLayout ---
    * @param {string} folderId - Folder node id
-   * @param {Array<{ nodeId: string, cardSpan?: number, cardBackground?: object|null }>} cards - Saved payload
+   * @param {Array<{ nodeId: string, cardGrid?: object, cardBackground?: object|null }>} cards - Saved payload
    */
   function applyFolderCardsToLocalLayout(folderId, cards) {
     if (!siteLayout?.tree) {
@@ -98,12 +64,9 @@
         return null;
       }
       const updated = { ...original };
-      if (entry.cardSpan !== undefined) {
-        if (entry.cardSpan === 1) {
-          delete updated.cardSpan;
-        } else {
-          updated.cardSpan = entry.cardSpan;
-        }
+      if (entry.cardGrid) {
+        updated.cardGrid = entry.cardGrid;
+        delete updated.cardSpan;
       }
       if (entry.cardBackground === null) {
         delete updated.cardBackground;
@@ -221,10 +184,13 @@
     }
 
     if (!options.replace && isFolderChange && !prefersReducedMotion) {
-      const grid = document.getElementById('cardsGrid');
-      grid.classList.add('grid-cards--navigating');
+      if (window.CardCanvas) {
+        window.CardCanvas.setNavigating(true);
+      }
       window.setTimeout(() => {
-        grid.classList.remove('grid-cards--navigating');
+        if (window.CardCanvas) {
+          window.CardCanvas.setNavigating(false);
+        }
         renderAll();
       }, 120);
       return;
@@ -233,27 +199,12 @@
   }
 
   /**
-   * Staggered enter animation for cards after grid render.
-   * @param {HTMLElement} container - Cards grid element
-   */
-  function applyCardEnterAnimations(container) {
-    if (prefersReducedMotion) {
-      return;
-    }
-    const cards = container.querySelectorAll('.card');
-    cards.forEach((card, index) => {
-      card.classList.add('card-enter');
-      card.style.animationDelay = `${index * 40}ms`;
-    });
-  }
-
-  /**
-   * Scrolls to top when breadcrumb/grid height changes (avoids stray scroll offset).
+   * Scrolls to top when breadcrumb/canvas height changes (avoids stray scroll offset).
    */
   function maybeScrollToTopAfterLayout() {
     const breadcrumb = document.getElementById('breadcrumbArea');
-    const grid = document.getElementById('cardsGrid');
-    const contentHeight = (breadcrumb?.offsetHeight || 0) + (grid?.offsetHeight || 0);
+    const canvas = document.getElementById('cardCanvas');
+    const contentHeight = (breadcrumb?.offsetHeight || 0) + (canvas?.offsetHeight || 0);
     if (contentHeight !== lastContentHeight) {
       lastContentHeight = contentHeight;
       window.scrollTo({ top: 0, behavior: 'instant' });
@@ -340,131 +291,34 @@
   }
 
   function renderCards() {
-    const container = document.getElementById('cardsGrid');
     const folderNode = findNodeById(siteLayout.tree, currentFolderId);
+    if (!window.CardCanvas) {
+      return;
+    }
     if (!folderNode || folderNode.type !== 'folder') {
-      container.innerHTML = '<div class="loading-state">پوشه یافت نشد.</div>';
+      window.CardCanvas.showEmptyState('پوشه یافت نشد.');
       return;
     }
 
     const children = folderNode.children || [];
-    let html = '';
-
-    if (currentFolderId !== ROOT_ID) {
-      const parentFolderId = getParentFolderId(currentFolderId);
-      const parentPath = buildBreadcrumbPath(currentFolderId);
-      const parentName = parentPath[parentPath.length - 2]?.name || 'خانه';
-      html += `
-        <div class="card back-card" data-type="back" data-folder="${parentFolderId}">
-          <div class="card-content">
-            <div class="card-icon">
-              <div class="card-icon-img"><i class="fas fa-arrow-right"></i></div>
-            </div>
-            <div class="card-title">بازگشت</div>
-            <div class="card-desc">${parentName}</div>
-          </div>
-        </div>`;
-    }
-
-    for (const child of children) {
-      const isFolder = child.type === 'folder';
-      const moduleMeta = !isFolder && child.moduleId ? siteLayout.modules[child.moduleId] : null;
-      const displayName = isFolder ? child.name : (moduleMeta?.name || child.name);
-      const iconClass = isFolder ? 'fas fa-folder' : (moduleMeta?.icon || 'fas fa-puzzle-piece');
-      const thumbnail = moduleMeta?.thumbnail || '';
-      const iconHtml = thumbnail
-        ? `<img src="${thumbnail}" class="thumbnail-icon" alt="">`
-        : `<i class="${iconClass}"></i>`;
-
-      let statusHtml = '';
-      if (moduleMeta) {
-        const statusDisplay = getStatusDisplay(moduleMeta.status);
-        statusHtml = `<div class="status-badge ${statusDisplay.cssClass}">
-          <i class="fas fa-circle"></i> ${statusDisplay.label}
-        </div>`;
+    const path = buildBreadcrumbPath(currentFolderId);
+    const context = currentFolderId !== ROOT_ID
+      ? {
+        showBackCard: true,
+        parentFolderId: getParentFolderId(currentFolderId),
+        parentName: path[path.length - 2]?.name || 'خانه',
       }
+      : {};
 
-      const resourceHint = moduleMeta?.resources
-        ? `<div style="font-size:0.65rem; margin-top:4px;">
-            CPU: ${moduleMeta.resources.cpu_limit} | RAM: ${moduleMeta.resources.ram_limit_mb}MB
-          </div>`
-        : '';
-
-      const descriptionHtml = !isFolder && moduleMeta?.changelog
-        ? `<div class="card-desc">${moduleMeta.changelog}</div>`
-        : '';
-
-      const span = child.cardSpan || 1;
-      const spanClass = span > 1 ? ` card--span-${span}` : '';
-      const { bgClass, bgStyle, bgLayerHtml } = buildCardBackgroundAttrs(child.cardBackground);
-      html += `
-        <div class="card ${isFolder ? 'folder-card' : 'module-card'}${spanClass}${bgClass}" data-id="${child.id}" data-type="${child.type}" data-module-id="${child.moduleId || ''}" data-card-span="${span}" data-card-background="${escapeAttr(JSON.stringify(child.cardBackground || null))}" style="${bgStyle}">
-          ${bgLayerHtml}
-          <div class="card-content">
-            <div class="card-icon">
-              <div class="card-icon-img">${iconHtml}</div>
-              <div class="gear-icon" data-gear-id="${child.id}" data-module-id="${child.moduleId || ''}">
-                <i class="fas fa-cog"></i>
-              </div>
-            </div>
-            <div class="card-title">${displayName}</div>
-            ${descriptionHtml}
-            ${statusHtml}
-            ${resourceHint}
-          </div>
-        </div>`;
+    if (children.length === 0 && !context.showBackCard) {
+      window.CardCanvas.showEmptyState('این پوشه خالی است.');
+    } else {
+      window.CardCanvas.refresh(children, context);
     }
 
-    if (authStatus.isSuperAdmin) {
-      html += `
-        <div class="card add-card" id="addNewCardBtn">
-          <div class="card-content">
-            <i class="fas fa-plus-circle"></i>
-            <div class="card-title">افزودن محتوا</div>
-          </div>
-        </div>`;
-    }
-
-    container.innerHTML = html || '<div class="loading-state">این پوشه خالی است.</div>';
-    applyCardEnterAnimations(container);
     requestAnimationFrame(() => maybeScrollToTopAfterLayout());
     if (window.CardLayoutEditor) {
-      window.CardLayoutEditor.refresh('cardsGrid');
-    }
-
-    container.querySelectorAll('.card:not(.add-card)').forEach((card) => {
-      card.addEventListener('click', (event) => {
-        if (event.target.closest('.gear-icon')) {
-          return;
-        }
-        const nodeType = card.getAttribute('data-type');
-        if (nodeType === 'back') {
-          navigateToFolder(card.getAttribute('data-folder'));
-          return;
-        }
-        const nodeId = card.getAttribute('data-id');
-        if (nodeType === 'folder') {
-          navigateToFolder(nodeId);
-          return;
-        }
-        const targetModuleId = card.getAttribute('data-module-id');
-        if (targetModuleId) {
-          window.location.href = `/modules/${targetModuleId}/`;
-        }
-      });
-
-      const gear = card.querySelector('.gear-icon');
-      if (gear) {
-        gear.addEventListener('click', (event) => {
-          event.stopPropagation();
-          void openGearMenu(card);
-        });
-      }
-    });
-
-    const addButton = document.getElementById('addNewCardBtn');
-    if (addButton) {
-      addButton.addEventListener('click', () => { void openAddMenu(); });
+      window.CardLayoutEditor.refresh();
     }
   }
 
@@ -775,26 +629,71 @@
     }
   });
 
+  window.addEventListener('modulehub:add-content', () => {
+    void openAddMenu();
+  });
+
   initDarkMode();
   if (window.HomeFloatingBackground) {
     window.HomeFloatingBackground.init();
   }
   AdminMenu.mount('adminAuthMenuHost', { onAfterLogout: refreshFromServer });
 
-  if (window.CardLayoutEditor) {
-    window.CardLayoutEditor.mount({
-      gridId: 'cardsGrid',
-      getFolderId: () => currentFolderId,
+  function initCardCanvasHooks() {
+    if (!window.CardCanvas) {
+      return;
+    }
+    window.CardCanvas.init({
+      getModules: () => siteLayout?.modules || {},
+      getAuthStatus: () => authStatus,
+      canManageModule,
+      onNavigateBack: (folderId) => { void navigateToFolder(folderId); },
+      onNavigateFolder: (nodeId) => { void navigateToFolder(nodeId); },
+      onNavigateModule: (moduleId) => {
+        window.location.href = `/modules/${moduleId}/`;
+      },
+      onGearClick: (nodeId) => {
+        const element = window.CardCanvas.getCardElement(nodeId);
+        if (element) {
+          void openGearMenu(element);
+        }
+      },
+      onCardSettled: () => {
+        if (window.CardLayoutEditor?.scheduleSaveFromCanvas) {
+          window.CardLayoutEditor.scheduleSaveFromCanvas();
+        }
+      },
+      onOpenBackground: (element) => {
+        if (window.CardLayoutEditor?.openBackgroundForCard) {
+          void window.CardLayoutEditor.openBackgroundForCard(element);
+        }
+      },
+      onAddContent: () => { void openAddMenu(); },
     });
   }
 
-  refreshFromServer()
-    .then(() => {
-      navigateToFolder(resolveValidFolderId(getFolderIdFromUrl() || ROOT_ID), { replace: true });
-      updateAdminLoginLink();
-    })
-    .catch((error) => {
-      document.getElementById('cardsGrid').innerHTML =
-        `<div class="loading-state">خطا در بارگذاری: ${error.message}</div>`;
-    });
+  function bootHomePage() {
+    initCardCanvasHooks();
+    if (window.CardLayoutEditor) {
+      window.CardLayoutEditor.mount({
+        getFolderId: () => currentFolderId,
+      });
+    }
+    refreshFromServer()
+      .then(() => {
+        navigateToFolder(resolveValidFolderId(getFolderIdFromUrl() || ROOT_ID), { replace: true });
+        updateAdminLoginLink();
+      })
+      .catch((error) => {
+        if (window.CardCanvas) {
+          window.CardCanvas.showEmptyState(`خطا در بارگذاری: ${error.message}`);
+        }
+      });
+  }
+
+  if (window.CardCanvas) {
+    bootHomePage();
+  } else {
+    window.addEventListener('modulehub:card-canvas-ready', bootHomePage, { once: true });
+  }
 })();
