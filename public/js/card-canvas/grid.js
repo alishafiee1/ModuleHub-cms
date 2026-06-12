@@ -205,35 +205,8 @@ export function minPixelSize(metrics) {
 }
 
 /**
- * applyGridBackground --- sync CSS grid lines with metrics ---
+ * applyGridBackground --- no-op; checkerboard grid lines are not shown ---
  */
-export function applyGridBackground(container, metrics) {
-  const background = container.querySelector('.grid-background');
-  const nodes = container.querySelector('.grid-nodes');
-  const { cellWidth, cellHeight } = metrics;
-
-  if (background) {
-    background.style.backgroundImage = `
-      repeating-linear-gradient(
-        to right,
-        rgba(100, 170, 220, 0.12) 0,
-        rgba(100, 170, 220, 0.12) 1px,
-        transparent 1px,
-        transparent ${cellWidth}px
-      ),
-      repeating-linear-gradient(
-        to bottom,
-        rgba(100, 170, 220, 0.12) 0,
-        rgba(100, 170, 220, 0.12) 1px,
-        transparent 1px,
-        transparent ${cellHeight}px
-      )
-    `;
-    background.style.backgroundPosition = `${GRID_CONFIG.containerPadding}px ${GRID_CONFIG.containerPadding}px`;
-  }
-
-  if (nodes) {
-    nodes.style.backgroundSize = `${cellWidth}px ${cellHeight}px`;
-    nodes.style.backgroundPosition = `${GRID_CONFIG.containerPadding}px ${GRID_CONFIG.containerPadding}px`;
-  }
+export function applyGridBackground() {
+  // Grid snapping still uses metrics; visual lines intentionally disabled.
 }
