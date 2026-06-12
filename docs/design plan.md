@@ -423,13 +423,14 @@ request → session parser
 
 ## ۱۱. پشتیبان‌گیری و بازیابی (Backup & Restore) — ✅ فاز ۶
 
-**بکاپ کامل (کل CMS):** API + CLI — **بدون دکمه در UI** (تا فاز بعدی). بکاپ **تکی ماژول:** `GET /admin/module/:id/backup` از دیالوگ ⚙.
+**بکاپ کامل (کل CMS):** UI در `/admin/settings` + API + CLI. بکاپ **تکی ماژول:** `GET /admin/module/:id/backup` از دیالوگ ⚙.
 
 | متد | مسیر | توضیح |
 |-----|------|--------|
 | POST | `/admin/backup` | ZIP در `storage/backups/modulehub-full-<timestamp>.zip` |
-| GET | `/admin/backup/list` | لیست نام فایل‌ها (جدیدترین اول) |
+| GET | `/admin/backup/list` | `{ fileName, sizeBytes, createdAt }` — جدیدترین اول |
 | GET | `/admin/backup/download/:fileName` | دانلود |
+| POST | `/admin/backup/restore/:fileName` | بازیابی از فایل روی سرور + `confirm=true` |
 | POST | `/admin/restore` | multipart `backup` + `confirm=true` · قبلش `modulehub-pre-restore-*.zip` |
 | CLI | `node scripts/cli.js backup --output <path>` | همان ZIP کامل |
 

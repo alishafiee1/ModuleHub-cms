@@ -17,6 +17,13 @@ export interface CreateFullBackupResult {
   createdAt: string;
 }
 
+/** Metadata for a backup ZIP listed from storage/backups */
+export interface FullBackupListEntry {
+  fileName: string;
+  sizeBytes: number;
+  createdAt: string;
+}
+
 /**
  * Formats a timestamp for backup filenames (filesystem-safe).
  * @param date - Backup creation time
@@ -50,6 +57,17 @@ export function assertSafeBackupFileName(fileName: string): void {
     || path.isAbsolute(fileName)
   ) {
     throw new Error('Invalid backup file name');
+  }
+}
+
+/**
+ * Asserts a backup file name is a restorable full CMS backup (not pre-restore safety copy).
+ * @param fileName - Backup file name from storage/backups
+ */
+export function assertRestorableFullBackupFileName(fileName: string): void {
+  assertSafeBackupFileName(fileName);
+  if (!fileName.startsWith('modulehub-full-')) {
+    throw new Error('Only modulehub-full-*.zip backups can be restored from server storage');
   }
 }
 
@@ -96,20 +114,38 @@ export async function createFullBackup(
 
 /**
  * Lists full backup ZIP files in storage/backups sorted newest first.
- * @returns Backup file names
+ * @returns Backup entries with size and modification time
  */
-export async function listFullBackupFileNames(): Promise<string[]> {
+export async function listFullBackupEntries(): Promise<FullBackupListEntry[]> {
   await fs.ensureDir(PATHS.storageBackups);
   const entries = await fs.readdir(PATHS.storageBackups);
   const zipFiles = entries.filter((name) => name.endsWith('.zip'));
   const withStats = await Promise.all(
     zipFiles.map(async (fileName) => {
       const stats = await fs.stat(path.join(PATHS.storageBackups, fileName));
-      return { fileName, mtimeMs: stats.mtimeMs };
+      return {
+        fileName,
+        sizeBytes: stats.size,
+        createdAt: stats.mtime.toISOString(),
+        mtimeMs: stats.mtimeMs,
+      };
     }),
   );
   withStats.sort((left, right) => right.mtimeMs - left.mtimeMs);
-  return withStats.map((item) => item.fileName);
+  return withStats.map(({ fileName, sizeBytes, createdAt }) => ({
+    fileName,
+    sizeBytes,
+    createdAt,
+  }));
+}
+
+/**
+ * Lists full backup ZIP file names in storage/backups sorted newest first.
+ * @returns Backup file names
+ */
+export async function listFullBackupFileNames(): Promise<string[]> {
+  const entries = await listFullBackupEntries();
+  return entries.map((entry) => entry.fileName);
 }
 
 /**
@@ -124,6 +160,19 @@ export async function readFullBackupFile(fileName: string): Promise<Buffer> {
     throw new Error(`Backup not found: ${fileName}`);
   }
   return fs.readFile(filePath);
+}
+
+/**
+ * Deletes a backup ZIP from storage/backups.
+ * @param fileName - Backup file name
+ */
+export async function deleteFullBackupFile(fileName: string): Promise<void> {
+  assertSafeBackupFileName(fileName);
+  const filePath = path.join(PATHS.storageBackups, fileName);
+  if (!(await fs.pathExists(filePath))) {
+    throw new Error(`Backup not found: ${fileName}`);
+  }
+  await fs.remove(filePath);
 }
 
 /**

@@ -285,6 +285,85 @@ const ModuleHubApi = (function createModuleHubApi() {
   }
 
   /**
+   * Creates a full CMS backup ZIP on the server.
+   * @returns {Promise<{ fileName: string, createdAt: string, downloadPath: string }>}
+   */
+  async function createFullBackup() {
+    return requestJson('/admin/backup', { method: 'POST' });
+  }
+
+  /**
+   * Lists full backup ZIP files stored on the server.
+   * @returns {Promise<{ backups: Array<{ fileName: string, sizeBytes: number, createdAt: string }> }>}
+   */
+  async function listFullBackups() {
+    return requestJson('/admin/backup/list');
+  }
+
+  /**
+   * Triggers browser download of a full backup ZIP by file name.
+   * @param {string} fileName - Backup file name from list
+   */
+  function downloadFullBackup(fileName) {
+    window.open(`/admin/backup/download/${encodeURIComponent(fileName)}`, '_blank');
+  }
+
+  /**
+   * Deletes a backup ZIP from server storage after admin password confirmation.
+   * @param {string} fileName - Backup file name
+   * @param {string} adminPassword - Super Admin password
+   * @returns {Promise<{ message: string, fileName: string }>}
+   */
+  async function deleteFullBackup(fileName, adminPassword) {
+    return requestJson(`/admin/backup/${encodeURIComponent(fileName)}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminPassword }),
+    });
+  }
+
+  /**
+   * Restores CMS from a backup file already on the server.
+   * @param {string} fileName - Backup file name (modulehub-full-*.zip)
+   * @returns {Promise<{ restoredAt: string, preRestoreBackupFileName: string, message: string }>}
+   */
+  async function restoreFullBackupFromServer(fileName) {
+    return requestJson(`/admin/backup/restore/${encodeURIComponent(fileName)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ confirm: true }),
+    });
+  }
+
+  /**
+   * Restores CMS from a ZIP file uploaded from the browser.
+   * @param {File} zipFile - Backup ZIP file selected by the user
+   * @returns {Promise<{ restoredAt: string, preRestoreBackupFileName: string, message: string }>}
+   */
+  async function restoreFullBackupFromUpload(zipFile) {
+    if (!zipFile) {
+      throw new Error('Backup ZIP file is required');
+    }
+    await ensureCsrfToken();
+    const formData = new FormData();
+    formData.append('backup', zipFile);
+    formData.append('confirm', 'true');
+
+    const response = await fetch('/admin/restore', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: buildHeaders(),
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({}));
+      throw new Error(errorBody.error || `Restore failed (${response.status})`);
+    }
+    return response.json();
+  }
+
+  /**
    * Runs git pull and dependency reinstall for a module.
    * @param {string} moduleId - Module id
    * @returns {Promise<object>}
@@ -333,6 +412,12 @@ const ModuleHubApi = (function createModuleHubApi() {
     updateModule,
     deleteModule,
     downloadModuleBackup,
+    createFullBackup,
+    listFullBackups,
+    downloadFullBackup,
+    deleteFullBackup,
+    restoreFullBackupFromServer,
+    restoreFullBackupFromUpload,
     syncModuleGitHub,
     loadSystemSettings,
     saveSystemSettings,

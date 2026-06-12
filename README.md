@@ -20,7 +20,7 @@ curl http://127.0.0.1:4000/health
 
 **Phase 4:** After ZIP upload — dependency cache at `/var/cache/modulehub/pkg/<hash>/` (SHA256 manifest, symlink, LRU). Smoke: `bash scripts/test-package-cache-manual.sh` on server.
 
-**Phase 6:** Full backup/restore — `POST /admin/backup`, `POST /admin/restore` (no UI yet; per-module ZIP in ⚙). See `docs/developer-guide.md` §9.1.
+**Phase 6:** Full backup/restore — API + UI in `/admin/settings` (backup card); per-module ZIP in ⚙. See `docs/backup-restore.md` and `docs/developer-guide.md` §9.1.
 
 **Phase 7.5:** Super Admin settings — `GET /admin/settings`, `GET /admin/settings/data`, `POST /admin/settings` — upload limits, port range, defaults, auth TTL (phase 8). Deploy: `bash scripts/deploy-full.sh` (prompts: logrotate, nginx, dev admin).
 

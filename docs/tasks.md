@@ -151,7 +151,7 @@ input.task-list-item-checkbox {
 
 ## فاز ۶: پشتیبان‌گیری و بازیابی کامل (۲ روز) — ✅ انجام شد 2026-05-29
 
-> **UI:** دکمهٔ بکاپ کل در صفحه نیست — فقط API/CLI. بکاپ **تکی** ماژول: ⚙ → «پشتیبان ZIP».  
+> **UI:** کارت بکاپ کل در `/admin/settings`. بکاپ **تکی** ماژول: ⚙ → «پشتیبان ZIP».  
 > dev: `MODULEHUB_DEV_SUPER_ADMIN=1` · مسیر بکاپ روی سرور: `/opt/modulehub-cms/storage/backups/`
 
 | # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |
@@ -231,7 +231,7 @@ input.task-list-item-checkbox {
 - [ ] `docs/system-settings.example.json` – نمونه تنظیمات سراسری
 - [ ] `docs/admin-guide.md` – راهنمای تصویری برای ادمین
 - [ ] `docs/developer-guide.md` – ساخت ZIP ماژول (v0 — §۶ پس از کد به‌روز شود)
-- [ ] `docs/backup-restore.md` – روش پشتیبان‌گیری
+- [x] `docs/backup-restore.md` – روش پشتیبان‌گیری (UI + curl + CLI)
 - [ ] `docs/network-config.md` – نحوه مدیریت dual‑WAN
 - [ ] `CHANGELOG.md` – تاریخچه تغییرات هسته
 - [ ] `.eslintrc.json` و `.prettierrc`

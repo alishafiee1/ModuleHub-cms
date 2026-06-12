@@ -81,6 +81,13 @@
       dialogType: 'password',
       summary: () => 'تغییر رمز Super Admin',
     },
+    {
+      id: 'backup-restore',
+      title: 'پشتیبان‌گیری و بازیابی',
+      icon: 'fa-database',
+      dialogType: 'backup',
+      summary: (_s, meta) => `${meta.backupCount} بکاپ · آخرین: ${meta.latestBackup || '—'}`,
+    },
   ];
 
   function showSettingsHelp(helpKey) {
@@ -255,6 +262,11 @@
       return;
     }
 
+    if (card.dialogType === 'backup') {
+      await BackupSettingsDialog.openDialog(currentSettings.maxZipUploadMb);
+      return;
+    }
+
     const buildHtml = DIALOG_BUILDERS[cardId];
     if (!buildHtml) return;
 
@@ -287,7 +299,7 @@
       <button type="button" class="settings-card" data-card-id="${card.id}">
         <div class="settings-card-icon"><i class="fas ${card.icon}"></i></div>
         <h3 class="settings-card-title">${card.title}</h3>
-        <p class="settings-card-summary">${card.summary(currentSettings)}</p>
+        <p class="settings-card-summary">${card.summary(currentSettings, BackupSettingsDialog.getBackupMeta())}</p>
         <div class="settings-card-action"><i class="fas fa-edit"></i> ویرایش</div>
       </button>`).join('');
 
@@ -304,6 +316,7 @@
       currentSettings = data.settings;
       networkInterfaces = data.networkInterfaces ?? [];
       showNicSelector = Boolean(data.showNicSelector);
+      await BackupSettingsDialog.refreshBackupMeta();
       renderCards();
     } catch (error) {
       cardsGrid.innerHTML = `<div class="loading-state">خطا: ${error.message}</div>`;
@@ -322,6 +335,8 @@
       window.location.href = '/admin/login';
     }
   }
+
+  BackupSettingsDialog.onMetaChange(() => renderCards());
 
   void initAdminMenuOnSettings();
   void loadSettingsPage();

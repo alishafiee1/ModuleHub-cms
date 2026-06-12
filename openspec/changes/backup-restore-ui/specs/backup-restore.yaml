@@ -1,0 +1,193 @@
+openapi: 3.0.3
+info:
+  title: ModuleHub CMS — Full Backup & Restore UI
+  version: 1.0.0
+  description: Full CMS backup list, download, server restore, and upload restore.
+
+paths:
+  /admin/backup:
+    post:
+      summary: Create full CMS backup ZIP on server
+      tags: [Backup Restore]
+      security:
+        - sessionCookie: []
+        - csrfToken: []
+      responses:
+        '201':
+          description: Backup created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [fileName, createdAt, downloadPath]
+                properties:
+                  fileName:
+                    type: string
+                    example: modulehub-full-2026-06-12T10-00-00.zip
+                  createdAt:
+                    type: string
+                    format: date-time
+                  downloadPath:
+                    type: string
+        '401':
+          description: Super Admin required
+        '403':
+          description: Missing CSRF token
+
+  /admin/backup/list:
+    get:
+      summary: List full backup files with metadata
+      tags: [Backup Restore]
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Backup entries newest first
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  backups:
+                    type: array
+                    items:
+                      type: object
+                      required: [fileName, sizeBytes, createdAt]
+                      properties:
+                        fileName:
+                          type: string
+                        sizeBytes:
+                          type: integer
+                        createdAt:
+                          type: string
+                          format: date-time
+
+  /admin/backup/download/{fileName}:
+    get:
+      summary: Download backup ZIP
+      tags: [Backup Restore]
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: fileName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ZIP file
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+  /admin/backup/restore/{fileName}:
+    post:
+      summary: Restore from on-disk full backup
+      tags: [Backup Restore]
+      security:
+        - sessionCookie: []
+        - csrfToken: []
+      parameters:
+        - name: fileName
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^modulehub-full-.*\.zip$
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                confirm:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Restore completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  restoredAt:
+                    type: string
+                    format: date-time
+                  preRestoreBackupFileName:
+                    type: string
+                  message:
+                    type: string
+        '400':
+          description: Missing confirm or invalid file name
+
+  /admin/backup/{fileName}:
+    delete:
+      summary: Delete backup ZIP after admin password confirmation
+      tags: [Backup Restore]
+      security:
+        - sessionCookie: []
+        - csrfToken: []
+      parameters:
+        - name: fileName
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [adminPassword]
+              properties:
+                adminPassword:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Backup deleted
+        '401':
+          description: Wrong admin password
+        '404':
+          description: Backup not found
+
+  /admin/restore:
+    post:
+      summary: Restore from uploaded backup ZIP
+      tags: [Backup Restore]
+      security:
+        - sessionCookie: []
+        - csrfToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [backup, confirm]
+              properties:
+                backup:
+                  type: string
+                  format: binary
+                confirm:
+                  type: string
+                  enum: ['true']
+      responses:
+        '200':
+          description: Restore completed
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: modulehub.sid
+    csrfToken:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token

@@ -113,6 +113,9 @@
 - [x] 7.6 **Unit:** `tests/unit/backup-restore/restore-validator.test.ts` — رد ZIP ناقص یا corrupt
 - [x] 7.7 تست دستی: backup → حذف → restore — 2026-05-29
 - [x] 7.8 **بستن فاز:** `npm run lint` + JSDoc برای `backup-restore` — 2026-05-28
+- [x] 7.9 UI کارت بکاپ در `/admin/settings` + `backup-settings-dialog.js` + `api-client.js`
+- [x] 7.10 `POST /admin/backup/restore/:fileName` — بازیابی از فایل روی سرور
+- [x] 7.11 **Unit:** `tests/unit/backup-restore/backup-routes.test.ts` — HTTP route tests
 
 ## 8. فاز ۷ — نسخه‌گذاری و لاگ
 
@@ -167,7 +170,7 @@
 - [ ] 11.5 OOM → crashed
 - [ ] 11.6 auth از اینترنت — Super Admin
 - [ ] 11.7 Module Manager از WAN
-- [ ] 11.8 backup/restore
+- [x] 11.8 backup/restore — UI + route tests؛ تست دستی create → list → download → restore از لیست (2026-06-12)
 - [ ] 11.9 ۵ ماژول همزمان
 - [ ] 11.10 Deploy `/opt/modulehub-cms` — build + restart انجام شد 2026-06-01؛ تأیید نهایی live
 - [x] 11.11 README + `test-results.log` — log به‌روز 2026-06-01

@@ -226,23 +226,30 @@ npx serve . -l 8080
 
 تا فاز ۸: `MODULEHUB_DEV_SUPER_ADMIN=1` در `.env` برای تست admin — [`deploy-guide.md`](deploy-guide.md)
 
-### ۹.۱ بکاپ و restore کامل (فاز ۶ — بدون UI)
+### ۹.۱ بکاپ و restore کامل
+
+**UI:** `/admin/settings` → کارت «پشتیبان‌گیری و بازیابی» — `public/admin/backup-settings-dialog.js` + متدهای `ModuleHubApi` در `api-client.js`.
+
+| متد | مسیر | توضیح |
+|-----|------|--------|
+| POST | `/admin/backup` | ایجاد ZIP کامل |
+| GET | `/admin/backup/list` | `{ backups: [{ fileName, sizeBytes, createdAt }] }` |
+| GET | `/admin/backup/download/:fileName` | دانلود |
+| POST | `/admin/backup/restore/:fileName` | بازیابی از فایل روی سرور + `{ confirm: true }` |
+| DELETE | `/admin/backup/:fileName` | حذف ZIP + `{ adminPassword }` |
+| POST | `/admin/restore` | multipart آپلود + `confirm=true` |
 
 روی سرور (`/opt/modulehub-cms`):
 
 ```bash
-# ایجاد بکاپ
-curl -X POST http://127.0.0.1:4000/admin/backup
-curl -s http://127.0.0.1:4000/admin/backup/list
-ls -lh storage/backups/
-
-# بازیابی (قبلش pre-restore خودکار)
-curl -X POST http://127.0.0.1:4000/admin/restore \
-  -F "backup=@/opt/modulehub-cms/storage/backups/modulehub-full-YYYY-MM-DDTHH-mm-ss.zip" \
-  -F "confirm=true"
+curl -X POST http://127.0.0.1:4000/admin/backup -H "X-CSRF-Token: ..." --cookie "modulehub.sid=..."
+curl -s http://127.0.0.1:4000/admin/backup/list --cookie "modulehub.sid=..."
+curl -X POST "http://127.0.0.1:4000/admin/backup/restore/modulehub-full-....zip" \
+  -H "Content-Type: application/json" -H "X-CSRF-Token: ..." \
+  --cookie "modulehub.sid=..." -d '{"confirm":true}'
 ```
 
-CLI: `node scripts/cli.js backup --output /tmp/full.zip`
+CLI: `node scripts/cli.js backup --output /tmp/full.zip` · راهنمای کامل: [`backup-restore.md`](backup-restore.md)
 
 ---
 

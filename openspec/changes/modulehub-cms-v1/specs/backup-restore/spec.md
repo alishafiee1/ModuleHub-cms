@@ -17,9 +17,13 @@ Admin SHALL be able to download any backup file from the admin panel or CLI.
 ### Requirement: Restore with confirmation
 Restore SHALL require explicit admin confirmation and create an automatic pre-restore backup.
 
-#### Scenario: Restore success
+#### Scenario: Restore success from upload
 - **WHEN** admin uploads a valid backup ZIP and confirms restore
 - **THEN** current state is backed up, backup contents replace live data, and CMS restarts
+
+#### Scenario: Restore from server backup list
+- **WHEN** admin selects a `modulehub-full-*.zip` from the settings backup dialog and confirms restore
+- **THEN** system reads the file from `storage/backups/`, creates pre-restore backup, and replaces live data
 
 #### Scenario: Pre-restore safety backup
 - **WHEN** restore is initiated
