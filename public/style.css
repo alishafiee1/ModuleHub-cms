@@ -105,13 +105,13 @@ body {
     transition: background 0.3s ease;
 }
 
-/* Decorative overlay — above cards/hero, clicks pass through to UI below */
+/* Floating icons — above hero/breadcrumb, behind cards; clicks pass through */
 #homeFloatingCanvas {
     position: fixed;
     inset: 0;
     width: 100%;
     height: 100%;
-    z-index: 2;
+    z-index: 1;
     pointer-events: none;
 }
 
@@ -360,6 +360,8 @@ body {
     justify-content: space-between;
     gap: 2rem;
     border: 1px solid var(--border-light);
+    position: relative;
+    z-index: 0;
 }
 
 .hero-text h2 {
@@ -399,6 +401,8 @@ body {
     padding: 0.8rem 2rem;
     border-bottom: 1px solid var(--breadcrumb-border);
     font-weight: 500;
+    position: relative;
+    z-index: 0;
 }
 
 .breadcrumb-list {
@@ -423,6 +427,8 @@ body.dark .breadcrumb-item { color: #7ab3c8; }
     grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
     gap: 1.8rem;
     transition: opacity 0.12s ease, transform 0.12s ease;
+    position: relative;
+    z-index: 2;
 }
 
 .grid-cards.grid-cards--navigating {
