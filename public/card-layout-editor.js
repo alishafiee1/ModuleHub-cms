@@ -27,6 +27,37 @@
   }
 
   /**
+   * purpose --- builds one PATCH entry; mirrors core buildFolderCardPatchEntry ---
+   * @param {string} nodeId - Layout node id
+   * @param {number} cardSpan - Active span columns
+   * @param {string|null} backgroundJson - data-card-background raw value
+   * @param {boolean} backgroundCleared - User removed background in this session
+   * @returns {{ nodeId: string, cardSpan?: number, cardBackground?: object|null }}
+   */
+  function buildCardPatchEntry(nodeId, cardSpan, backgroundJson, backgroundCleared) {
+    const entry = { nodeId };
+    if (cardSpan !== 1) {
+      entry.cardSpan = cardSpan;
+    }
+    if (backgroundCleared) {
+      entry.cardBackground = null;
+      return entry;
+    }
+    if (!backgroundJson || backgroundJson === 'null') {
+      return entry;
+    }
+    try {
+      const parsed = JSON.parse(backgroundJson);
+      if (parsed?.type === 'color' || parsed?.type === 'image') {
+        entry.cardBackground = parsed;
+      }
+    } catch {
+      // skip invalid JSON
+    }
+    return entry;
+  }
+
+  /**
    * purpose --- collects current card order, span, and background values from DOM ---
    * @param {HTMLElement} grid - Cards grid element
    * @returns {Array<{ nodeId: string, cardSpan?: number, cardBackground?: object|null }>}
@@ -35,25 +66,40 @@
     return Array.from(grid.querySelectorAll('.card[data-id]')).map((card) => {
       const nodeId = card.getAttribute('data-id');
       const activeBtn = card.querySelector('.card-span-btn.is-active');
-      const cardSpan = activeBtn ? Number(activeBtn.getAttribute('data-span')) : undefined;
+      const cardSpan = activeBtn
+        ? Number(activeBtn.getAttribute('data-span'))
+        : Number(card.getAttribute('data-card-span') || 1);
       const bgRaw = card.getAttribute('data-card-background');
-      let cardBackground;
-      try {
-        cardBackground = bgRaw ? JSON.parse(bgRaw) : null;
-      } catch {
-        cardBackground = null;
-      }
-      const entry = { nodeId };
-      if (cardSpan && cardSpan !== 1) {
-        entry.cardSpan = cardSpan;
-      }
-      if (cardBackground && cardBackground.type !== 'none') {
-        entry.cardBackground = cardBackground;
-      } else if (cardBackground === null) {
-        entry.cardBackground = null;
-      }
-      return entry;
+      const bgCleared = card.getAttribute('data-card-background-cleared') === '1';
+      return buildCardPatchEntry(nodeId, cardSpan, bgRaw, bgCleared);
     });
+  }
+
+  /**
+   * purpose --- persists layout immediately and notifies listeners ---
+   * @param {HTMLElement} grid - Cards grid element
+   * @param {HTMLElement} savingIndicator - Saving indicator element
+   * @returns {Promise<boolean>} true when save succeeded
+   */
+  async function persistLayout(grid, savingIndicator) {
+    const folderId = currentFolderIdFn();
+    const cards = collectCardPayload(grid);
+    savingIndicator.classList.add('is-visible');
+    try {
+      await ModuleHubApi.saveFolderCards(folderId, cards);
+      window.dispatchEvent(new CustomEvent('modulehub:folder-cards-saved', {
+        detail: { folderId, cards },
+      }));
+      return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'ذخیره ناموفق';
+      if (window.Swal) {
+        void Swal.fire({ icon: 'error', title: 'ذخیره چیدمان', text: message });
+      }
+      return false;
+    } finally {
+      savingIndicator.classList.remove('is-visible');
+    }
   }
 
   /**
@@ -194,6 +240,11 @@
 
     const newBg = result.value;
     card.setAttribute('data-card-background', JSON.stringify(newBg));
+    if (!newBg || newBg.type === 'none') {
+      card.setAttribute('data-card-background-cleared', '1');
+    } else {
+      card.removeAttribute('data-card-background-cleared');
+    }
 
     card.classList.remove('card--has-bg', 'card--bg-color', 'card--bg-image');
     const bgLayer = card.querySelector('.card-bg-layer');
@@ -247,18 +298,22 @@
    */
   function scheduleSave(grid, savingIndicator) {
     clearTimeout(saveTimer);
-    savingIndicator.classList.add('is-visible');
-    saveTimer = setTimeout(async () => {
-      const folderId = currentFolderIdFn();
-      const cards = collectCardPayload(grid);
-      try {
-        await ModuleHubApi.saveFolderCards(folderId, cards);
-      } catch {
-        // silent fail — user can try again; layout in memory is already correct
-      } finally {
-        savingIndicator.classList.remove('is-visible');
-      }
+    saveTimer = setTimeout(() => {
+      saveTimer = null;
+      void persistLayout(grid, savingIndicator);
     }, SAVE_DEBOUNCE_MS);
+  }
+
+  /**
+   * purpose --- cancels debounce and saves immediately (e.g. on exit edit) ---
+   * @param {HTMLElement} grid - Cards grid element
+   * @param {HTMLElement} savingIndicator - Saving indicator element
+   * @returns {Promise<boolean>}
+   */
+  async function flushSave(grid, savingIndicator) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    return persistLayout(grid, savingIndicator);
   }
 
   const SPAN_OPTIONS = [
@@ -488,17 +543,15 @@
    * purpose --- shows or hides the admin card toolbar ---
    * @param {boolean} isVisible - Whether Super Admin is logged in
    */
-  function setAdminToolbarVisible(isVisible) {
+  async function setAdminToolbarVisible(isVisible) {
     if (!mountedToolbar) {
       return;
     }
     mountedToolbar.hidden = !isVisible;
     if (!isVisible && editModeActive && mountedGrid) {
-      editModeActive = false;
-      mountedToolbar.classList.remove('is-editing');
-      disableEditMode(mountedGrid);
-      const editBtn = document.getElementById('layoutEditToggleBtn');
-      syncEditToggleLabel(editBtn);
+      const saving = document.getElementById('layoutEditSaving');
+      await flushSave(mountedGrid, saving);
+      reset();
     }
   }
 
@@ -520,7 +573,8 @@
     const saving = document.getElementById('layoutEditSaving');
     const editBtn = document.getElementById('layoutEditToggleBtn');
 
-    function exitEditMode() {
+    async function exitEditMode() {
+      await flushSave(grid, saving);
       editModeActive = false;
       mountedToolbar.classList.remove('is-editing');
       disableEditMode(grid);
@@ -545,7 +599,7 @@
       editBtn.dataset.bound = '1';
       editBtn.addEventListener('click', async () => {
         if (editModeActive) {
-          exitEditMode();
+          await exitEditMode();
           return;
         }
         await enterEditMode();
@@ -581,11 +635,21 @@
     });
   }
 
-  /** purpose --- resets editor state on folder navigation --- */
+  /** purpose --- saves pending edits then resets editor state on folder navigation --- */
+  async function flushAndReset() {
+    if (editModeActive && mountedGrid) {
+      const saving = document.getElementById('layoutEditSaving');
+      await flushSave(mountedGrid, saving);
+    }
+    reset();
+  }
+
+  /** purpose --- resets editor state without saving (internal) --- */
   function reset() {
     editModeActive = false;
     sortableInstance = null;
     clearTimeout(saveTimer);
+    saveTimer = null;
     if (mountedToolbar) {
       mountedToolbar.classList.remove('is-editing');
     }
@@ -595,5 +659,5 @@
     }
   }
 
-  window.CardLayoutEditor = { mount, refresh, reset, setAdminToolbarVisible };
+  window.CardLayoutEditor = { mount, refresh, reset, flushAndReset, setAdminToolbarVisible };
 })();

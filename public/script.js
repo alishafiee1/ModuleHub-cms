@@ -79,6 +79,42 @@
   }
 
   /**
+   * purpose --- merges saved folder card order/spans/backgrounds into in-memory siteLayout ---
+   * @param {string} folderId - Folder node id
+   * @param {Array<{ nodeId: string, cardSpan?: number, cardBackground?: object|null }>} cards - Saved payload
+   */
+  function applyFolderCardsToLocalLayout(folderId, cards) {
+    if (!siteLayout?.tree) {
+      return;
+    }
+    const folderNode = findNodeById(siteLayout.tree, folderId);
+    if (!folderNode || folderNode.type !== 'folder' || !folderNode.children) {
+      return;
+    }
+    const existingById = new Map(folderNode.children.map((child) => [child.id, child]));
+    folderNode.children = cards.map((entry) => {
+      const original = existingById.get(entry.nodeId);
+      if (!original) {
+        return null;
+      }
+      const updated = { ...original };
+      if (entry.cardSpan !== undefined) {
+        if (entry.cardSpan === 1) {
+          delete updated.cardSpan;
+        } else {
+          updated.cardSpan = entry.cardSpan;
+        }
+      }
+      if (entry.cardBackground === null) {
+        delete updated.cardBackground;
+      } else if (entry.cardBackground !== undefined) {
+        updated.cardBackground = entry.cardBackground;
+      }
+      return updated;
+    }).filter(Boolean);
+  }
+
+  /**
    * Builds breadcrumb segments from root to folder.
    * @param {string} folderId - Current folder id
    * @returns {Array<{id: string, name: string}>}
@@ -159,7 +195,7 @@
    * @param {string} folderId - Target folder id
    * @param {{ replace?: boolean }} [options] - Use replaceState instead of pushState
    */
-  function navigateToFolder(folderId, options = {}) {
+  async function navigateToFolder(folderId, options = {}) {
     if (!siteLayout?.tree) {
       return;
     }
@@ -168,9 +204,13 @@
       return;
     }
     const isFolderChange = validFolderId !== currentFolderId;
-    if (isFolderChange && window.CardLayoutEditor) {
+
+    if (isFolderChange && window.CardLayoutEditor?.flushAndReset) {
+      await window.CardLayoutEditor.flushAndReset();
+    } else if (isFolderChange && window.CardLayoutEditor) {
       window.CardLayoutEditor.reset();
     }
+
     currentFolderId = validFolderId;
     const url = buildFolderUrl(validFolderId);
     const state = { folderId: validFolderId };
@@ -725,8 +765,14 @@
       return;
     }
     const folderId = event.state?.folderId ?? getFolderIdFromUrl() ?? ROOT_ID;
-    currentFolderId = resolveValidFolderId(folderId);
-    renderAll();
+    void navigateToFolder(folderId, { replace: true });
+  });
+
+  window.addEventListener('modulehub:folder-cards-saved', (event) => {
+    const detail = event.detail || {};
+    if (detail.folderId && detail.cards) {
+      applyFolderCardsToLocalLayout(detail.folderId, detail.cards);
+    }
   });
 
   initDarkMode();

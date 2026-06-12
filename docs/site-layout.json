@@ -20,20 +20,6 @@
             "parentId": "folder-123"
           }
         ]
-      },
-      {
-        "id": "mod-789",
-        "name": "آمار زنده",
-        "type": "module",
-        "moduleId": "live-101",
-        "parentId": "root"
-      },
-      {
-        "id": "mod-999",
-        "name": "دمو crash",
-        "type": "module",
-        "moduleId": "demo-crash",
-        "parentId": "root"
       }
     ]
   },
@@ -60,50 +46,6 @@
       "changelog": "نسخه اولیه",
       "managementPasswordHash": "",
       "managementPermissions": ["start", "stop", "logs", "edit"]
-    },
-    "live-101": {
-      "name": "آمار زنده سرور",
-      "status": "stopped",
-      "version": "2.1.0",
-      "docker": true,
-      "port": 4200,
-      "permissions": "network+volume",
-      "resources": {
-        "cpu_limit": 0.8,
-        "ram_limit_mb": 1024,
-        "swap_limit_mb": 256,
-        "disk_iops": 200,
-        "net_mbps": 5
-      },
-      "icon": "fas fa-chart-line",
-      "thumbnail": "/thumbnails/live-101.png",
-      "gitRepo": "https://github.com/org/live-stats",
-      "createdAt": "2025-01-10T08:15:00Z",
-      "updatedAt": "2025-02-01T09:45:00Z",
-      "changelog": "رفع باگ WebSocket",
-      "managementPasswordHash": "$2b$12$exampleHashOnlyForSchemaDemo",
-      "managementPermissions": ["start", "stop", "logs", "edit"]
-    },
-    "demo-crash": {
-      "name": "ماژول تست crashed",
-      "status": "crashed",
-      "version": "0.1.0",
-      "docker": false,
-      "port": 4101,
-      "permissions": "network",
-      "resources": {
-        "cpu_limit": 0.5,
-        "ram_limit_mb": 128,
-        "swap_limit_mb": 0,
-        "disk_iops": 50,
-        "net_mbps": 5
-      },
-      "icon": "fas fa-bug",
-      "thumbnail": "",
-      "gitRepo": "",
-      "createdAt": "2025-03-01T12:00:00Z",
-      "updatedAt": "2025-03-01T12:05:00Z",
-      "changelog": "OOM Kill در تست RAM"
     }
   }
 }

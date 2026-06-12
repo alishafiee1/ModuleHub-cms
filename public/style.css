@@ -492,6 +492,7 @@ body.dark .breadcrumb-item { color: #7ab3c8; }
     border: 1px solid var(--card-glass-border);
     overflow: hidden;
     cursor: pointer;
+    min-height: 142px;
 }
 
 .card:hover {
@@ -602,9 +603,9 @@ body.dark .card--bg-image .card-bg-layer {
 }
 
 /* min-height per span to give image cards breathing room */
-.card--has-bg { min-height: 140px; }
-.card--has-bg.card--span-2 { min-height: 180px; }
-.card--has-bg.card--span-4 { min-height: 220px; }
+.card--has-bg { min-height: 168px; }
+.card--has-bg.card--span-2 { min-height: 216px; }
+.card--has-bg.card--span-4 { min-height: 264px; }
 
 .card-content { padding: 1.4rem 1.2rem 1.2rem; }
 
@@ -798,9 +799,22 @@ body.dark .layout-edit-tool-btn--primary:hover:not(:disabled) {
 }
 
 /* cards become draggable targets in edit mode */
+.grid-cards.layout-edit-active {
+    /* 5 edit buttons × 28px + gaps — keeps column fully visible on short cards */
+    --card-edit-controls-height: 192px;
+}
+
 .grid-cards.layout-edit-active .card {
     position: relative;
     user-select: none;
+}
+
+.grid-cards.layout-edit-active .card:not(.add-card) {
+    min-height: max(288px, var(--card-edit-controls-height, 192px) + 6.6rem);
+}
+
+.grid-cards.layout-edit-active .add-card {
+    min-height: max(288px, var(--card-edit-controls-height, 192px) + 6.6rem);
 }
 
 /* hide gear while layout edit controls replace it */
@@ -823,10 +837,11 @@ body.dark .layout-edit-tool-btn--primary:hover:not(:disabled) {
     display: flex;
 }
 
-/* keep card-icon row height stable — controls float over gear slot */
+/* keep card-icon row tall enough — edit controls float without clipping */
 .grid-cards.layout-edit-active .card .card-icon {
     position: relative;
-    align-items: center;
+    align-items: flex-start;
+    min-height: var(--card-edit-controls-height, 192px);
 }
 
 .grid-cards.layout-edit-active .card .card-edit-controls {

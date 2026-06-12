@@ -28,6 +28,8 @@ export {
 } from './layout-routes';
 export { applyFolderCardsUpdate, patchFolderCardsHandler } from './folder-cards-update';
 export { buildCardBackgroundInlineStyle } from './card-background-inline-style';
+export { buildFolderCardPatchEntry } from './folder-card-patch-entry';
+export type { FolderCardPatchEntry } from './folder-card-patch-entry';
 export { createCardBackgroundRouter } from './card-background-upload';
 export type {
   BreadcrumbSegment,
