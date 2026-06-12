@@ -208,15 +208,36 @@
         ${radio('none', 'بدون بک‌گراند', mode === 'none')}
         ${radio('floating-icons', 'آیکون‌های شناور', mode === 'floating-icons')}
         ${radio('future', 'پیشنهادات آتی (امواج، ذرات)', false, true, 'به زودی')}
-        <p style="font-weight:600;margin:1rem 0 0.35rem;">دسته آیکون</p>
-        <select id="swal-homePageIconTheme" class="swal2-input" style="width:100%;box-sizing:border-box;">
-          <option value="nature" ${theme === 'nature' ? 'selected' : ''}>طبیعت</option>
-          <option value="technology" ${theme === 'technology' ? 'selected' : ''}>تکنولوژی</option>
-          <option value="tools" ${theme === 'tools' ? 'selected' : ''}>ابزار</option>
-          <option value="vehicles" ${theme === 'vehicles' ? 'selected' : ''}>وسایل نقلیه</option>
-          <option value="mixed" ${theme === 'mixed' ? 'selected' : ''}>ترکیبی تصادفی</option>
-        </select>
+        <div class="swal-settings-field swal-home-icon-field">
+          <label for="swal-homePageIconTheme">دسته آیکون</label>
+          <select id="swal-homePageIconTheme" class="swal-home-icon-select">
+            <option value="nature" ${theme === 'nature' ? 'selected' : ''}>طبیعت</option>
+            <option value="technology" ${theme === 'technology' ? 'selected' : ''}>تکنولوژی</option>
+            <option value="tools" ${theme === 'tools' ? 'selected' : ''}>ابزار</option>
+            <option value="vehicles" ${theme === 'vehicles' ? 'selected' : ''}>وسایل نقلیه</option>
+            <option value="mixed" ${theme === 'mixed' ? 'selected' : ''}>ترکیبی تصادفی</option>
+          </select>
+        </div>
       </div>`;
+  }
+
+  function wireHomeAppearanceDialog() {
+    const container = Swal.getHtmlContainer();
+    if (!container) {
+      return;
+    }
+    const themeSelect = container.querySelector('#swal-homePageIconTheme');
+    const modeRadios = container.querySelectorAll('input[name="swal-bg-mode"]');
+    const syncThemeSelectState = () => {
+      const selectedMode = container.querySelector('input[name="swal-bg-mode"]:checked')?.value;
+      const enabled = selectedMode === 'floating-icons';
+      if (themeSelect) {
+        themeSelect.disabled = !enabled;
+        themeSelect.classList.toggle('swal-home-icon-select--disabled', !enabled);
+      }
+    };
+    modeRadios.forEach((radio) => radio.addEventListener('change', syncThemeSelectState));
+    syncThemeSelectState();
   }
 
   const DIALOG_BUILDERS = {
@@ -331,6 +352,7 @@
         confirmButtonText: 'ذخیره',
         cancelButtonText: 'انصراف',
         width: '28rem',
+        didOpen: () => wireHomeAppearanceDialog(),
       });
       if (!result.isConfirmed) return;
       try {

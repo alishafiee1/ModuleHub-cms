@@ -641,17 +641,17 @@
   function initDarkMode() {
     const darkToggle = document.getElementById('darkModeToggle');
     const label = document.getElementById('darkModeLabel');
-    const isDark = localStorage.getItem('modulehub-theme') === 'dark';
-
-    if (isDark) {
-      document.body.classList.add('dark');
-      label.textContent = 'لایت مود';
+    if (!darkToggle || !label) {
+      return;
     }
 
+    const isDark = window.ModuleHubTheme?.isDark() ?? document.body.classList.contains('dark');
+    label.textContent = isDark ? 'لایت مود' : 'دارک مود';
+
     darkToggle.addEventListener('click', () => {
-      document.body.classList.toggle('dark');
-      const nowDark = document.body.classList.contains('dark');
-      localStorage.setItem('modulehub-theme', nowDark ? 'dark' : 'light');
+      const nowDark = window.ModuleHubTheme
+        ? window.ModuleHubTheme.toggle()
+        : document.body.classList.toggle('dark');
       label.textContent = nowDark ? 'لایت مود' : 'دارک مود';
       if (window.HomeFloatingBackground) {
         window.HomeFloatingBackground.updateTheme();

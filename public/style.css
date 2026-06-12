@@ -702,6 +702,57 @@ body.dark .swal2-select {
     box-shadow: 0 0 0 4px var(--glow-color) !important;
 }
 
+/* Home appearance dialog — native select (not swal2-input) for correct RTL display */
+.swal-home-icon-select {
+    display: block;
+    width: 100%;
+    min-height: 2.75rem;
+    margin: 0;
+    padding: 0.6rem 0.85rem;
+    border-radius: 12px;
+    border: 1px solid var(--input-border);
+    background: var(--card-glass-bg);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    box-sizing: border-box;
+    cursor: pointer;
+    direction: rtl;
+    text-align: right;
+    appearance: auto;
+    -webkit-appearance: menulist;
+}
+
+.swal-home-icon-select:focus {
+    outline: none;
+    border-color: #06b6d4;
+    box-shadow: 0 0 0 4px var(--glow-color);
+}
+
+.swal-home-icon-select--disabled,
+.swal-home-icon-select:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.swal-home-icon-field {
+    margin-top: 1rem;
+    margin-bottom: 0;
+}
+
+.swal-home-icon-field label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-desc);
+    margin-bottom: 0.35rem;
+}
+
+.swal-home-appearance p {
+    margin: 0;
+}
+
 /* Dialog Buttons styling */
 .swal2-actions {
     gap: 12px !important;

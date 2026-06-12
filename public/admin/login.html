@@ -280,13 +280,7 @@
             transition: all 0.2s;
         }
     </style>
-    <script>
-        // Apply theme immediately to prevent flashing
-        if (localStorage.getItem('modulehub-theme') === 'dark') {
-            document.documentElement.classList.add('dark');
-            document.addEventListener('DOMContentLoaded', () => document.body.classList.add('dark'));
-        }
-    </script>
+    <script src="/theme.js"></script>
 </head>
 <body class="rtl-container">
     <div class="bg-glow-1"></div>
