@@ -5,6 +5,9 @@ import { ensureSessionCsrfToken } from './csrf';
 
 const DEFAULT_SESSION_SECRET = 'modulehub-dev-session-secret-change-me';
 
+/** Session cookie name used by express-session */
+export const SESSION_COOKIE_NAME = 'modulehub.sid';
+
 /**
  * Resolves session signing secret from env or dev fallback.
  * @returns Session secret string
@@ -20,7 +23,7 @@ export function getSessionSecret(): string {
 export function createSessionMiddleware(): RequestHandler {
   const isProduction = process.env.NODE_ENV === 'production';
   return session({
-    name: 'modulehub.sid',
+    name: SESSION_COOKIE_NAME,
     secret: getSessionSecret(),
     resave: false,
     saveUninitialized: true,

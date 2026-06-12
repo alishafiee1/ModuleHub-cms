@@ -207,6 +207,127 @@ body {
     backdrop-filter: blur(4px);
     color: var(--header-text);
     text-decoration: none;
+    border: none;
+    font-family: inherit;
+}
+
+.admin-auth-menu-host {
+    position: relative;
+}
+
+.admin-dropdown {
+    position: relative;
+}
+
+.admin-dropdown-toggle {
+    white-space: nowrap;
+}
+
+.admin-dropdown-chevron {
+    font-size: 0.7rem;
+    opacity: 0.85;
+}
+
+.admin-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 200px;
+    background: var(--card-glass-bg, rgba(30, 30, 40, 0.95));
+    border: 1px solid var(--card-glass-border, rgba(255, 255, 255, 0.15));
+    border-radius: 14px;
+    box-shadow: var(--card-shadow, 0 12px 32px rgba(0, 0, 0, 0.25));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 0.35rem;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.admin-dropdown-menu.is-open {
+    display: flex;
+}
+
+.admin-dropdown-menu[hidden] {
+    display: none !important;
+}
+
+.password-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-input-group input {
+    width: 100%;
+    padding-left: 2.5rem;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    left: 10px;
+    background: none;
+    border: none;
+    color: var(--text-desc, #64748b);
+    opacity: 0.6;
+    cursor: pointer;
+    outline: none;
+    font-size: 0.95rem;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s, color 0.2s;
+}
+
+.password-toggle-btn:hover {
+    opacity: 1;
+    color: #06b6d4;
+}
+
+.swal-password-field {
+    margin-bottom: 0.75rem;
+    position: relative;
+}
+
+.swal-password-field input {
+    width: 100%;
+    margin: 0;
+    padding-left: 2.5rem;
+}
+
+.swal-password-field .password-toggle-btn {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.admin-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-primary, var(--header-text));
+    font-family: inherit;
+    font-size: 0.88rem;
+    text-decoration: none;
+    cursor: pointer;
+    text-align: right;
+}
+
+.admin-dropdown-item:hover {
+    background: rgba(6, 182, 212, 0.12);
+}
+
+.admin-dropdown-item-danger:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
 }
 
 .hero-section {

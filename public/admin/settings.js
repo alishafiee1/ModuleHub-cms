@@ -1,7 +1,5 @@
 // admin/settings.js — Super Admin system settings form
 (function initSettingsPage() {
-  const HELP_DELAY_MS = 3000;
-
   const form = document.getElementById('settingsForm');
   const nicSection = document.getElementById('nicSection');
   const nicTextSection = document.getElementById('nicTextSection');
@@ -10,9 +8,6 @@
   let currentSettings = null;
   let networkInterfaces = [];
   let showNicSelector = false;
-  let helpTimerId = null;
-  let activeHelpLabel = null;
-
   /** Simple Persian help texts keyed by data-help-key */
   const SETTINGS_HELP_TEXTS = {
     maxZipUploadMb: {
@@ -106,17 +101,6 @@
   };
 
   /**
-   * Clears pending help popup timer.
-   */
-  function clearHelpTimer() {
-    if (helpTimerId !== null) {
-      clearTimeout(helpTimerId);
-      helpTimerId = null;
-    }
-    activeHelpLabel = null;
-  }
-
-  /**
    * Shows SweetAlert help popup for a settings field key.
    * @param {string} helpKey - data-help-key value
    */
@@ -137,66 +121,57 @@
   }
 
   /**
-   * Starts 3s timer before showing help for a label element.
-   * @param {HTMLElement} label - Label with data-help-key
+   * Opens help when user clicks or taps a field title (not inputs/checkboxes/radios).
+   * @param {Event} event - Click or keyboard event
    */
-  function startHelpTimer(label) {
-    clearHelpTimer();
-    activeHelpLabel = label;
-    const helpKey = label.getAttribute('data-help-key');
+  function handleHelpTrigger(event) {
+    if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+
+    const helpElement = event.target.closest('[data-help-key]');
+    if (!helpElement || !form?.contains(helpElement)) {
+      return;
+    }
+
+    if (event.target.closest('input, select, textarea, button.password-toggle-btn')) {
+      return;
+    }
+
+    const helpKey = helpElement.getAttribute('data-help-key');
     if (!helpKey) {
       return;
     }
-    helpTimerId = window.setTimeout(() => {
-      helpTimerId = null;
-      showSettingsHelp(helpKey);
-    }, HELP_DELAY_MS);
+
+    event.preventDefault();
+    showSettingsHelp(helpKey);
   }
 
   /**
-   * Wires hover and long-touch help on all labels inside the settings form.
+   * Marks help titles as keyboard-focusable buttons for accessibility.
+   * @param {ParentNode} [root] - Scope to scan; defaults to whole form
+   */
+  function markHelpElements(root = form) {
+    if (!root) {
+      return;
+    }
+    root.querySelectorAll('[data-help-key]').forEach((element) => {
+      element.setAttribute('role', 'button');
+      element.setAttribute('tabindex', '0');
+    });
+  }
+
+  /**
+   * Wires click/tap help on field titles inside the settings form.
    */
   function initSettingsHelpHints() {
     if (!form) {
       return;
     }
 
-    form.addEventListener('mouseover', (event) => {
-      const label = event.target.closest('label[data-help-key]');
-      if (!label || !form.contains(label)) {
-        return;
-      }
-      if (label !== activeHelpLabel) {
-        startHelpTimer(label);
-      }
-    });
-
-    form.addEventListener('mouseout', (event) => {
-      const label = event.target.closest('label[data-help-key]');
-      if (!label) {
-        return;
-      }
-      const relatedTarget = event.relatedTarget;
-      if (!relatedTarget || !label.contains(relatedTarget)) {
-        clearHelpTimer();
-      }
-    });
-
-    form.addEventListener('touchstart', (event) => {
-      const label = event.target.closest('label[data-help-key]');
-      if (!label || !form.contains(label)) {
-        return;
-      }
-      startHelpTimer(label);
-    }, { passive: true });
-
-    form.addEventListener('touchend', () => {
-      clearHelpTimer();
-    });
-
-    form.addEventListener('touchcancel', () => {
-      clearHelpTimer();
-    });
+    markHelpElements();
+    form.addEventListener('click', handleHelpTrigger);
+    form.addEventListener('keydown', handleHelpTrigger);
   }
 
   /**
@@ -242,6 +217,7 @@
       label.appendChild(document.createTextNode(iface));
       nicOptions.appendChild(label);
     }
+    markHelpElements(nicOptions);
   }
 
   /**
@@ -361,6 +337,82 @@
     }
   });
 
+  /**
+   * Validates password fields on the settings change-password form.
+   * @returns {{ currentPassword: string, newPassword: string, confirmPassword: string }|null}
+   */
+  function collectPasswordForm() {
+    const currentPassword = document.getElementById('currentPassword')?.value ?? '';
+    const newPassword = document.getElementById('newPassword')?.value ?? '';
+    const confirmPassword = document.getElementById('confirmPassword')?.value ?? '';
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return null;
+    }
+    return { currentPassword, newPassword, confirmPassword };
+  }
+
+  /**
+   * Submits change-password form to the API.
+   */
+  async function submitChangePasswordForm() {
+    const fields = collectPasswordForm();
+    if (!fields) {
+      await Swal.fire({ icon: 'warning', title: 'فیلدهای ناقص', text: 'همه فیلدهای رمز الزامی هستند.' });
+      return;
+    }
+    if (fields.newPassword !== fields.confirmPassword) {
+      await Swal.fire({ icon: 'warning', title: 'عدم تطابق', text: 'رمز جدید و تکرار آن یکسان نیستند.' });
+      return;
+    }
+    if (fields.newPassword.length < 8 || !/[a-zA-Z]/.test(fields.newPassword) || !/\d/.test(fields.newPassword)) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'رمز ضعیف',
+        text: 'رمز جدید باید حداقل ۸ کاراکتر و شامل حروف و ارقام باشد.',
+      });
+      return;
+    }
+
+    try {
+      const result = await ModuleHubApi.changeSuperAdminPassword(
+        fields.currentPassword,
+        fields.newPassword,
+        fields.confirmPassword,
+      );
+      await Swal.fire({
+        icon: 'success',
+        title: 'رمز تغییر کرد',
+        text: 'لطفاً دوباره وارد شوید.',
+        timer: 2500,
+        showConfirmButton: false,
+      });
+      window.location.href = result.redirect || '/admin/login';
+    } catch (error) {
+      await Swal.fire({ icon: 'error', title: 'خطا', text: error.message });
+    }
+  }
+
+  document.getElementById('changePasswordButton')?.addEventListener('click', () => {
+    void submitChangePasswordForm();
+  });
+
+  async function initAdminMenuOnSettings() {
+    try {
+      const status = await ModuleHubApi.loadAuthStatus();
+      AdminMenu.mount('adminAuthMenuHost', {
+        onAfterLogout: () => {
+          window.location.href = '/';
+        },
+      });
+      AdminMenu.update(status.isSuperAdmin);
+    } catch {
+      window.location.href = '/admin/login';
+    }
+  }
+
   initSettingsHelpHints();
+  AdminMenu.wirePasswordToggles(document.getElementById('changePasswordSection'));
+  void initAdminMenuOnSettings();
   void loadSettingsPage();
 })();

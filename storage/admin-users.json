@@ -1,8 +1,8 @@
 {
-  "users": [
-    {
-      "username": "admin",
-      "passwordHash": "$2b$12$nhtPizZAoItIqOyyLE8RY.bWqFfBhJU4s8aUFzxnFHJ5QwM01LVYe"
-    }
-  ]
+    "users": [
+        {
+            "username": "admin",
+            "passwordHash": "$2b$12$Fc1WEQFqlwk8ggHGv61zBeYmqMm6NmePBXUeOorlA2d27.bcYUW5K"
+        }
+    ]
 }

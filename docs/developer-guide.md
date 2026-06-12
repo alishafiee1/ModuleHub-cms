@@ -160,8 +160,9 @@ fixture: [`tests/fixtures/modules/phase4-cache-test/`](../tests/fixtures/modules
 
 | endpoint (planned) | کار | نقش |
 |----------------------|-----|-----|
-| `GET/POST /admin/login` | ورود Super Admin | Super Admin |
-| `POST /admin/logout` | خروج | Super Admin |
+| `GET/POST /admin/login` | ورود Super Admin | عمومی / Super Admin |
+| `POST /admin/logout` | خروج (CSRF + rate limit) | Super Admin / Module Manager |
+| `POST /admin/change-password` | تغییر رمز (`currentPassword`, `newPassword`, `confirmPassword`) | Super Admin |
 | `POST /admin/upload` | آپلود ZIP | Super Admin |
 | `POST /admin/folder` | پوشه مجازی | Super Admin |
 | `POST /admin/module/:id/auth` | ورود با رمز ماژول | Module Manager |

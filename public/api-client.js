@@ -120,7 +120,26 @@ const ModuleHubApi = (function createModuleHubApi() {
    * @returns {Promise<{ message: string }>}
    */
   async function logoutSuperAdmin() {
-    return requestJson('/admin/logout', { method: 'POST' });
+    const result = await requestJson('/admin/logout', { method: 'POST' });
+    csrfToken = null;
+    return result;
+  }
+
+  /**
+   * Changes Super Admin password (requires active Super Admin session).
+   * @param {string} currentPassword - Current password
+   * @param {string} newPassword - New password
+   * @param {string} confirmPassword - Confirmation of new password
+   * @returns {Promise<{ message: string, redirect?: string }>}
+   */
+  async function changeSuperAdminPassword(currentPassword, newPassword, confirmPassword) {
+    const result = await requestJson('/admin/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+    });
+    csrfToken = null;
+    return result;
   }
 
   /**
@@ -301,6 +320,7 @@ const ModuleHubApi = (function createModuleHubApi() {
     loadAuthStatus,
     loginSuperAdmin,
     logoutSuperAdmin,
+    changeSuperAdminPassword,
     authenticateModule,
     createFolder,
     uploadZip,

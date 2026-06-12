@@ -44,19 +44,28 @@
             color: var(--text-desc);
             margin-bottom: 0.5rem; 
         }
-        .settings-field label[data-help-key] { cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }
+        [data-help-key] {
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        [data-help-key]:hover {
+            color: #06b6d4;
+        }
+        [data-help-key]:focus-visible {
+            outline: 2px solid #06b6d4;
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
         .settings-checkbox-label { 
             display: flex !important; 
             align-items: center; 
             gap: 0.5rem; 
-            cursor: help; 
-            text-decoration: underline dotted; 
-            text-underline-offset: 3px;
             font-weight: 600;
             color: var(--text-primary);
         }
         .settings-field input[type="number"],
-        .settings-field input[type="text"] { 
+        .settings-field input[type="text"],
+        .settings-field input[type="password"] { 
             width: 100%; 
             padding: 0.65rem 0.85rem; 
             border-radius: 10px; 
@@ -68,11 +77,16 @@
             transition: all 0.3s ease;
         }
         body.dark .settings-field input[type="number"],
-        body.dark .settings-field input[type="text"] {
+        body.dark .settings-field input[type="text"],
+        body.dark .settings-field input[type="password"] {
             background: rgba(0, 0, 0, 0.2);
         }
+        .settings-field .password-input-group input {
+            padding-left: 2.5rem;
+        }
         .settings-field input[type="number"]:focus,
-        .settings-field input[type="text"]:focus {
+        .settings-field input[type="text"]:focus,
+        .settings-field input[type="password"]:focus {
             border-color: #06b6d4;
             box-shadow: 0 0 0 3px var(--glow-color);
         }
@@ -112,9 +126,6 @@
             display: flex; 
             align-items: center; 
             gap: 0.5rem; 
-            cursor: help; 
-            text-decoration: underline dotted; 
-            text-underline-offset: 3px; 
             font-weight: 600;
             color: var(--text-primary);
         }
@@ -130,6 +141,12 @@
             color: var(--text-primary);
         }
         .settings-help-banner i { margin-left: 0.5rem; color: #06b6d4; }
+        .settings-header-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
     </style>
 </head>
 <body class="rtl-container">
@@ -144,12 +161,15 @@
                 <div class="header-subtitle">فقط Super Admin</div>
             </div>
         </div>
-        <a class="admin-login-link btn-link btn-secondary" href="/"><i class="fas fa-home"></i> بازگشت</a>
+        <div class="settings-header-actions">
+            <div id="adminAuthMenuHost" class="admin-auth-menu-host"></div>
+            <a class="admin-login-link btn-link btn-secondary" href="/"><i class="fas fa-home"></i> بازگشت</a>
+        </div>
     </div>
 
     <p class="settings-help-banner">
         <i class="fas fa-circle-info"></i>
-        برای راهنما، موس را روی متن هر تنظیم ۳ ثانیه نگه دارید یا لمس طولانی کنید.
+        برای توضیح هر تنظیم، روی <strong>عنوان آن</strong> کلیک کنید (در موبایل یک ضربه).
     </p>
 
     <form id="settingsForm">
@@ -256,6 +276,39 @@
             </div>
         </div>
 
+        <div class="settings-section" id="changePasswordSection">
+            <h3><i class="fas fa-key"></i> تغییر رمز عبور</h3>
+            <div class="settings-grid">
+                <div class="settings-field">
+                    <label for="currentPassword">رمز فعلی</label>
+                    <div class="password-input-group">
+                        <input type="password" id="currentPassword" name="currentPassword" autocomplete="current-password">
+                        <button type="button" class="password-toggle-btn" aria-label="نمایش رمز فعلی"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="settings-field">
+                    <label for="newPassword">رمز جدید</label>
+                    <div class="password-input-group">
+                        <input type="password" id="newPassword" name="newPassword" autocomplete="new-password">
+                        <button type="button" class="password-toggle-btn" aria-label="نمایش رمز جدید"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="settings-field">
+                    <label for="confirmPassword">تکرار رمز جدید</label>
+                    <div class="password-input-group">
+                        <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password">
+                        <button type="button" class="password-toggle-btn" aria-label="نمایش تکرار رمز"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+            </div>
+            <p class="settings-note">رمز جدید باید حداقل ۸ کاراکتر و شامل حروف و ارقام باشد.</p>
+            <div class="settings-actions" style="margin-top: 1rem;">
+                <button type="button" class="btn-primary" id="changePasswordButton">
+                    <i class="fas fa-key"></i> ذخیره رمز جدید
+                </button>
+            </div>
+        </div>
+
         <div class="settings-section">
             <h3><i class="fas fa-user-shield"></i> احراز هویت (فاز ۸)</h3>
             <div class="settings-grid">
@@ -290,6 +343,7 @@
 </div>
 
 <script src="/api-client.js"></script>
+<script src="/admin-menu.js"></script>
 <script src="/admin/settings.js"></script>
 </body>
 </html>

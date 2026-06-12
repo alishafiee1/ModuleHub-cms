@@ -94,16 +94,7 @@
   }
 
   function updateAdminLoginLink() {
-    const link = document.getElementById('adminLoginLink');
-    if (authStatus.isSuperAdmin) {
-      link.innerHTML = '<i class="fas fa-user-check"></i> Super Admin';
-      link.href = '/admin/settings';
-      link.onclick = null;
-    } else {
-      link.innerHTML = '<i class="fas fa-user-shield"></i> ورود ادمین';
-      link.href = '/admin/login';
-      link.onclick = null;
-    }
+    AdminMenu.update(authStatus.isSuperAdmin);
   }
 
   function renderBreadcrumb() {
@@ -531,6 +522,7 @@
   });
 
   initDarkMode();
+  AdminMenu.mount('adminAuthMenuHost', { onAfterLogout: refreshFromServer });
 
   refreshFromServer().catch((error) => {
     document.getElementById('cardsGrid').innerHTML =
