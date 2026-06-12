@@ -1,8 +1,20 @@
 import type { Request, Response } from 'express';
+import { GRID_MAX_CANVAS_ROWS, GRID_MIN_CANVAS_ROWS } from './grid-config';
+import { computeMinCanvasRowsForCards, resolveFolderCanvasGridRows } from './grid-slot';
 import { readSiteLayout, writeSiteLayout } from './layout-store';
 import { findNodeById } from './layout-tree';
 import { assertValidCardGrid } from './migrate-card-grid';
 import type { CardBackground, CardGridPosition, FolderCardsUpdatePayload, LayoutTreeNode, SiteLayoutDocument } from './types';
+
+/**
+ * purpose --- validates folder canvas row count from PATCH payload ---
+ * @param gridRows - Requested canvas rows
+ */
+function assertValidCanvasGridRows(gridRows: number): void {
+  if (!Number.isInteger(gridRows) || gridRows < GRID_MIN_CANVAS_ROWS || gridRows > GRID_MAX_CANVAS_ROWS) {
+    throw new Error(`canvasGridRows must be an integer ${GRID_MIN_CANVAS_ROWS}–${GRID_MAX_CANVAS_ROWS}`);
+  }
+}
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 const CARD_BG_IMAGE_PREFIX = '/card-backgrounds/';
@@ -60,10 +72,16 @@ export function applyFolderCardsUpdate(
     existingChildren.map((child) => [child.id, child]),
   );
 
-  const { cards } = payload;
+  const { cards, canvasGridRows } = payload;
   if (!Array.isArray(cards)) {
     throw new Error('cards must be an array');
   }
+
+  if (canvasGridRows !== undefined) {
+    assertValidCanvasGridRows(canvasGridRows);
+  }
+
+  const effectiveCanvasRows = canvasGridRows ?? resolveFolderCanvasGridRows(folderNode);
 
   for (const entry of cards) {
     if (typeof entry.nodeId !== 'string' || !entry.nodeId) {
@@ -73,7 +91,7 @@ export function applyFolderCardsUpdate(
       throw new Error(`Node "${entry.nodeId}" is not a child of folder "${folderId}"`);
     }
     if (entry.cardGrid !== undefined) {
-      assertValidCardGrid(entry.cardGrid, entry.nodeId);
+      assertValidCardGrid(entry.cardGrid, entry.nodeId, effectiveCanvasRows);
     }
     if (entry.cardBackground !== undefined && entry.cardBackground !== null) {
       assertValidCardBackground(entry.cardBackground, entry.nodeId);
@@ -87,6 +105,14 @@ export function applyFolderCardsUpdate(
   const missingIds = existingChildren.map((c) => c.id).filter((id) => !receivedIds.has(id));
   if (missingIds.length > 0) {
     throw new Error(`cards list is missing existing nodes: ${missingIds.join(', ')}`);
+  }
+
+  const placedGrids = cards
+    .map((entry) => entry.cardGrid)
+    .filter((grid): grid is CardGridPosition => grid !== undefined);
+  const minRequiredRows = computeMinCanvasRowsForCards(placedGrids);
+  if (effectiveCanvasRows < minRequiredRows) {
+    throw new Error(`canvasGridRows ${effectiveCanvasRows} is too small for placed cards (need ${minRequiredRows})`);
   }
 
   const updatedChildren = cards.map((entry) => {
@@ -109,7 +135,14 @@ export function applyFolderCardsUpdate(
 
   function patchNodeInTree(node: LayoutTreeNode): LayoutTreeNode {
     if (node.id === folderId) {
-      return { ...node, children: updatedChildren };
+      const folderCanvas = canvasGridRows !== undefined
+        ? { gridRows: canvasGridRows }
+        : node.folderCanvas;
+      return {
+        ...node,
+        children: updatedChildren,
+        ...(folderCanvas ? { folderCanvas } : {}),
+      };
     }
     if (!node.children) {
       return node;

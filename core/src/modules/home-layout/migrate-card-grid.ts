@@ -1,36 +1,44 @@
 import {
   BACK_CARD_COL_SPAN,
   GRID_DEFAULT_ROW_SPAN,
+  GRID_MAX_CANVAS_ROWS,
   GRID_MAX_COLUMNS,
-  GRID_MAX_ROWS,
+  GRID_MIN_CANVAS_ROWS,
   LEGACY_SPAN_TO_COL_SPAN,
 } from './grid-config';
+import { findEmptyCardSlot } from './grid-slot';
 import type { CardGridPosition, CardSpan, LayoutTreeNode, SiteLayoutDocument } from './types';
 
 /**
- * purpose --- validates cardGrid bounds against the 30×9 canvas ---
+ * purpose --- validates cardGrid bounds against the 30-column canvas ---
  * @param grid - Grid position to validate
  * @param nodeId - Node id for error messages
+ * @param maxCanvasRows - Folder canvas row count (default minimum 9)
  */
-export function assertValidCardGrid(grid: CardGridPosition, nodeId: string): void {
+export function assertValidCardGrid(
+  grid: CardGridPosition,
+  nodeId: string,
+  maxCanvasRows: number = GRID_MAX_CANVAS_ROWS,
+): void {
+  const rowLimit = Math.max(GRID_MIN_CANVAS_ROWS, maxCanvasRows);
   const { col, row, colSpan, rowSpan } = grid;
   if (!Number.isInteger(col) || col < 0 || col >= GRID_MAX_COLUMNS) {
     throw new Error(`Node "${nodeId}" cardGrid.col must be 0–${GRID_MAX_COLUMNS - 1}`);
   }
-  if (!Number.isInteger(row) || row < 0 || row >= GRID_MAX_ROWS) {
-    throw new Error(`Node "${nodeId}" cardGrid.row must be 0–${GRID_MAX_ROWS - 1}`);
+  if (!Number.isInteger(row) || row < 0 || row >= rowLimit) {
+    throw new Error(`Node "${nodeId}" cardGrid.row must be 0–${rowLimit - 1}`);
   }
   if (!Number.isInteger(colSpan) || colSpan < 3 || colSpan > GRID_MAX_COLUMNS) {
     throw new Error(`Node "${nodeId}" cardGrid.colSpan must be 3–${GRID_MAX_COLUMNS}`);
   }
-  if (!Number.isInteger(rowSpan) || rowSpan < 3 || rowSpan > GRID_MAX_ROWS) {
-    throw new Error(`Node "${nodeId}" cardGrid.rowSpan must be 3–${GRID_MAX_ROWS}`);
+  if (!Number.isInteger(rowSpan) || rowSpan < 3 || rowSpan > rowLimit) {
+    throw new Error(`Node "${nodeId}" cardGrid.rowSpan must be 3–${rowLimit}`);
   }
   if (col + colSpan > GRID_MAX_COLUMNS) {
     throw new Error(`Node "${nodeId}" cardGrid extends past column ${GRID_MAX_COLUMNS}`);
   }
-  if (row + rowSpan > GRID_MAX_ROWS) {
-    throw new Error(`Node "${nodeId}" cardGrid extends past row ${GRID_MAX_ROWS}`);
+  if (row + rowSpan > rowLimit) {
+    throw new Error(`Node "${nodeId}" cardGrid extends past row ${rowLimit}`);
   }
 }
 
@@ -73,18 +81,39 @@ export function autoLayoutChildrenToGrid(
 }
 
 /**
- * purpose --- migrates a single folder's children from cardSpan to cardGrid ---
+ * purpose --- migrates children missing cardGrid without moving existing placements ---
  * @param children - Folder children
  * @param parentId - Parent folder id (nested folders reserve back-card slot)
  */
 function migrateFolderChildren(children: LayoutTreeNode[], parentId: string | null): LayoutTreeNode[] {
-  const needsMigration = children.some((child) => child.cardSpan !== undefined || !child.cardGrid);
-  if (!needsMigration) {
-    return children;
-  }
-
   const startCol = parentId === null || parentId === 'root' ? 0 : BACK_CARD_COL_SPAN;
-  return autoLayoutChildrenToGrid(children, startCol);
+  const occupied: CardGridPosition[] = [];
+  let changed = false;
+
+  const result = children.map((child) => {
+    const updated: LayoutTreeNode = { ...child };
+
+    if (child.cardSpan !== undefined) {
+      delete updated.cardSpan;
+      changed = true;
+    }
+
+    if (child.cardGrid) {
+      occupied.push(child.cardGrid);
+      return updated;
+    }
+
+    const colSpan = legacySpanToColSpan(child.cardSpan);
+    const rowSpan = GRID_DEFAULT_ROW_SPAN;
+    const slot = findEmptyCardSlot(occupied, GRID_MIN_CANVAS_ROWS, startCol, colSpan, rowSpan);
+    const cardGrid: CardGridPosition = slot ?? { col: startCol, row: 0, colSpan, rowSpan };
+    updated.cardGrid = cardGrid;
+    occupied.push(cardGrid);
+    changed = true;
+    return updated;
+  });
+
+  return changed ? result : children;
 }
 
 /**

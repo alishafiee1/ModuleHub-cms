@@ -228,10 +228,9 @@ export class ModuleHubCardStore {
 
     const resizeHtml = this.editMode
       ? `<button type="button" class="resize-handle" aria-label="تغییر اندازه کارت">
-          <svg class="resize-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <line x1="4" y1="20" x2="20" y2="4" />
-            <line x1="8" y1="20" x2="20" y2="8" />
-            <line x1="12" y1="20" x2="20" y2="12" />
+          <svg class="resize-icon" viewBox="0 0 21 21" aria-hidden="true">
+            <line x1="2.3" y1="9.3" x2="10.3" y2="17.3" />
+            <line x1="5" y1="4" x2="17" y2="16" />
           </svg>
         </button>`
       : '';

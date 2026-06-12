@@ -48,4 +48,27 @@ describe('migrateSiteLayoutCardGrid', () => {
     const nested = layout.tree.children?.find((c) => c.id === 'folder-a')?.children?.[0];
     expect(nested?.cardGrid?.col).toBe(7);
   });
+
+  it('only assigns cardGrid to new children without moving existing placements', () => {
+    const { layout } = migrateSiteLayoutCardGrid(parseSiteLayout(validFixture));
+    const folderA = layout.tree.children?.find((c) => c.id === 'folder-a');
+    if (!folderA?.children) {
+      throw new Error('fixture missing folder-a children');
+    }
+    const existingGrid = folderA.children[0].cardGrid;
+    folderA.children.push({
+      id: 'new-module',
+      name: 'New',
+      type: 'module',
+      parentId: 'folder-a',
+      moduleId: 'mod-new',
+    });
+
+    const { layout: migrated, migrated: changed } = migrateSiteLayoutCardGrid(layout);
+    expect(changed).toBe(true);
+    const migratedFolder = migrated.tree.children?.find((c) => c.id === 'folder-a');
+    expect(migratedFolder?.children?.[0].cardGrid).toEqual(existingGrid);
+    expect(migratedFolder?.children?.[1].cardGrid).toBeDefined();
+    expect(migratedFolder?.children?.[1].cardGrid?.col).not.toBe(existingGrid?.col);
+  });
 });

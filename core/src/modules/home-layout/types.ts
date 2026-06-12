@@ -65,6 +65,12 @@ export interface CardBackground {
   overlayOpacity?: number;
 }
 
+/** Per-folder home canvas size (rows on the 30-column grid) */
+export interface FolderCanvasSettings {
+  /** Visible row count — default 9, expandable via UI */
+  gridRows: number;
+}
+
 /** Tree node — folders contain children; modules reference modules map */
 export interface LayoutTreeNode {
   id: string;
@@ -73,6 +79,8 @@ export interface LayoutTreeNode {
   parentId: string | null;
   children?: LayoutTreeNode[];
   moduleId?: string;
+  /** Canvas height in grid rows — only meaningful on folder nodes */
+  folderCanvas?: FolderCanvasSettings;
   /** @deprecated Migrated to cardGrid — may appear briefly before lazy migration */
   cardSpan?: CardSpan;
   /** Position and size on the 30×9 canvas */
@@ -85,6 +93,8 @@ export interface LayoutTreeNode {
 export interface FolderCardsUpdatePayload {
   /** Ordered list of nodes; order + cardGrid + cardBackground */
   cards: Array<{ nodeId: string; cardGrid?: CardGridPosition; cardBackground?: CardBackground | null }>;
+  /** Optional canvas row count for the folder being edited */
+  canvasGridRows?: number;
 }
 
 /** Parsed site-layout document */

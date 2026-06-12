@@ -155,4 +155,15 @@ describe('applyFolderCardsUpdate — cardBackground', () => {
       }),
     ).toThrow('colSpan must be 3');
   });
+
+  it('stores canvasGridRows on the folder node', () => {
+    const updated = applyFolderCardsUpdate(baseLayout, 'root', {
+      canvasGridRows: 15,
+      cards: [
+        { nodeId: 'folder-a', cardGrid: { col: 0, row: 0, colSpan: 7, rowSpan: 3 } },
+        { nodeId: 'node-mod-2', cardGrid: { col: 7, row: 0, colSpan: 15, rowSpan: 3 } },
+      ],
+    });
+    expect(updated.tree.folderCanvas).toEqual({ gridRows: 15 });
+  });
 });

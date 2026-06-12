@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { assignCardGridForNewChild } from '../home-layout/grid-slot';
 import { findNodeById } from '../home-layout/layout-tree';
 import { resolveModulePort } from '../port-allocator';
 import type { ModuleEntry, ModuleResources, SiteLayoutDocument } from '../home-layout/types';
@@ -93,6 +94,7 @@ export function registerModuleInLayout(
     type: 'module',
     parentId: input.parentId,
     moduleId: input.moduleId,
+    cardGrid: assignCardGridForNewChild(parent, input.parentId),
   });
 
   return { moduleId: input.moduleId, entry, layout };

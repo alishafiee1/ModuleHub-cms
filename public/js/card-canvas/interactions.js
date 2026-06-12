@@ -164,6 +164,7 @@ function bindMove(element, cardId, store, getMetrics, ghost, isEditMode, onSettl
         cardId,
         store.cards,
         getReservedRects(),
+        currentMetrics,
       );
       settleCard(element, store, cardId, currentMetrics, snapped, onSettled);
       setInteracting(false);
@@ -231,6 +232,7 @@ function bindResize(element, handle, cardId, store, getMetrics, ghost, isEditMod
         cardId,
         store.cards,
         getReservedRects(),
+        currentMetrics,
       );
       settleCard(element, store, cardId, currentMetrics, snapped, onSettled);
       setInteracting(false);

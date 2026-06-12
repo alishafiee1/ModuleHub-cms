@@ -49,13 +49,16 @@
    * @param {string} folderId - Folder node id
    * @param {Array<{ nodeId: string, cardGrid?: object, cardBackground?: object|null }>} cards - Saved payload
    */
-  function applyFolderCardsToLocalLayout(folderId, cards) {
+  function applyFolderCardsToLocalLayout(folderId, cards, canvasGridRows) {
     if (!siteLayout?.tree) {
       return;
     }
     const folderNode = findNodeById(siteLayout.tree, folderId);
     if (!folderNode || folderNode.type !== 'folder' || !folderNode.children) {
       return;
+    }
+    if (typeof canvasGridRows === 'number') {
+      folderNode.folderCanvas = { gridRows: canvasGridRows };
     }
     const existingById = new Map(folderNode.children.map((child) => [child.id, child]));
     folderNode.children = cards.map((entry) => {
@@ -309,6 +312,7 @@
         parentName: path[path.length - 2]?.name || 'خانه',
       }
       : {};
+    context.canvasGridRows = folderNode.folderCanvas?.gridRows;
 
     if (children.length === 0 && !context.showBackCard) {
       window.CardCanvas.showEmptyState('این پوشه خالی است.');
@@ -494,6 +498,9 @@
   }
 
   async function openAddMenu() {
+    if (window.CardLayoutEditor?.flushSave) {
+      await window.CardLayoutEditor.flushSave();
+    }
     const choice = await Swal.fire({
       title: 'افزودن محتوا',
       showDenyButton: true,
@@ -625,7 +632,7 @@
   window.addEventListener('modulehub:folder-cards-saved', (event) => {
     const detail = event.detail || {};
     if (detail.folderId && detail.cards) {
-      applyFolderCardsToLocalLayout(detail.folderId, detail.cards);
+      applyFolderCardsToLocalLayout(detail.folderId, detail.cards, detail.canvasGridRows);
     }
   });
 
@@ -659,6 +666,11 @@
         }
       },
       onCardSettled: () => {
+        if (window.CardLayoutEditor?.scheduleSaveFromCanvas) {
+          window.CardLayoutEditor.scheduleSaveFromCanvas();
+        }
+      },
+      onCanvasRowsSettled: () => {
         if (window.CardLayoutEditor?.scheduleSaveFromCanvas) {
           window.CardLayoutEditor.scheduleSaveFromCanvas();
         }

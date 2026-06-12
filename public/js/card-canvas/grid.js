@@ -7,25 +7,39 @@ import { GRID_CONFIG } from './config.js';
 /** @typedef {{ cellWidth: number, cellHeight: number, columns: number, rows: number, width: number, height: number }} GridMetrics */
 
 /**
- * computeGridMetrics --- pixel cell size from container rect ---
+ * computeGridMetrics --- pixel cell size from container width and row count ---
  * @param {HTMLElement} container
+ * @param {number} [gridRows]
  * @returns {GridMetrics}
  */
-export function computeGridMetrics(container) {
+export function computeGridMetrics(container, gridRows = GRID_CONFIG.minCanvasRows) {
   const rect = container.getBoundingClientRect();
   const innerWidth = Math.max(rect.width - GRID_CONFIG.containerPadding * 2, 1);
-  const innerHeight = Math.max(rect.height - GRID_CONFIG.containerPadding * 2, 1);
   const cellWidth = innerWidth / GRID_CONFIG.maxColumns;
-  const cellHeight = innerHeight / GRID_CONFIG.maxRows;
+  const cellHeight = cellWidth;
+  const rows = Math.max(GRID_CONFIG.minCanvasRows, gridRows);
 
   return {
     cellWidth,
     cellHeight,
     columns: GRID_CONFIG.maxColumns,
-    rows: GRID_CONFIG.maxRows,
+    rows,
     width: innerWidth,
-    height: cellHeight * GRID_CONFIG.maxRows,
+    height: cellHeight * rows,
   };
+}
+
+/**
+ * computeMinCanvasRowsForCards --- lowest canvas rows that fit all cards ---
+ * @param {Array<{ row: number, rowSpan: number }>} cards
+ * @param {Array<{ row: number, rowSpan: number }>} [reservedRects]
+ */
+export function computeMinCanvasRowsForCards(cards, reservedRects = []) {
+  let maxBottom = GRID_CONFIG.minCanvasRows;
+  for (const rect of [...cards, ...reservedRects]) {
+    maxBottom = Math.max(maxBottom, rect.row + rect.rowSpan);
+  }
+  return maxBottom;
 }
 
 /**
@@ -134,7 +148,7 @@ export function rectsOverlap(a, b) {
  * @param {Array<{ id: string, col: number, row: number, colSpan: number, rowSpan: number }>} cards
  * @param {Array<{ col: number, row: number, colSpan: number, rowSpan: number }>} [reservedRects]
  */
-export function resolveSnapWithoutOverlap(candidate, movingId, cards, reservedRects = []) {
+export function resolveSnapWithoutOverlap(candidate, movingId, cards, reservedRects = [], metrics = null) {
   const obstacles = [
     ...reservedRects,
     ...cards.filter((c) => c.id !== movingId).map((c) => c),
@@ -145,9 +159,10 @@ export function resolveSnapWithoutOverlap(candidate, movingId, cards, reservedRe
     return candidate;
   }
 
+  const rows = metrics?.rows ?? GRID_CONFIG.minCanvasRows;
   const slot = findEmptySlot(
     cards.filter((c) => c.id !== movingId),
-    { columns: GRID_CONFIG.maxColumns, rows: GRID_CONFIG.maxRows },
+    { columns: GRID_CONFIG.maxColumns, rows },
     candidate.colSpan,
     candidate.rowSpan,
     reservedRects,

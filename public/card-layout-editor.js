@@ -16,14 +16,15 @@
   async function persistLayout() {
     const folderId = currentFolderIdFn();
     const cards = window.CardCanvas?.collectCardPayload?.() || [];
+    const canvasGridRows = window.CardCanvas?.collectCanvasGridRows?.();
     const savingIndicator = document.getElementById('layoutEditSaving');
     if (savingIndicator) {
       savingIndicator.classList.add('is-visible');
     }
     try {
-      await ModuleHubApi.saveFolderCards(folderId, cards);
+      await ModuleHubApi.saveFolderCards(folderId, cards, canvasGridRows);
       window.dispatchEvent(new CustomEvent('modulehub:folder-cards-saved', {
-        detail: { folderId, cards },
+        detail: { folderId, cards, canvasGridRows },
       }));
       return true;
     } catch (error) {
@@ -371,6 +372,7 @@
     refresh,
     reset,
     flushAndReset,
+    flushSave,
     setAdminToolbarVisible,
     scheduleSaveFromCanvas,
     openBackgroundForCard,

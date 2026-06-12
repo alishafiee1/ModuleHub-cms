@@ -7,7 +7,6 @@
   position: relative;
   z-index: 2;
   width: 100%;
-  aspect-ratio: 30 / 9;
   min-height: 280px;
   margin: 0 auto;
   padding: 0 2rem 2rem;
@@ -156,22 +155,23 @@ body.dark .card-canvas {
   color: #1f3f57;
 }
 
+/* Physical bottom-left — grid snap uses LTR pixel coords, not logical RTL edges */
 .resize-handle {
   position: absolute;
-  left: 2px;
-  bottom: 2px;
-  width: 22px;
-  height: 22px;
+  left: 4px;
+  bottom: 4px;
+  width: 21px;
+  height: 21px;
   padding: 0;
+  margin: 0;
   border: none;
   border-radius: 0;
   background: transparent;
   color: rgba(100, 130, 155, 0.75);
-  cursor: nwse-resize;
+  cursor: nesw-resize;
   z-index: 25;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
+  display: block;
+  line-height: 0;
   pointer-events: auto;
   box-shadow: none;
 }
@@ -193,13 +193,13 @@ body.dark .resize-handle:focus-visible {
 }
 
 .resize-icon {
-  width: 14px;
-  height: 14px;
+  display: block;
+  width: 21px;
+  height: 21px;
   stroke: currentColor;
   stroke-width: 2.2;
   stroke-linecap: round;
   fill: none;
-  transform: rotate(90deg);
   pointer-events: none;
 }
 
@@ -239,6 +239,42 @@ body.dark .resize-handle:focus-visible {
 .card-canvas-add-btn:hover {
   border-color: #06b6d4;
   transform: translateY(-1px);
+}
+
+.card-canvas-height-handle {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  z-index: 50;
+  width: 72px;
+  height: 20px;
+  margin-left: -36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: ns-resize;
+  color: rgba(148, 163, 184, 0.85);
+  pointer-events: auto;
+  touch-action: none;
+  border-radius: 999px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.card-canvas-height-handle:hover,
+.card-canvas-height-handle.is-dragging {
+  color: #06b6d4;
+  background: rgba(6, 182, 212, 0.08);
+}
+
+.card-canvas-height-handle svg {
+  width: 48px;
+  height: 12px;
+}
+
+.card-canvas-height-handle line {
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
 }
 
 @media (max-width: 640px) {

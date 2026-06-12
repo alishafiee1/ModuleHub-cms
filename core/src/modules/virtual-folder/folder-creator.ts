@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { assignCardGridForNewChild } from '../home-layout/grid-slot';
 import { findNodeById } from '../home-layout/layout-tree';
 import type { LayoutTreeNode, SiteLayoutDocument } from '../home-layout/types';
 
@@ -50,6 +51,7 @@ export function createVirtualFolder(
     type: 'folder',
     parentId: input.parentId,
     children: [],
+    cardGrid: assignCardGridForNewChild(parent, input.parentId),
   };
 
   if (!parent.children) {

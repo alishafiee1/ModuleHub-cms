@@ -1,4 +1,14 @@
-import type { CardBackground, CardBackgroundType, CardGridPosition, CardSpan, LayoutTreeNode, ModuleEntry, SiteLayoutDocument } from './types';
+import { GRID_MAX_CANVAS_ROWS, GRID_MIN_CANVAS_ROWS } from './grid-config';
+import type {
+  CardBackground,
+  CardBackgroundType,
+  CardGridPosition,
+  CardSpan,
+  FolderCanvasSettings,
+  LayoutTreeNode,
+  ModuleEntry,
+  SiteLayoutDocument,
+} from './types';
 import { assertValidCardGrid } from './migrate-card-grid';
 import { assertValidSemver } from './version-validator';
 
@@ -85,13 +95,38 @@ function parseCardGrid(raw: unknown, nodeId: string): CardGridPosition | undefin
   };
 
   try {
-    assertValidCardGrid(grid, nodeId);
+    assertValidCardGrid(grid, nodeId, GRID_MAX_CANVAS_ROWS);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'invalid cardGrid';
     throw new LayoutParseError(message);
   }
 
   return grid;
+}
+
+/**
+ * purpose --- validates folderCanvas.gridRows on folder nodes ---
+ * @param raw - Unvalidated object from JSON
+ * @param nodeId - Node id for error messages
+ */
+function parseFolderCanvas(raw: unknown, nodeId: string): FolderCanvasSettings | undefined {
+  if (raw === undefined || raw === null) {
+    return undefined;
+  }
+
+  if (typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new LayoutParseError(`Node "${nodeId}" folderCanvas must be an object`);
+  }
+
+  const obj = raw as Record<string, unknown>;
+  const gridRows = Number(obj.gridRows);
+  if (!Number.isInteger(gridRows) || gridRows < GRID_MIN_CANVAS_ROWS || gridRows > GRID_MAX_CANVAS_ROWS) {
+    throw new LayoutParseError(
+      `Node "${nodeId}" folderCanvas.gridRows must be ${GRID_MIN_CANVAS_ROWS}–${GRID_MAX_CANVAS_ROWS}`,
+    );
+  }
+
+  return { gridRows };
 }
 
 /** Thrown when site-layout JSON fails validation */
@@ -202,6 +237,10 @@ function parseTreeNode(raw: unknown, modules: Record<string, ModuleEntry>): Layo
   if (type === 'folder') {
     if (!Array.isArray(raw.children)) {
       throw new LayoutParseError(`Folder "${node.id}" must include children array`);
+    }
+    const folderCanvas = parseFolderCanvas(raw.folderCanvas, node.id);
+    if (folderCanvas !== undefined) {
+      node.folderCanvas = folderCanvas;
     }
     node.children = raw.children.map((child) => parseTreeNode(child, modules));
     return node;

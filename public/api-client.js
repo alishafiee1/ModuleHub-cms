@@ -394,16 +394,21 @@ const ModuleHubApi = (function createModuleHubApi() {
   }
 
   /**
-   * Saves card order, spans, and backgrounds for a folder (Super Admin).
+   * Saves card order, spans, backgrounds, and canvas height for a folder (Super Admin).
    * @param {string} folderId - Folder node id
    * @param {Array<{ nodeId: string, cardGrid?: object, cardBackground?: object|null }>} cards - Ordered card list
+   * @param {number} [canvasGridRows] - Visible canvas row count
    * @returns {Promise<{ ok: boolean }>}
    */
-  async function saveFolderCards(folderId, cards) {
+  async function saveFolderCards(folderId, cards, canvasGridRows) {
+    const body = { cards };
+    if (typeof canvasGridRows === 'number') {
+      body.canvasGridRows = canvasGridRows;
+    }
     return requestJson(`/admin/folder/${encodeURIComponent(folderId)}/cards`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cards }),
+      body: JSON.stringify(body),
     });
   }
 
