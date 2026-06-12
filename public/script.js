@@ -9,6 +9,54 @@
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /**
+   * purpose --- escapes a string for safe use in an HTML attribute value ---
+   * @param {string} str
+   * @returns {string}
+   */
+  function escapeAttr(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  /**
+   * purpose --- builds CSS variable style string and layer HTML for card custom background ---
+   * @param {object|null|undefined} bg - cardBackground from layout node
+   * @returns {{ bgClass: string, bgStyle: string, bgLayerHtml: string }}
+   */
+  function buildCardBackgroundAttrs(bg) {
+    if (!bg || bg.type === 'none') {
+      return { bgClass: '', bgStyle: '', bgLayerHtml: '' };
+    }
+
+    const bgOpacity = (bg.backgroundOpacity ?? 100) / 100;
+    const overlayOpacity = (bg.overlayOpacity ?? 45) / 100;
+
+    let extraClass = '';
+    const styleParts = [
+      `--card-bg-opacity:${bgOpacity}`,
+      `--card-overlay-opacity:${overlayOpacity}`,
+    ];
+
+    if (bg.type === 'color' && bg.color) {
+      styleParts.unshift(`--card-bg-color:${bg.color}`);
+      extraClass = ' card--has-bg card--bg-color';
+    } else if (bg.type === 'image' && bg.imageUrl) {
+      // single quotes inside url() — safe inside HTML style="..."
+      styleParts.unshift(`--card-bg-image:url('${bg.imageUrl}')`);
+      extraClass = ' card--has-bg card--bg-image';
+    }
+
+    const style = `${styleParts.join(';')};`;
+    const layerHtml = '<div class="card-bg-layer" aria-hidden="true"></div><div class="card-overlay" aria-hidden="true"></div>';
+
+    return { bgClass: extraClass, bgStyle: style, bgLayerHtml: layerHtml };
+  }
+
+  /**
    * Finds a node in the layout tree by id.
    * @param {object} node - Tree node
    * @param {string} nodeId - Target id
@@ -120,6 +168,9 @@
       return;
     }
     const isFolderChange = validFolderId !== currentFolderId;
+    if (isFolderChange && window.CardLayoutEditor) {
+      window.CardLayoutEditor.reset();
+    }
     currentFolderId = validFolderId;
     const url = buildFolderUrl(validFolderId);
     const state = { folderId: validFolderId };
@@ -215,6 +266,9 @@
 
   function updateAdminLoginLink() {
     AdminMenu.update(authStatus.isSuperAdmin);
+    if (window.CardLayoutEditor) {
+      window.CardLayoutEditor.setAdminToolbarVisible(authStatus.isSuperAdmin);
+    }
   }
 
   function renderBreadcrumb() {
@@ -300,8 +354,12 @@
         ? `<div class="card-desc">${moduleMeta.changelog}</div>`
         : '';
 
+      const span = child.cardSpan || 1;
+      const spanClass = span > 1 ? ` card--span-${span}` : '';
+      const { bgClass, bgStyle, bgLayerHtml } = buildCardBackgroundAttrs(child.cardBackground);
       html += `
-        <div class="card ${isFolder ? 'folder-card' : 'module-card'}" data-id="${child.id}" data-type="${child.type}" data-module-id="${child.moduleId || ''}">
+        <div class="card ${isFolder ? 'folder-card' : 'module-card'}${spanClass}${bgClass}" data-id="${child.id}" data-type="${child.type}" data-module-id="${child.moduleId || ''}" data-card-span="${span}" data-card-background="${escapeAttr(JSON.stringify(child.cardBackground || null))}" style="${bgStyle}">
+          ${bgLayerHtml}
           <div class="card-content">
             <div class="card-icon">
               <div class="card-icon-img">${iconHtml}</div>
@@ -330,6 +388,9 @@
     container.innerHTML = html || '<div class="loading-state">این پوشه خالی است.</div>';
     applyCardEnterAnimations(container);
     requestAnimationFrame(() => maybeScrollToTopAfterLayout());
+    if (window.CardLayoutEditor) {
+      window.CardLayoutEditor.refresh('cardsGrid');
+    }
 
     container.querySelectorAll('.card:not(.add-card)').forEach((card) => {
       card.addEventListener('click', (event) => {
@@ -674,9 +735,17 @@
   }
   AdminMenu.mount('adminAuthMenuHost', { onAfterLogout: refreshFromServer });
 
+  if (window.CardLayoutEditor) {
+    window.CardLayoutEditor.mount({
+      gridId: 'cardsGrid',
+      getFolderId: () => currentFolderId,
+    });
+  }
+
   refreshFromServer()
     .then(() => {
       navigateToFolder(resolveValidFolderId(getFolderIdFromUrl() || ROOT_ID), { replace: true });
+      updateAdminLoginLink();
     })
     .catch((error) => {
       document.getElementById('cardsGrid').innerHTML =

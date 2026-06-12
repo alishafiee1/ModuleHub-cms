@@ -106,6 +106,7 @@ export async function createFullBackup(
 
   await addDirectoryTreeToZip(zip, PATHS.standaloneModules, 'standalone-modules');
   await addDirectoryTreeToZip(zip, PATHS.thumbnailsDirectory, 'thumbnails');
+  await addDirectoryTreeToZip(zip, PATHS.cardBackgroundsDirectory, 'card-backgrounds');
 
   zip.writeZip(filePath);
 

@@ -168,6 +168,14 @@ export async function restoreFullBackupFromZipBuffer(
       'thumbnails',
       PATHS.thumbnailsDirectory,
     );
+    const cardBgExtracted = path.join(tempDirectory, 'card-backgrounds');
+    if (await fs.pathExists(cardBgExtracted)) {
+      await replaceDirectoryFromExtractedZip(
+        tempDirectory,
+        'card-backgrounds',
+        PATHS.cardBackgroundsDirectory,
+      );
+    }
   } finally {
     await fs.remove(tempDirectory);
   }

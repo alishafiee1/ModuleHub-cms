@@ -32,6 +32,28 @@ export interface ModuleEntry {
   managementPermissions?: string[];
 }
 
+/** Card display width in grid columns — 1 (small), 2 (medium), 4 (full row) */
+export type CardSpan = 1 | 2 | 4;
+
+/** Background source type for a card */
+export type CardBackgroundType = 'none' | 'color' | 'image';
+
+/**
+ * Custom background for a card — stored on LayoutTreeNode.
+ * purpose --- independent of module thumbnail; applies to folders and module nodes alike ---
+ */
+export interface CardBackground {
+  type: CardBackgroundType;
+  /** CSS hex color e.g. #3b82f6 — used when type=color */
+  color?: string;
+  /** Server-relative path e.g. /card-backgrounds/abc.webp — used when type=image */
+  imageUrl?: string;
+  /** Background layer opacity 0–100; default 100 */
+  backgroundOpacity?: number;
+  /** Dark overlay opacity 0–100; default 45 (light) / 60 (dark, via CSS) */
+  overlayOpacity?: number;
+}
+
 /** Tree node — folders contain children; modules reference modules map */
 export interface LayoutTreeNode {
   id: string;
@@ -40,6 +62,16 @@ export interface LayoutTreeNode {
   parentId: string | null;
   children?: LayoutTreeNode[];
   moduleId?: string;
+  /** Card width in grid columns; omitted/undefined means 1 (default) */
+  cardSpan?: CardSpan;
+  /** Custom card background (color or image + opacity); omitted means default glass style */
+  cardBackground?: CardBackground;
+}
+
+/** Payload for PATCH /admin/folder/:folderId/cards */
+export interface FolderCardsUpdatePayload {
+  /** Ordered list of nodes; determines new children order, cardSpan, and cardBackground */
+  cards: Array<{ nodeId: string; cardSpan?: CardSpan; cardBackground?: CardBackground | null }>;
 }
 
 /** Parsed site-layout document */

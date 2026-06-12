@@ -393,6 +393,42 @@ const ModuleHubApi = (function createModuleHubApi() {
     });
   }
 
+  /**
+   * Saves card order, spans, and backgrounds for a folder (Super Admin).
+   * @param {string} folderId - Folder node id
+   * @param {Array<{ nodeId: string, cardSpan?: number, cardBackground?: object|null }>} cards - Ordered card list
+   * @returns {Promise<{ ok: boolean }>}
+   */
+  async function saveFolderCards(folderId, cards) {
+    return requestJson(`/admin/folder/${encodeURIComponent(folderId)}/cards`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cards }),
+    });
+  }
+
+  /**
+   * Uploads a card background image (Super Admin).
+   * @param {File} imageFile - Image file (jpeg, png, or webp, max 2 MB)
+   * @returns {Promise<{ imageUrl: string }>}
+   */
+  async function uploadCardBackground(imageFile) {
+    const csrfToken = await ensureCsrfToken();
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    const response = await fetch('/admin/card-background/upload', {
+      method: 'POST',
+      headers: { 'x-csrf-token': csrfToken },
+      body: formData,
+      credentials: 'same-origin',
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || `Upload failed: ${response.status}`);
+    }
+    return response.json();
+  }
+
   return {
     ensureCsrfToken,
     loadLayout,
@@ -421,5 +457,14 @@ const ModuleHubApi = (function createModuleHubApi() {
     syncModuleGitHub,
     loadSystemSettings,
     saveSystemSettings,
+
+    /**
+     * Saves card order, spans, and backgrounds for a folder (Super Admin).
+     * @param {string} folderId - Folder node id
+     * @param {Array<{ nodeId: string, cardSpan?: number, cardBackground?: object|null }>} cards
+     * @returns {Promise<{ ok: boolean }>}
+     */
+    saveFolderCards,
+    uploadCardBackground,
   };
 })();

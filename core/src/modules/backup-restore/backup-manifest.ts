@@ -16,6 +16,11 @@ export const REQUIRED_BACKUP_DIRECTORY_PREFIXES = [
   'thumbnails/',
 ] as const;
 
+/** Optional directory prefixes included in backup when non-empty */
+export const OPTIONAL_BACKUP_DIRECTORY_PREFIXES = [
+  'card-backgrounds/',
+] as const;
+
 /** Payload written into backup-manifest.json */
 export interface FullBackupManifestPayload {
   formatVersion: number;

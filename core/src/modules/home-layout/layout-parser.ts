@@ -1,5 +1,65 @@
-import type { LayoutTreeNode, ModuleEntry, SiteLayoutDocument } from './types';
+import type { CardBackground, CardBackgroundType, CardSpan, LayoutTreeNode, ModuleEntry, SiteLayoutDocument } from './types';
 import { assertValidSemver } from './version-validator';
+
+const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
+const CARD_BG_IMAGE_PREFIX = '/card-backgrounds/';
+const VALID_BG_TYPES: ReadonlySet<string> = new Set(['none', 'color', 'image']);
+
+/**
+ * purpose --- validates and parses a cardBackground object from raw JSON ---
+ * @param raw - Unvalidated object from JSON
+ * @param nodeId - Node id for error messages
+ * @returns Parsed CardBackground or undefined when absent
+ */
+function parseCardBackground(raw: unknown, nodeId: string): CardBackground | undefined {
+  if (raw === undefined || raw === null) {
+    return undefined;
+  }
+
+  if (typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new LayoutParseError(`Node "${nodeId}" cardBackground must be an object`);
+  }
+
+  const obj = raw as Record<string, unknown>;
+  const type = obj.type;
+  if (typeof type !== 'string' || !VALID_BG_TYPES.has(type)) {
+    throw new LayoutParseError(`Node "${nodeId}" cardBackground.type must be none|color|image`);
+  }
+
+  const bg: CardBackground = { type: type as CardBackgroundType };
+
+  if (type === 'color') {
+    if (typeof obj.color !== 'string' || !HEX_COLOR_RE.test(obj.color)) {
+      throw new LayoutParseError(`Node "${nodeId}" cardBackground.color must be a 6-digit hex e.g. #3b82f6`);
+    }
+    bg.color = obj.color;
+  }
+
+  if (type === 'image') {
+    if (typeof obj.imageUrl !== 'string' || !obj.imageUrl.startsWith(CARD_BG_IMAGE_PREFIX)) {
+      throw new LayoutParseError(`Node "${nodeId}" cardBackground.imageUrl must start with ${CARD_BG_IMAGE_PREFIX}`);
+    }
+    bg.imageUrl = obj.imageUrl;
+  }
+
+  if (obj.backgroundOpacity !== undefined) {
+    const v = Number(obj.backgroundOpacity);
+    if (!Number.isFinite(v) || v < 0 || v > 100) {
+      throw new LayoutParseError(`Node "${nodeId}" cardBackground.backgroundOpacity must be 0–100`);
+    }
+    bg.backgroundOpacity = v;
+  }
+
+  if (obj.overlayOpacity !== undefined) {
+    const v = Number(obj.overlayOpacity);
+    if (!Number.isFinite(v) || v < 0 || v > 100) {
+      throw new LayoutParseError(`Node "${nodeId}" cardBackground.overlayOpacity must be 0–100`);
+    }
+    bg.overlayOpacity = v;
+  }
+
+  return bg;
+}
 
 /** Thrown when site-layout JSON fails validation */
 export class LayoutParseError extends Error {
@@ -87,6 +147,19 @@ function parseTreeNode(raw: unknown, modules: Record<string, ModuleEntry>): Layo
     type,
     parentId: raw.parentId === null ? null : assertString(raw.parentId, `node ${String(raw.id)}.parentId`),
   };
+
+  const cardSpanRaw = raw.cardSpan;
+  if (cardSpanRaw !== undefined) {
+    if (cardSpanRaw !== 1 && cardSpanRaw !== 2 && cardSpanRaw !== 4) {
+      throw new LayoutParseError(`Node "${node.id}" has invalid cardSpan — must be 1, 2, or 4`);
+    }
+    node.cardSpan = cardSpanRaw as CardSpan;
+  }
+
+  const cardBg = parseCardBackground(raw.cardBackground, node.id);
+  if (cardBg !== undefined) {
+    node.cardBackground = cardBg;
+  }
 
   if (type === 'folder') {
     if (!Array.isArray(raw.children)) {

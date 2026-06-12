@@ -20,9 +20,21 @@ export {
   toPublicModuleEntry,
   writeSiteLayout,
 } from './layout-store';
-export { createLayoutRouter, getAuthStatusHandler, getLayoutHandler } from './layout-routes';
+export {
+  createFolderCardsRouter,
+  createLayoutRouter,
+  getAuthStatusHandler,
+  getLayoutHandler,
+} from './layout-routes';
+export { applyFolderCardsUpdate, patchFolderCardsHandler } from './folder-cards-update';
+export { buildCardBackgroundInlineStyle } from './card-background-inline-style';
+export { createCardBackgroundRouter } from './card-background-upload';
 export type {
   BreadcrumbSegment,
+  CardBackground,
+  CardBackgroundType,
+  CardSpan,
+  FolderCardsUpdatePayload,
   LayoutApiResponse,
   LayoutNodeType,
   LayoutParseResult,

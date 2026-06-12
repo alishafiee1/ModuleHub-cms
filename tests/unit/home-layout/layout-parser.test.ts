@@ -14,6 +14,47 @@ describe('layout-parser', () => {
     expect(layout.modules['mod-1'].status).toBe('running');
   });
 
+  it('parses cardBackground color from fixture', () => {
+    const layout = parseSiteLayout(validFixture);
+    const modNode = layout.tree.children?.find((c) => c.id === 'node-mod-2');
+    expect(modNode?.cardBackground).toEqual({
+      type: 'color',
+      color: '#3b82f6',
+      backgroundOpacity: 80,
+      overlayOpacity: 40,
+    });
+  });
+
+  it('parses node without cardBackground as undefined', () => {
+    const layout = parseSiteLayout(validFixture);
+    const folder = layout.tree.children?.find((c) => c.id === 'folder-a');
+    expect(folder?.cardBackground).toBeUndefined();
+  });
+
+  it('rejects invalid cardBackground type', () => {
+    const broken = JSON.parse(JSON.stringify(validFixture));
+    broken.tree.children[0].cardBackground = { type: 'rainbow' };
+    expect(() => parseSiteLayout(broken)).toThrow(LayoutParseError);
+  });
+
+  it('rejects cardBackground color with invalid hex', () => {
+    const broken = JSON.parse(JSON.stringify(validFixture));
+    broken.tree.children[0].cardBackground = { type: 'color', color: 'red' };
+    expect(() => parseSiteLayout(broken)).toThrow(LayoutParseError);
+  });
+
+  it('rejects cardBackground image with unsafe url', () => {
+    const broken = JSON.parse(JSON.stringify(validFixture));
+    broken.tree.children[0].cardBackground = { type: 'image', imageUrl: '/thumbnails/hack.jpg' };
+    expect(() => parseSiteLayout(broken)).toThrow(LayoutParseError);
+  });
+
+  it('rejects backgroundOpacity out of range', () => {
+    const broken = JSON.parse(JSON.stringify(validFixture));
+    broken.tree.children[0].cardBackground = { type: 'color', color: '#3b82f6', backgroundOpacity: 200 };
+    expect(() => parseSiteLayout(broken)).toThrow(LayoutParseError);
+  });
+
   it('throws on invalid JSON shape', () => {
     expect(() => parseSiteLayout(null)).toThrow(LayoutParseError);
     expect(() => parseSiteLayout({ version: '1.0' })).toThrow(LayoutParseError);

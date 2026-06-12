@@ -1,9 +1,11 @@
 import type { Request, Response, Router } from 'express';
 import { Router as createRouter } from 'express';
+import { requireSuperAdminOnlyMiddleware } from '../admin-auth';
 import { getAuthStatusPayload } from '../admin-auth';
 import { getCmsLogger } from '../logger';
 import { LayoutParseError } from './layout-parser';
 import { loadLayoutForApi } from './layout-store';
+import { patchFolderCardsHandler } from './folder-cards-update';
 
 /**
  * Handles GET /api/layout — returns site tree and public module metadata.
@@ -49,6 +51,19 @@ export function createLayoutRouter(): Router {
   });
   router.get('/auth/status', (request, response) => {
     void getAuthStatusHandler(request, response);
+  });
+  return router;
+}
+
+/**
+ * Registers admin folder layout routes — PATCH /admin/folder/:folderId/cards.
+ * purpose --- requires Super Admin session + CSRF (enforced by server.ts middleware) ---
+ * @returns Express router mounted at /admin/folder
+ */
+export function createFolderCardsRouter(): Router {
+  const router = createRouter({ mergeParams: true });
+  router.patch('/:folderId/cards', requireSuperAdminOnlyMiddleware, (request, response) => {
+    void patchFolderCardsHandler(request, response);
   });
   return router;
 }

@@ -43,6 +43,9 @@ export const PATHS = {
   get uploadTempDirectory(): string {
     return path.join(getAppRoot(), 'storage', 'upload-temp');
   },
+  get cardBackgroundsDirectory(): string {
+    return path.join(getAppRoot(), 'storage', 'card-backgrounds');
+  },
   get cmsLogDirectory(): string {
     return path.join(getAppRoot(), 'storage', 'logs');
   },
