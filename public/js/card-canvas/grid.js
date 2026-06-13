@@ -4,7 +4,7 @@
  */
 import { GRID_CONFIG } from './config.js';
 
-/** @typedef {{ cellWidth: number, cellHeight: number, columns: number, rows: number, width: number, height: number }} GridMetrics */
+/** @typedef {{ cellWidth: number, cellHeight: number, columns: number, rows: number, width: number, height: number, containerInner: number, gridOffsetX: number }} GridMetrics */
 
 /**
  * computeGridMetrics --- pixel cell size from container/wrapper width and row count ---
@@ -17,6 +17,7 @@ export function computeGridMetrics(container, gridRows = GRID_CONFIG.minCanvasRo
   const rect = container.getBoundingClientRect();
   const containerInner = Math.max(rect.width - GRID_CONFIG.containerPadding * 2, 1);
   const innerWidth = options.innerWidth ?? containerInner;
+  const gridOffsetX = Math.max(0, (containerInner - innerWidth) / 2);
   const cellWidth = innerWidth / GRID_CONFIG.maxColumns;
   const cellHeight = cellWidth;
   const rows = Math.max(GRID_CONFIG.minCanvasRows, gridRows);
@@ -28,6 +29,8 @@ export function computeGridMetrics(container, gridRows = GRID_CONFIG.minCanvasRo
     rows,
     width: innerWidth,
     height: cellHeight * rows,
+    containerInner,
+    gridOffsetX,
   };
 }
 
@@ -75,8 +78,9 @@ export function clampIndex(index, span, limit) {
 export function gridToPixels(card, metrics) {
   const gap = GRID_CONFIG.cardGap;
   const pad = GRID_CONFIG.containerPadding;
+  const offsetX = metrics.gridOffsetX ?? 0;
   return {
-    left: pad + card.col * metrics.cellWidth + gap / 2,
+    left: offsetX + pad + card.col * metrics.cellWidth + gap / 2,
     top: pad + card.row * metrics.cellHeight + gap / 2,
     width: card.colSpan * metrics.cellWidth - gap,
     height: card.rowSpan * metrics.cellHeight - gap,
@@ -88,9 +92,10 @@ export function gridToPixels(card, metrics) {
  */
 export function snapMove(box, colSpan, rowSpan, metrics) {
   const pad = GRID_CONFIG.containerPadding;
+  const offsetX = metrics.gridOffsetX ?? 0;
   const gap = GRID_CONFIG.cardGap;
   const col = clampIndex(
-    Math.round((box.left - pad - gap / 2) / metrics.cellWidth),
+    Math.round((box.left - offsetX - pad - gap / 2) / metrics.cellWidth),
     colSpan,
     metrics.columns,
   );

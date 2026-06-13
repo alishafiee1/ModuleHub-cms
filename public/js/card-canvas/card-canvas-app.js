@@ -2,7 +2,7 @@
  * موتور گرید کارت ModuleHub — bootstrap و API سراسری
  * Card canvas engine — init, refresh, edit mode, ResizeObserver.
  */
-import { GRID_CONFIG, resolveBreakpoint, resolveDesignWidth, resolveGridInnerWidth, resolveShellOuterWidth } from './config.js';
+import { GRID_CONFIG, resolveBreakpoint, resolveDesignWidth, resolveShellOuterWidth } from './config.js';
 import {
   computeGridMetrics,
   computeMinCanvasRowsForCards,
@@ -80,7 +80,7 @@ function getGridAreaInnerWidth() {
 }
 
 function getGridInnerWidth() {
-  return resolveGridInnerWidth(getGridAreaInnerWidth(), getEffectiveBreakpoint());
+  return getGridAreaInnerWidth();
 }
 
 function getContainerInnerWidth() {
@@ -135,9 +135,7 @@ function getMetrics() {
   if (!gridEl) {
     throw new Error('Card canvas grid area missing');
   }
-  metrics = computeGridMetrics(gridEl, activeGridRows, {
-    innerWidth: getGridInnerWidth(),
-  });
+  metrics = computeGridMetrics(gridEl, activeGridRows);
   return metrics;
 }
 

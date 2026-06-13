@@ -17,8 +17,8 @@ describe('resolveGridInnerWidth', () => {
     expect(resolveGridInnerWidth(360, 'mobile')).toBe(360);
   });
 
-  it('caps desktop grid at 1200px when container is wider', () => {
-    expect(resolveGridInnerWidth(1400, 'desktop')).toBe(DEVICE_DESIGN_WIDTH.desktop);
+  it('fills desktop canvas when wider than design reference', () => {
+    expect(resolveGridInnerWidth(1400, 'desktop')).toBe(1400);
   });
 
   it('uses full desktop container when narrower than design cap', () => {

@@ -73,16 +73,21 @@ export function resolveDesignWidth(breakpoint, _containerInnerWidth) {
 }
 
 /**
- * resolveGridInnerWidth --- grid cell area width: fill canvas; desktop capped at design width ---
+ * resolveGridInnerWidth --- grid cell area width: always fill the measured canvas inner area ---
+ * Shell width (resolveShellOuterWidth) enforces desktop design cap; cells scale to containerInner.
  * @param {number} containerInner - Usable width inside cards wrapper (px)
- * @param {'desktop'|'tablet'|'mobile'} breakpoint
+ * @param {'desktop'|'tablet'|'mobile'} [_breakpoint]
  */
-export function resolveGridInnerWidth(containerInner, breakpoint) {
-  const maxDesign = resolveDesignWidth(breakpoint);
-  if (breakpoint === 'desktop') {
-    return Math.min(containerInner, maxDesign);
-  }
+export function resolveGridInnerWidth(containerInner, _breakpoint) {
   return containerInner;
+}
+
+/**
+ * resolveCardCanvasCssHorizontalPadding --- match card-canvas.css h-pad per breakpoint ---
+ * @param {number} [viewportWidth]
+ */
+export function resolveCardCanvasCssHorizontalPadding(viewportWidth = window.innerWidth) {
+  return viewportWidth <= 640 ? 32 : CARD_CANVAS_CSS_HORIZONTAL_PADDING;
 }
 
 /**
@@ -100,7 +105,8 @@ export function resolveShellOuterWidth(
 ) {
   const { simulateDevice = false } = options;
   const viewportCap = Math.max(viewportWidth - 16, 280);
-  const shellPadding = GRID_CONFIG.containerPadding * 2 + CARD_CANVAS_CSS_HORIZONTAL_PADDING;
+  const cssHorizontalPadding = resolveCardCanvasCssHorizontalPadding(viewportWidth);
+  const shellPadding = GRID_CONFIG.containerPadding * 2 + cssHorizontalPadding;
 
   if (breakpoint === 'desktop') {
     const designInner = resolveDesignWidth(breakpoint, viewportWidth);
