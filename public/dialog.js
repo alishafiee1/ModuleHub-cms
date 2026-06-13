@@ -218,7 +218,7 @@ const ModuleDialogs = (function createModuleDialogs() {
       { id: 'logs', label: 'مشاهده لاگ', icon: 'fa-file-alt', show: true },
       { id: 'edit', label: 'ویرایش تنظیمات', icon: 'fa-edit', show: true },
       { id: 'backup', label: 'پشتیبان ZIP', icon: 'fa-download', show: true },
-      { id: 'github', label: 'GitHub Sync', icon: 'fa-github', show: hasGitRepo },
+      { id: 'github', label: 'GitHub Sync', icon: 'fa-github', show: isSuperAdmin && hasGitRepo },
       { id: 'delete', label: 'حذف ماژول', icon: 'fa-trash', show: isSuperAdmin, danger: true },
     ].filter((action) => action.show);
 

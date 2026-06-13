@@ -153,6 +153,14 @@ describe('backup-restore admin routes', () => {
 
     const restoredLayout = await fs.readJson(layoutPath);
     expect(restoredLayout.modules['mod-route-restore']).toBeDefined();
+
+    const listResponse = await agent.get('/admin/backup/list');
+    expect(listResponse.status).toBe(200);
+    const preRestoreEntry = listResponse.body.backups.find(
+      (item: { fileName: string }) => item.fileName === restoreResponse.body.preRestoreBackupFileName,
+    );
+    expect(preRestoreEntry).toBeDefined();
+    expect(preRestoreEntry.fileName).toMatch(/^modulehub-pre-restore-/);
   });
 
   it('POST /admin/backup/restore/:fileName returns 400 without confirm', async () => {

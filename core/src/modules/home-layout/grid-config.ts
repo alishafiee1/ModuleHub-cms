@@ -46,6 +46,11 @@ export const DEVICE_DESIGN_WIDTH: Readonly<Record<'desktop' | 'tablet' | 'mobile
 /** Max outer width for header + card column (px) */
 export const APP_CONTENT_SHELL_MAX_WIDTH = 1280;
 
+/** Grid wrapper padding — keep in sync with public/js/card-canvas/config.js */
+export const CARD_CANVAS_CONTAINER_PADDING = 12;
+/** Horizontal padding on .card-canvas (2rem × 2) */
+export const CARD_CANVAS_CSS_HORIZONTAL_PADDING = 64;
+
 export type LayoutBreakpointKey = 'desktop' | 'tablet' | 'mobile';
 
 /**
@@ -60,4 +65,36 @@ export function resolveGridInnerWidth(
     return Math.min(containerInner, maxDesign);
   }
   return containerInner;
+}
+
+export interface ResolveShellOuterWidthOptions {
+  /** When true (edit mode), tablet/mobile use design reference width for centered preview */
+  simulateDevice?: boolean;
+}
+
+/**
+ * purpose --- outer shell width for header + card column (grid + padding) ---
+ */
+export function resolveShellOuterWidth(
+  breakpoint: LayoutBreakpointKey,
+  viewportWidth: number,
+  options: ResolveShellOuterWidthOptions = {},
+): number {
+  const { simulateDevice = false } = options;
+  const viewportCap = Math.max(viewportWidth - 16, 280);
+  const shellPadding = CARD_CANVAS_CONTAINER_PADDING * 2 + CARD_CANVAS_CSS_HORIZONTAL_PADDING;
+
+  if (breakpoint === 'desktop') {
+    const designInner = DEVICE_DESIGN_WIDTH.desktop;
+    const maxInnerFromViewport = Math.max(viewportCap - shellPadding, 1);
+    const inner = Math.min(designInner, maxInnerFromViewport);
+    return inner + shellPadding;
+  }
+
+  if (simulateDevice) {
+    const inner = DEVICE_DESIGN_WIDTH[breakpoint];
+    return Math.min(inner + shellPadding, viewportCap);
+  }
+
+  return viewportCap;
 }

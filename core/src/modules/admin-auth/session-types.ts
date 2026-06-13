@@ -22,4 +22,5 @@ export interface AuthStatusPayload {
   isSuperAdmin: boolean;
   managedModuleIds: string[];
   csrfToken: string | null;
+  isDevSuperAdmin?: boolean;
 }

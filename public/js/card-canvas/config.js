@@ -87,12 +87,32 @@ export function resolveGridInnerWidth(containerInner, breakpoint) {
 
 /**
  * resolveShellOuterWidth --- total outer width of card canvas shell (grid + padding) ---
+ * View mode: tablet/mobile fill viewport; desktop caps at design width.
+ * Edit mode (simulateDevice): tablet/mobile use design reference width for centered preview.
  * @param {'desktop'|'tablet'|'mobile'} breakpoint
  * @param {number} [viewportWidth]
+ * @param {{ simulateDevice?: boolean }} [options]
  */
-export function resolveShellOuterWidth(breakpoint, viewportWidth = window.innerWidth) {
-  const inner = resolveDesignWidth(breakpoint, viewportWidth);
-  const outer = inner + GRID_CONFIG.containerPadding * 2 + CARD_CANVAS_CSS_HORIZONTAL_PADDING;
+export function resolveShellOuterWidth(
+  breakpoint,
+  viewportWidth = window.innerWidth,
+  options = {},
+) {
+  const { simulateDevice = false } = options;
   const viewportCap = Math.max(viewportWidth - 16, 280);
-  return Math.min(outer, viewportCap);
+  const shellPadding = GRID_CONFIG.containerPadding * 2 + CARD_CANVAS_CSS_HORIZONTAL_PADDING;
+
+  if (breakpoint === 'desktop') {
+    const designInner = resolveDesignWidth(breakpoint, viewportWidth);
+    const maxInnerFromViewport = Math.max(viewportCap - shellPadding, 1);
+    const inner = Math.min(designInner, maxInnerFromViewport);
+    return inner + shellPadding;
+  }
+
+  if (simulateDevice) {
+    const inner = resolveDesignWidth(breakpoint, viewportWidth);
+    return Math.min(inner + shellPadding, viewportCap);
+  }
+
+  return viewportCap;
 }

@@ -7,8 +7,11 @@ import type { ModuleAuthTimes } from './session-types';
  * @returns True when MODULEHUB_DEV_SUPER_ADMIN is set to a truthy value
  */
 export function isDevSuperAdminEnabled(): boolean {
+  if (process.env.NODE_ENV === 'production') {
+    return false;
+  }
   const flag = process.env.MODULEHUB_DEV_SUPER_ADMIN ?? '';
-  return flag === '1' || flag.toLowerCase() === 'true';
+  return flag === '1';
 }
 
 /**

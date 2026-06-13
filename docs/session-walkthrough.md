@@ -57,11 +57,22 @@ input.task-list-item-checkbox {
 
 ## آخرین جلسات
 
+### 2026-06-13 — DCL bugfix + E2E گسترش
+- **درخواست:** پلن اصلاح کمبودها و باگ‌های device-card-layout + E2E
+- **کد:** `syncViewportBreakpoint` → reposition در همان breakpoint · `resolveShellOuterWidth` view/edit برای تبلت/موبایل · gear ۴۴px در موبایل
+- **تست:** `npm test` → ۲۰۵ PASS · `npm run test:e2e` → ۹ PASS (DCL-01/02b/03/04/05)
+- **داک:** `card-canvas-checklist.md` موارد E2E علامت‌گذاری شد
+
 ### 2026-06-13 — device-card-layout audit + QA
 - **درخواست:** پلن بازبینی DCL — رفع رگرسیون بوم کامل، Playwright، sync-docs
 - **کد:** `resolveGridInnerWidth` — گرید داخل breakpoint کل container را پر می‌کند؛ دسکتاپ سقف ۱۲۰۰px · `overflow: visible` در edit · تست unit + E2E
 - **تست:** `npm test` → ۱۹۴ PASS · `npm run test:e2e` → ۵ PASS (پورت ۴۰۱۰، Chrome سیستم)
 - **داک:** `design.md` §۳/§۷ · `tasks.md` ۵.۵ ✅ · `card-canvas-checklist.md` موارد گوشه بوم
+
+### 2026-06-13 — فاز ۸ auth + Module Manager (کد و تست)
+- **پیاده‌سازی:** gear visibility برای `hasManagementPassword` · تست‌های HTTP `module-auth-routes` · PATCH رمز ماژول · UI lockout/rate-limit · فیلتر GitHub در gear · `NODE_ENV=production` guard برای dev bypass · E2E `module-manager-flow.spec.ts`
+- **go-live:** `deploy-full.sh` گزینه disable dev (پیش‌فرض بله) · چک‌لیست در `deploy-guide.md`
+- **باقی:** تست دستی 9.9 روی example.com · `npm run test:e2e:module-manager` روی CI
 
 ### 2026-06-13 — /sync-docs (۲۴ ساعت card canvas + home UI)
 - **درخواست:** `/sync-docs` — تغییرات ۲۴ ساعت اخیر از گیت

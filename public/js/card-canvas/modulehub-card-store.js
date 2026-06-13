@@ -371,3 +371,25 @@ export class ModuleHubCardStore {
   }
 }
 
+/**
+ * shouldShowGearForCard --- whether gear icon is visible for a canvas card ---
+ * @param {CanvasCard} card
+ * @param {{ isSuperAdmin: boolean, managedModuleIds: string[] }} auth
+ * @returns {boolean}
+ */
+export function shouldShowGearForCard(card, auth) {
+  if (card.nodeType !== 'module') {
+    return false;
+  }
+  if (auth.isSuperAdmin) {
+    return true;
+  }
+  if (auth.managedModuleIds.includes(card.moduleId)) {
+    return true;
+  }
+  if (card.moduleMeta?.hasManagementPassword) {
+    return true;
+  }
+  return false;
+}
+

@@ -20,6 +20,7 @@ export async function getAuthStatusPayload(request: Request): Promise<AuthStatus
       isSuperAdmin: true,
       managedModuleIds: [],
       csrfToken: ensureSessionCsrfToken(request),
+      isDevSuperAdmin: true,
     };
   }
 
@@ -34,6 +35,7 @@ export async function getAuthStatusPayload(request: Request): Promise<AuthStatus
     isSuperAdmin: isSuperAdminSession(request),
     managedModuleIds,
     csrfToken: ensureSessionCsrfToken(request),
+    isDevSuperAdmin: false,
   };
 }
 

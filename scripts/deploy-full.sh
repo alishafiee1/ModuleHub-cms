@@ -314,11 +314,19 @@ run_optional_extras() {
     fi
   fi
 
-  if confirm "Enable dev Super Admin (MODULEHUB_DEV)?" true; then
+  if confirm "Enable dev Super Admin (MODULEHUB_DEV)?" false; then
     log_step "optional: enable-dev-admin"
     if [[ "${DEPLOY_DRY_RUN}" != true ]]; then
       detect_sudo_mode
       sudo_exec_run "bash '${home_clone}/scripts/enable-dev-admin-on-server.sh'"
+    fi
+  fi
+
+  if confirm "Disable dev Super Admin for phase 8 go-live?" true; then
+    log_step "optional: disable-dev-admin"
+    if [[ "${DEPLOY_DRY_RUN}" != true ]]; then
+      detect_sudo_mode
+      sudo_exec_run "bash '${home_clone}/scripts/disable-dev-admin-on-server.sh'"
     fi
   fi
 }

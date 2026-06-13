@@ -201,13 +201,13 @@ export async function installModuleDependencies(
   const cacheEntryDirectory = getCacheEntryDirectory(packageCacheRoot, hash);
   await fs.ensureDir(cacheEntryDirectory);
 
-  for (const kind of kinds) {
-    const manifest = findManifestForKind(manifests, kind);
-    if (!manifest) {
+  for (let index = 0; index < kinds.length; index += 1) {
+    const kind = kinds[index];
+    if (allKindsCached[index]) {
       continue;
     }
-    const cached = await isCacheHit(packageCacheRoot, hash, kind);
-    if (cached) {
+    const manifest = findManifestForKind(manifests, kind);
+    if (!manifest) {
       continue;
     }
     await installKindIntoCache(

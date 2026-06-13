@@ -66,6 +66,11 @@ const ModuleHubApi = (function createModuleHubApi() {
     if (!response.ok) {
       const errorBody = await response.json().catch(() => ({}));
       const message = errorBody.error || `Request failed (${response.status})`;
+      const requestError = new Error(message);
+      requestError.status = response.status;
+      if (typeof errorBody.retryAfterSeconds === 'number') {
+        requestError.retryAfterSeconds = errorBody.retryAfterSeconds;
+      }
       if (
         isMutation
         && response.status === 403
@@ -75,7 +80,7 @@ const ModuleHubApi = (function createModuleHubApi() {
         await ensureCsrfToken();
         return requestJson(url, { ...options, _csrfRetried: true });
       }
-      throw new Error(message);
+      throw requestError;
     }
 
     return response.json();

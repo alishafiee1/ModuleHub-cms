@@ -175,12 +175,3 @@ export async function deleteFullBackupFile(fileName: string): Promise<void> {
   }
   await fs.remove(filePath);
 }
-
-/**
- * Builds a full backup ZIP in memory (used by download without persisting).
- * @returns ZIP buffer
- */
-export async function buildFullBackupZipBuffer(): Promise<Buffer> {
-  const result = await createFullBackup();
-  return readFullBackupFile(result.fileName);
-}

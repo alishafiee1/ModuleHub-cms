@@ -307,8 +307,26 @@
     renderAll();
   }
 
+  function updateDevModeBanner() {
+    let banner = document.getElementById('devModeBanner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'devModeBanner';
+      banner.className = 'dev-mode-banner';
+      banner.setAttribute('role', 'alert');
+      document.body.prepend(banner);
+    }
+    if (authStatus.isDevSuperAdmin) {
+      banner.hidden = false;
+      banner.textContent = 'حالت توسعه فعال است — ورود ادمین bypass شده. قبل از go-live غیرفعال کنید.';
+    } else {
+      banner.hidden = true;
+    }
+  }
+
   function updateAdminLoginLink() {
     AdminMenu.update(authStatus.isSuperAdmin);
+    updateDevModeBanner();
     if (window.CardLayoutEditor) {
       window.CardLayoutEditor.setAdminToolbarVisible(authStatus.isSuperAdmin);
     }
@@ -420,7 +438,14 @@
           await refreshFromServer();
           await openGearMenu(cardElement);
         } catch (error) {
-          Swal.fire({ icon: 'error', title: 'خطا', text: error.message });
+          if (error.status === 429) {
+            const waitText = error.retryAfterSeconds
+              ? `لطفاً ${error.retryAfterSeconds} ثانیه دیگر تلاش کنید.`
+              : 'لطفاً بعداً دوباره تلاش کنید.';
+            Swal.fire({ icon: 'warning', title: 'قفل موقت', text: waitText });
+          } else {
+            Swal.fire({ icon: 'error', title: 'خطا', text: error.message });
+          }
         }
       }
       return;
@@ -438,7 +463,7 @@
       return;
     }
 
-    await handleGearAction(moduleId, moduleMeta, action);
+    await handleGearAction(moduleId, moduleMeta, action, cardElement);
   }
 
   /**
@@ -447,24 +472,30 @@
    * @param {object} moduleMeta - Module metadata
    * @param {string} action - Action id from gear dialog
    */
-  async function handleGearAction(moduleId, moduleMeta, action) {
+  async function handleGearAction(moduleId, moduleMeta, action, cardElement) {
     try {
       if (action === 'start') {
         await ModuleHubApi.startModule(moduleId);
         await refreshFromServer();
-        Swal.fire({ icon: 'success', title: 'ماژول استارت شد', timer: 1200, showConfirmButton: false });
+        if (cardElement) {
+          await openGearMenu(cardElement);
+        }
         return;
       }
       if (action === 'stop') {
         await ModuleHubApi.stopModule(moduleId);
         await refreshFromServer();
-        Swal.fire({ icon: 'success', title: 'ماژول متوقف شد', timer: 1200, showConfirmButton: false });
+        if (cardElement) {
+          await openGearMenu(cardElement);
+        }
         return;
       }
       if (action === 'restart') {
         await ModuleHubApi.restartModule(moduleId);
         await refreshFromServer();
-        Swal.fire({ icon: 'success', title: 'ماژول ری‌استارت شد', timer: 1200, showConfirmButton: false });
+        if (cardElement) {
+          await openGearMenu(cardElement);
+        }
         return;
       }
       if (action === 'logs') {

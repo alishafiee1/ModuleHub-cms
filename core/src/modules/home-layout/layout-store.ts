@@ -76,12 +76,31 @@ export interface ReadSiteLayoutResult {
   derivedLayoutsSaved: boolean;
 }
 
+interface CachedSiteLayout {
+  layout: SiteLayoutDocument;
+  mtimeMs: number;
+}
+
+let cachedSiteLayout: CachedSiteLayout | null = null;
+
+/**
+ * Clears in-memory layout cache (used in tests).
+ */
+export function clearSiteLayoutCacheForTests(): void {
+  cachedSiteLayout = null;
+}
+
 /**
  * Reads and validates site-layout.json from storage.
  * @returns Parsed layout and whether device breakpoint layouts were derived this read
  */
 export async function readSiteLayoutWithMeta(): Promise<ReadSiteLayoutResult> {
   await seedSiteLayoutIfMissing();
+  const layoutStat = await fs.stat(PATHS.siteLayout);
+  if (cachedSiteLayout && cachedSiteLayout.mtimeMs === layoutStat.mtimeMs) {
+    return { layout: cachedSiteLayout.layout, derivedLayoutsSaved: false };
+  }
+
   const rawText = await fs.readFile(PATHS.siteLayout, 'utf8');
   let parsed: unknown;
 
@@ -94,15 +113,20 @@ export async function readSiteLayoutWithMeta(): Promise<ReadSiteLayoutResult> {
   const layout = parseSiteLayout(parsed);
   const { layout: migratedLayout, migrated } = migrateSiteLayoutCardGrid(layout);
   let resultLayout = migratedLayout;
-  if (migrated) {
-    await writeSiteLayout(migratedLayout);
-  }
 
   const { layout: withDevices, changed: devicesChanged } = ensureDeviceBreakpointLayouts(resultLayout);
   if (devicesChanged) {
-    await writeSiteLayout(withDevices);
     resultLayout = withDevices;
   }
+
+  if (migrated || devicesChanged) {
+    await writeSiteLayout(resultLayout);
+  }
+
+  const finalMtimeMs = migrated || devicesChanged
+    ? (await fs.stat(PATHS.siteLayout)).mtimeMs
+    : layoutStat.mtimeMs;
+  cachedSiteLayout = { layout: resultLayout, mtimeMs: finalMtimeMs };
 
   return { layout: resultLayout, derivedLayoutsSaved: devicesChanged };
 }
@@ -140,4 +164,5 @@ export async function loadLayoutForApi(): Promise<LayoutApiResponse> {
 export async function writeSiteLayout(layout: SiteLayoutDocument): Promise<void> {
   await fs.ensureDir(path.dirname(PATHS.siteLayout));
   await fs.writeJson(PATHS.siteLayout, layout, { spaces: 2 });
+  cachedSiteLayout = null;
 }

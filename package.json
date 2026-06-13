@@ -11,6 +11,7 @@
     "test": "jest --runInBand",
     "test:unit": "jest --runInBand",
     "test:e2e": "playwright test",
+    "test:e2e:module-manager": "playwright test -c playwright.module-manager.config.ts",
     "test:e2e:ui": "playwright test --ui",
     "checks": "bash scripts/run-checks.sh",
     "smoke:package-cache": "bash scripts/run-checks.sh --smoke",

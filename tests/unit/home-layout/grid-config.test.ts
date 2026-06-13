@@ -1,4 +1,12 @@
-import { DEVICE_DESIGN_WIDTH, resolveGridInnerWidth } from '../../../core/src/modules/home-layout/grid-config';
+import {
+  CARD_CANVAS_CONTAINER_PADDING,
+  CARD_CANVAS_CSS_HORIZONTAL_PADDING,
+  DEVICE_DESIGN_WIDTH,
+  resolveGridInnerWidth,
+  resolveShellOuterWidth,
+} from '../../../core/src/modules/home-layout/grid-config';
+
+const SHELL_PADDING = CARD_CANVAS_CONTAINER_PADDING * 2 + CARD_CANVAS_CSS_HORIZONTAL_PADDING;
 
 describe('resolveGridInnerWidth', () => {
   it('fills tablet canvas when wider than design reference', () => {
@@ -15,6 +23,38 @@ describe('resolveGridInnerWidth', () => {
 
   it('uses full desktop container when narrower than design cap', () => {
     expect(resolveGridInnerWidth(1100, 'desktop')).toBe(1100);
+  });
+});
+
+describe('resolveShellOuterWidth', () => {
+  it('caps desktop shell near 1280px on wide viewport', () => {
+    expect(resolveShellOuterWidth('desktop', 1440)).toBe(
+      DEVICE_DESIGN_WIDTH.desktop + SHELL_PADDING,
+    );
+  });
+
+  it('shrinks desktop shell when viewport narrows within desktop breakpoint', () => {
+    expect(resolveShellOuterWidth('desktop', 1100)).toBe(1100 - 16);
+  });
+
+  it('fills tablet viewport in view mode (not design reference)', () => {
+    expect(resolveShellOuterWidth('tablet', 900)).toBe(900 - 16);
+  });
+
+  it('simulates tablet design width in edit mode', () => {
+    expect(resolveShellOuterWidth('tablet', 1440, { simulateDevice: true })).toBe(
+      DEVICE_DESIGN_WIDTH.tablet + SHELL_PADDING,
+    );
+  });
+
+  it('fills mobile viewport in view mode', () => {
+    expect(resolveShellOuterWidth('mobile', 390)).toBe(390 - 16);
+  });
+
+  it('simulates mobile design width in edit mode on wide monitor', () => {
+    expect(resolveShellOuterWidth('mobile', 1440, { simulateDevice: true })).toBe(
+      DEVICE_DESIGN_WIDTH.mobile + SHELL_PADDING,
+    );
   });
 });
 

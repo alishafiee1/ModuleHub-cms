@@ -32,6 +32,13 @@
       const result = await ModuleHubApi.loginSuperAdmin(username, password);
       window.location.href = result.redirect || '/';
     } catch (error) {
+      if (error.status === 429) {
+        const waitHint = error.retryAfterSeconds
+          ? ` لطفاً ${error.retryAfterSeconds} ثانیه صبر کنید.`
+          : ' لطفاً کمی صبر کنید.';
+        showError(`تلاش بیش از حد برای ورود.${waitHint}`);
+        return;
+      }
       showError(error.message || 'ورود ناموفق بود');
     }
   });

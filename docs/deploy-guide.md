@@ -78,4 +78,17 @@ python3 ~/ModuleHub-cms/scripts/sudo_broker.py
 - [`developer-guide.md`](developer-guide.md) — ماژول ZIP و wizard
 - [`design plan.md`](design%20plan.md) — معماری
 
+## چک‌لیست قبل از go-live (فاز ۸)
+
+قبل از اینکه سایت را بدون bypass ادمین موقت در معرض اینترنت بگذاری:
+
+1. فاز ۸ (login واقعی، Module Manager، rate limit) کامل شده باشد — [`tasks.md`](tasks.md)
+2. `MODULEHUB_DEV_SUPER_ADMIN` خاموش شود:
+   ```bash
+   bash scripts/disable-dev-admin-on-server.sh
+   ```
+3. `SESSION_SECRET` و `ADMIN_PASSWORD_HASH` در `.env` تنظیم شده باشند
+4. بعد از deploy، `curl` بدون session به `/admin/settings/data` باید 401 برگرداند
+5. اسکریپت deploy هشدار `MODULEHUB_DEV_SUPER_ADMIN=1` را در لاگ نشان ندهد
+
 </div>

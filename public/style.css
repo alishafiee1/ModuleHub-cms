@@ -229,6 +229,20 @@ body.dark .bg-glow-2 {
     font-family: inherit;
 }
 
+.dev-mode-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    padding: 0.5rem 1rem;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: #b91c1c;
+    color: #fff;
+}
+
 .admin-auth-menu-host {
     position: relative;
 }
@@ -595,6 +609,14 @@ body.dark .card--bg-image .card-bg-layer {
 .gear-icon:hover {
     background: var(--gear-hover);
     color: #1f3f57;
+}
+
+@media (max-width: 640px) {
+    .gear-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.35rem;
+    }
 }
 
 .card-title {

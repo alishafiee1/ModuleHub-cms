@@ -15,7 +15,6 @@ export {
   assertRestorableFullBackupFileName,
   assertSafeBackupFileName,
   buildFullBackupFileName,
-  buildFullBackupZipBuffer,
   createFullBackup,
   deleteFullBackupFile,
   formatBackupTimestamp,

@@ -1,9 +1,37 @@
 import {
   getActiveManagedModuleIds,
+  isDevSuperAdminEnabled,
   isModuleInManagerScope,
 } from '../../../core/src/modules/admin-auth/scope-check';
 
 describe('module-manager-auth scope-check', () => {
+  const previousDevFlag = process.env.MODULEHUB_DEV_SUPER_ADMIN;
+  const previousNodeEnv = process.env.NODE_ENV;
+
+  afterEach(() => {
+    process.env.MODULEHUB_DEV_SUPER_ADMIN = previousDevFlag;
+    process.env.NODE_ENV = previousNodeEnv;
+  });
+
+  it('enables dev Super Admin only when MODULEHUB_DEV_SUPER_ADMIN is exactly 1', () => {
+    process.env.NODE_ENV = 'test';
+    process.env.MODULEHUB_DEV_SUPER_ADMIN = '1';
+    expect(isDevSuperAdminEnabled()).toBe(true);
+
+    process.env.MODULEHUB_DEV_SUPER_ADMIN = 'true';
+    expect(isDevSuperAdminEnabled()).toBe(false);
+
+    process.env.MODULEHUB_DEV_SUPER_ADMIN = '0';
+    expect(isDevSuperAdminEnabled()).toBe(false);
+  });
+
+  it('disables dev Super Admin bypass in production NODE_ENV', () => {
+    process.env.NODE_ENV = 'production';
+    process.env.MODULEHUB_DEV_SUPER_ADMIN = '1';
+    expect(isDevSuperAdminEnabled()).toBe(false);
+    process.env.NODE_ENV = 'test';
+  });
+
   it('returns only module ids inside Module Manager TTL window', () => {
     const now = Date.now();
     const moduleAuthTimes = {

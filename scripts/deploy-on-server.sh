@@ -186,4 +186,9 @@ else
   log "Skipping systemd restart and health check (--skip-restart)"
 fi
 
+ENV_FILE="${APP_DIR}/.env"
+if [[ -f "$ENV_FILE" ]] && grep -q '^MODULEHUB_DEV_SUPER_ADMIN=1' "$ENV_FILE" 2>/dev/null; then
+  log "WARN: MODULEHUB_DEV_SUPER_ADMIN=1 is set in .env — disable before production go-live (bash scripts/disable-dev-admin-on-server.sh)"
+fi
+
 log "Deploy finished successfully."

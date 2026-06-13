@@ -10,7 +10,7 @@ import {
 } from './grid.js';
 import { SnapGhost, bindCardInteractions } from './interactions.js';
 import { isInteracting, isResizingCanvas, setResizingCanvas } from './layout-state.js';
-import { ModuleHubCardStore, getStatusDisplay } from './modulehub-card-store.js';
+import { ModuleHubCardStore, getStatusDisplay, shouldShowGearForCard } from './modulehub-card-store.js';
 
 /** @type {import('./modulehub-card-store.js').ModuleHubCardStore | null} */
 let store = null;
@@ -96,7 +96,7 @@ function lockDesignWidthForBreakpoint(breakpoint) {
  */
 function applyAppShellWidth() {
   const bp = getEffectiveBreakpoint();
-  const shellWidth = resolveShellOuterWidth(bp, window.innerWidth);
+  const shellWidth = resolveShellOuterWidth(bp, window.innerWidth, { simulateDevice: editMode });
   const inner = lockedDesignWidth ?? resolveDesignWidth(bp, shellWidth);
   const root = document.documentElement;
   root.style.setProperty('--app-shell-width', `${shellWidth}px`);
@@ -295,12 +295,7 @@ function refreshLayout({ forceRender = false } = {}) {
   }
 
   store.editMode = editMode;
-  store.showGearFor = (card) => {
-    if (card.nodeType !== 'module') return false;
-    const auth = hooks?.getAuthStatus() || { isSuperAdmin: false, managedModuleIds: [] };
-    if (auth.isSuperAdmin) return true;
-    return auth.managedModuleIds.includes(card.moduleId);
-  };
+  store.showGearFor = (card) => shouldShowGearForCard(card, hooks?.getAuthStatus() || { isSuperAdmin: false, managedModuleIds: [] });
 
   store.render(cardsWrapper, metrics, (element, card) => {
     bindCardInteractions(
@@ -394,6 +389,9 @@ function syncViewportBreakpoint() {
     }
     lockDesignWidthForBreakpoint(activeBreakpoint);
     applyAppShellWidth();
+    if (!isInteracting() && !isResizingCanvas() && store) {
+      repositionCards(getMetrics());
+    }
   });
 }
 

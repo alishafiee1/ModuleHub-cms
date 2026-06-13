@@ -8,6 +8,7 @@ import {
   createAdminProtectedRouter,
   createModuleAuthRouter,
   getCsrfTokenHandler,
+  isDevSuperAdminEnabled,
   registerSessionMiddleware,
   requireCsrfMiddleware,
   requireSuperAdminMiddleware,
@@ -59,21 +60,6 @@ export function createApp(): Application {
 
   app.use('/api', createLayoutRouter());
   app.use('/modules', createModuleServingRouter());
-  
-  // Protect all static assets inside /admin (like settings.html, settings.js) while allowing public login assets
-  app.use('/admin', (request, response, next) => {
-    const filePath = request.path;
-    if (filePath === '/login.html' || filePath === '/login.js') {
-      next();
-      return;
-    }
-    const hasExtension = /\.[a-zA-Z0-9]+$/.test(filePath);
-    if (hasExtension) {
-      requireSuperAdminMiddleware(request, response, next);
-      return;
-    }
-    next();
-  });
 
   app.use('/admin', createAdminLoginRouter());
   app.use('/admin', createAdminCsrfProtectionMiddleware());
@@ -87,6 +73,15 @@ export function createApp(): Application {
   app.use('/admin', createRestoreRouter());
   app.use('/admin', createUploadWizardRouter());
   app.use('/admin', createSystemSettingsRouter());
+  // Protect unmatched /admin static assets (settings.html, settings.js) while keeping login public
+  app.use('/admin', (request, response, next) => {
+    const filePath = request.path;
+    if (filePath === '/login.html' || filePath === '/login.js') {
+      next();
+      return;
+    }
+    requireSuperAdminMiddleware(request, response, next);
+  });
   app.use('/thumbnails', express.static(PATHS.thumbnailsDirectory));
   app.use(express.static(PATHS.publicDirectory));
 
@@ -103,6 +98,12 @@ export function createApp(): Application {
  */
 export async function startServer(): Promise<http.Server> {
   await ensureRequiredDirectories();
+  if (isDevSuperAdminEnabled()) {
+    // eslint-disable-next-line no-console -- security warning at bootstrap
+    console.warn(
+      'WARNING: MODULEHUB_DEV_SUPER_ADMIN=1 is active — all admin routes bypass real login. Disable before production go-live (phase 8).',
+    );
+  }
   const app = createApp();
   const host = process.env.MODULEHUB_HOST ?? DEFAULT_HOST;
   const port = Number(process.env.MODULEHUB_PORT ?? DEFAULT_PORT);
@@ -118,8 +119,9 @@ if (require.main === module) {
     .then((server) => {
       const address = server.address();
       const port = typeof address === 'object' && address ? address.port : DEFAULT_PORT;
+      const host = process.env.MODULEHUB_HOST ?? DEFAULT_HOST;
       // eslint-disable-next-line no-console -- bootstrap only
-      console.log(`ModuleHub CMS listening on ${DEFAULT_HOST}:${port}`);
+      console.log(`ModuleHub CMS listening on ${host}:${port}`);
     })
     .catch((error: unknown) => {
       console.error('Failed to start ModuleHub CMS', error);

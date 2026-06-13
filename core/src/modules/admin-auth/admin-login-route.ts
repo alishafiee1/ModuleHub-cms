@@ -16,7 +16,7 @@ import {
   isModuleAuthLocked,
   recordFailedModuleAuthAttempt,
 } from './module-lockout';
-import { isDevSuperAdminEnabled } from './scope-check';
+import { isDevSuperAdminEnabled, isSuperAdminSession } from './scope-check';
 
 /**
  * Handles GET /admin/login — serves login HTML or redirects when already authenticated.
@@ -107,7 +107,7 @@ export function getCsrfTokenHandler(request: Request, response: Response): void 
  * @param response - Express response
  */
 export async function postAdminChangePasswordHandler(request: Request, response: Response): Promise<void> {
-  if (request.session.authScope !== 'super-admin') {
+  if (!isSuperAdminSession(request)) {
     response.status(401).json({ error: 'Authentication required' });
     return;
   }

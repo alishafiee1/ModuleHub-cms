@@ -26,67 +26,86 @@ import {
 import { markModuleCrashed, setModuleStatusInLayout } from './status-tracker';
 import type { ModuleOperationResult, ModuleRuntimeHandle } from './types';
 
+const startingModuleIds = new Set<string>();
+
+/**
+ * Clears in-flight start locks (used in tests).
+ */
+export function clearStartingModuleIdsForTests(): void {
+  startingModuleIds.clear();
+}
+
 /**
  * Starts a module according to its hosting kind.
  * @param moduleId - Module identifier
  * @returns Operation result with updated status
  */
 export async function startModuleById(moduleId: string): Promise<ModuleOperationResult> {
-  const layout = await readSiteLayout();
-  const entry = layout.modules[moduleId];
-  if (!entry) {
-    throw new Error(`Module "${moduleId}" not found`);
+  if (startingModuleIds.has(moduleId)) {
+    return { moduleId, status: 'stopped', message: 'Module is already starting' };
   }
 
-  if (entry.status === 'running') {
-    return { moduleId, status: 'running', message: 'Module is already running' };
-  }
+  startingModuleIds.add(moduleId);
 
-  const settings = await loadSystemSettings();
-  const limitError = validateConcurrentStartLimit(
-    layout,
-    settings.maxConcurrentRunningModules,
-    moduleId,
-  );
-  if (limitError) {
-    throw new Error(limitError);
-  }
+  try {
+    const layout = await readSiteLayout();
+    const entry = layout.modules[moduleId];
+    if (!entry) {
+      throw new Error(`Module "${moduleId}" not found`);
+    }
 
-  const moduleDirectory = getModuleDirectory(moduleId);
-  if (!(await fs.pathExists(moduleDirectory))) {
-    throw new Error(`Module files missing at ${moduleDirectory}`);
-  }
+    if (entry.status === 'running') {
+      return { moduleId, status: 'running', message: 'Module is already running' };
+    }
 
-  const kind = classifyModuleHosting(entry);
-  let handle: ModuleRuntimeHandle;
-
-  if (kind === 'static') {
-    handle = {
+    const settings = await loadSystemSettings();
+    const limitError = validateConcurrentStartLimit(
+      layout,
+      settings.maxConcurrentRunningModules,
       moduleId,
-      kind: 'static',
-      startedAt: new Date().toISOString(),
-    };
-    await appendModuleLog(moduleId, 'info', 'Static module enabled (no background process)');
-  } else if (kind === 'backend') {
-    handle = await startBackendModule(moduleId, moduleDirectory, entry);
-    const running = await isBackendProcessRunning(handle);
-    if (!running) {
-      await appendModuleLog(moduleId, 'error', 'Backend process failed to stay running');
-      throw new Error('Backend process failed to start');
+    );
+    if (limitError) {
+      throw new Error(limitError);
     }
-  } else {
-    handle = await startDockerModule(moduleId, moduleDirectory, entry);
-    const running = await isDockerContainerRunning(handle.containerName ?? '');
-    if (!running) {
-      throw new Error('Docker container failed to start');
+
+    const moduleDirectory = getModuleDirectory(moduleId);
+    if (!(await fs.pathExists(moduleDirectory))) {
+      throw new Error(`Module files missing at ${moduleDirectory}`);
     }
+
+    const kind = classifyModuleHosting(entry);
+    let handle: ModuleRuntimeHandle;
+
+    if (kind === 'static') {
+      handle = {
+        moduleId,
+        kind: 'static',
+        startedAt: new Date().toISOString(),
+      };
+      await appendModuleLog(moduleId, 'info', 'Static module enabled (no background process)');
+    } else if (kind === 'backend') {
+      handle = await startBackendModule(moduleId, moduleDirectory, entry);
+      const running = await isBackendProcessRunning(handle);
+      if (!running) {
+        await appendModuleLog(moduleId, 'error', 'Backend process failed to stay running');
+        throw new Error('Backend process failed to start');
+      }
+    } else {
+      handle = await startDockerModule(moduleId, moduleDirectory, entry);
+      const running = await isDockerContainerRunning(handle.containerName ?? '');
+      if (!running) {
+        throw new Error('Docker container failed to start');
+      }
+    }
+
+    registerRuntimeHandle(handle);
+    setModuleStatusInLayout(layout, moduleId, 'running');
+    await writeSiteLayout(layout);
+
+    return { moduleId, status: 'running', message: `Module started (${kind})` };
+  } finally {
+    startingModuleIds.delete(moduleId);
   }
-
-  registerRuntimeHandle(handle);
-  setModuleStatusInLayout(layout, moduleId, 'running');
-  await writeSiteLayout(layout);
-
-  return { moduleId, status: 'running', message: `Module started (${kind})` };
 }
 
 /**

@@ -2,7 +2,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import type { ModuleEntry } from '../home-layout/types';
 import { buildSystemdResourceProperties } from '../resource-limiter';
-import { detectBackendStartCommand } from './detect-start-command';
+import { detectBackendStartCommand, type BackendStartCommand } from './detect-start-command';
 import { appendModuleLog } from './module-file-logger';
 import type { ModuleRuntimeHandle } from './types';
 
@@ -27,6 +27,37 @@ export function shouldUseSystemdRun(): boolean {
 }
 
 /**
+ * Builds systemd-run argument list for a backend module start.
+ * @param scopeUnit - Scope unit base name
+ * @param moduleDirectory - Absolute module path
+ * @param entry - Module metadata including assigned port
+ * @param startCommand - Resolved start command
+ * @returns Arguments passed to systemd-run
+ */
+export function buildSystemdRunArguments(
+  scopeUnit: string,
+  moduleDirectory: string,
+  entry: ModuleEntry,
+  startCommand: BackendStartCommand,
+): string[] {
+  const limits = buildSystemdResourceProperties(entry.resources);
+  return [
+    '--user',
+    '--scope',
+    `--unit=${scopeUnit}`,
+    `--working-directory=${moduleDirectory}`,
+    '-p', `CPUQuota=${limits.cpuQuotaPercent}%`,
+    '-p', `MemoryMax=${limits.memoryMaxMb}M`,
+    '-p', `MemorySwapMax=${limits.memorySwapMaxMb}M`,
+    '-p', `IOWeight=${limits.ioWeight}`,
+    '-p', `Environment=PORT=${entry.port}`,
+    '--',
+    startCommand.executable,
+    ...startCommand.args,
+  ];
+}
+
+/**
  * Starts a backend module with systemd-run (Linux) or detached node (dev).
  * @param moduleId - Module identifier
  * @param moduleDirectory - Absolute module path
@@ -42,20 +73,12 @@ export async function startBackendModule(
   const scopeUnit = buildScopeUnitName(moduleId);
 
   if (shouldUseSystemdRun()) {
-    const limits = buildSystemdResourceProperties(entry.resources);
-    const systemdArgs = [
-      '--user',
-      '--scope',
-      `--unit=${scopeUnit}`,
-      `--working-directory=${moduleDirectory}`,
-      `-p`, `CPUQuota=${limits.cpuQuotaPercent}%`,
-      `-p`, `MemoryMax=${limits.memoryMaxMb}M`,
-      `-p`, `MemorySwapMax=${limits.memorySwapMaxMb}M`,
-      `-p`, `IOWeight=${limits.ioWeight}`,
-      '--',
-      startCommand.executable,
-      ...startCommand.args,
-    ];
+    const systemdArgs = buildSystemdRunArguments(
+      scopeUnit,
+      moduleDirectory,
+      entry,
+      startCommand,
+    );
 
     await execFileAsync('systemd-run', systemdArgs, { timeout: 30_000 });
     await appendModuleLog(moduleId, 'info', `Started via systemd-run (${startCommand.shellCommand})`);

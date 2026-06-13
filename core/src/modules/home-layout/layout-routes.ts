@@ -1,7 +1,6 @@
 import type { Request, Response, Router } from 'express';
 import { Router as createRouter } from 'express';
-import { requireSuperAdminOnlyMiddleware } from '../admin-auth';
-import { getAuthStatusPayload } from '../admin-auth';
+import { requireSuperAdminOnlyMiddleware, getAuthStatusPayload } from '../admin-auth';
 import { getCmsLogger } from '../logger';
 import { LayoutParseError } from './layout-parser';
 import { loadLayoutForApi } from './layout-store';
@@ -12,8 +11,7 @@ import { patchFolderCardsHandler } from './folder-cards-update';
  * @param request - Express request
  * @param response - Express response
  */
-export async function getLayoutHandler(request: Request, response: Response): Promise<void> {
-  void request;
+export async function getLayoutHandler(_request: Request, response: Response): Promise<void> {
   try {
     const layout = await loadLayoutForApi();
     response.status(200).json(layout);
