@@ -250,6 +250,52 @@ run_git_sync() {
   fi
 }
 
+run_build_in_opt() {
+  local home_clone="$1"
+  local opt_dir="$2"
+  local deploy_args=(--skip-pull --skip-restart)
+
+  if [[ "${DEPLOY_FLAG_SKIP_WAN_ALL}" == true ]]; then
+    deploy_args+=(--skip-wan)
+  fi
+
+  (
+    cd "${opt_dir}"
+    bash scripts/deploy-on-server.sh "${deploy_args[@]}"
+  )
+}
+
+run_build_with_home_fallback() {
+  local home_clone="$1"
+  local opt_dir="$2"
+
+  if run_build_in_opt "${home_clone}" "${opt_dir}"; then
+    return 0
+  fi
+
+  if [[ ! -d "${home_clone}/node_modules" ]]; then
+    log_error "opt build failed and home clone has no node_modules — run npm ci in home once from PC cache or free WAN"
+    return 1
+  fi
+
+  log_warn "opt npm ci failed (registry may be filtered) — building from home clone"
+  if [[ "${DEPLOY_DRY_RUN}" == true ]]; then
+    log_info "[dry-run] cd ${home_clone} && npm run build && rsync dist → opt"
+    return 0
+  fi
+
+  (
+    cd "${home_clone}"
+    npm run build
+  )
+  rsync -a "${home_clone}/dist/" "${opt_dir}/dist/"
+  (
+    cd "${opt_dir}"
+    npm prune --omit=dev
+  )
+  log_ok "build completed via home clone fallback"
+}
+
 run_install_and_build() {
   local home_clone opt_dir
   home_clone="$(resolve_home_clone)"
@@ -273,15 +319,7 @@ run_install_and_build() {
     return 0
   fi
 
-  local deploy_args=(--skip-pull --skip-restart)
-  if [[ "${DEPLOY_FLAG_SKIP_WAN_ALL}" == true ]]; then
-    deploy_args+=(--skip-wan)
-  fi
-
-  (
-    cd "${opt_dir}"
-    bash scripts/deploy-on-server.sh "${deploy_args[@]}"
-  )
+  run_build_with_home_fallback "${home_clone}" "${opt_dir}"
 }
 
 run_service_restart() {

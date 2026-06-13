@@ -89,7 +89,7 @@ curl -s http://127.0.0.1:4000/health
 
 مسیر پیش‌فرض سرور روی اینترنت آزاد (`enp63s0`) است — **git** معمولاً بدون toggler کار می‌کند.
 
-**npm** / **docker** ممکن است هنوز به metric موقت یا `run-with-free-wan.sh` نیاز داشته باشند:
+**npm** / **docker** ممکن است هنوز به metric موقت یا `run-with-free-wan.sh` نیاز داشته باشند. اگر `npm ci` در `/opt` شکست خورد ولی `~/ModuleHub-cms/node_modules` موجود است، `deploy-full` خودکار از home build می‌گیرد.
 
 ```bash
 bash scripts/run-with-free-wan.sh npm ci
