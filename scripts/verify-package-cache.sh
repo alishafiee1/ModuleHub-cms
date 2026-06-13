@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# purpose --- Verify phase 4 package cache for an installed module ------
+# purpose --- Verify package-cache symlinks and diagnostics after smoke upload ------
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="${MODULEHUB_APP_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
 CMS_URL="${MODULEHUB_CMS_URL:-http://127.0.0.1:4000}"
-EXPECTED_HASH="7064c31c899b1d8c9f847a6de82080a5892647a1717e461351651213bbc69c5f"
+EXPECTED_HASH="36ac3dc3c1c3e0acb45bf01d7bdbe262facce1c24bb31f03abf84db5ea951107"
 
-log() { printf '[verify-phase4] %s\n' "$*"; }
+log() { printf '[verify-package-cache] %s\n' "$*"; }
 fail() { log "FAIL: $*"; exit 1; }
 pass() { log "PASS: $*"; }
 
 usage() {
-  echo "Usage: bash scripts/verify-phase4-cache.sh <module-id> [second-module-id]" >&2
+  echo "Usage: bash scripts/verify-package-cache.sh <module-id> [second-module-id]" >&2
   exit 1
 }
 

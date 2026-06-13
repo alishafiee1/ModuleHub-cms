@@ -8,6 +8,16 @@ describe('buildFolderCardPatchEntry', () => {
     expect(entry).toEqual({ nodeId: 'node-1', cardGrid: sampleGrid });
   });
 
+  it('emits cardGridTablet when editing tablet breakpoint', () => {
+    const entry = buildFolderCardPatchEntry('node-1', sampleGrid, 'null', false, 'tablet');
+    expect(entry).toEqual({ nodeId: 'node-1', cardGridTablet: sampleGrid });
+  });
+
+  it('emits cardGridMobile when editing mobile breakpoint', () => {
+    const entry = buildFolderCardPatchEntry('node-1', sampleGrid, 'null', false, 'mobile');
+    expect(entry).toEqual({ nodeId: 'node-1', cardGridMobile: sampleGrid });
+  });
+
   it('includes image background when set', () => {
     const bg = { type: 'image' as const, imageUrl: '/card-backgrounds/a.webp', backgroundOpacity: 90 };
     const entry = buildFolderCardPatchEntry('node-1', sampleGrid, JSON.stringify(bg), false);

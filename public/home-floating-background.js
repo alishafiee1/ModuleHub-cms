@@ -1,14 +1,16 @@
 // home-floating-background.js — canvas floating Lucide icons for home page background
 (function initHomeFloatingBackground() {
-  const MAX_PARTICLES = 25;
+  const MAX_PARTICLES = 18;
   const REPEL_RADIUS = 170;
   const SINK_RADIUS = 200;
   const ROTATION_SPEED = 0.012;
   const VIEWBOX_SIZE = 24;
   const PARTICLE_SEPARATION_RADIUS = 72;
   const PARTICLE_REPEL_FORCE = 0.42;
-  const COLLISION_BOUNCE = 0.78;
   const VELOCITY_DAMPING = 0.93;
+  const MAX_DEVICE_PIXEL_RATIO = 1.5;
+  const IDLE_FRAME_MS = 33;
+  const ACTIVE_FRAME_MS = 16;
 
   let canvas = null;
   let ctx = null;
@@ -20,6 +22,15 @@
   let mouseY = -9999;
   let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let isDocumentVisible = !document.hidden;
+  let isDarkTheme = false;
+  let lastFrameTime = 0;
+
+  /**
+   * syncThemeCache --- reads body.dark once per theme change, not per draw frame ---
+   */
+  function syncThemeCache() {
+    isDarkTheme = document.body.classList.contains('dark');
+  }
 
   /**
    * Shuffles array in place (Fisher–Yates).
@@ -67,13 +78,13 @@
   }
 
   /**
-   * Resizes canvas to device pixels.
+   * Resizes canvas to device pixels (capped DPR for stroke performance).
    */
   function resizeCanvas() {
     if (!canvas || !ctx) {
       return;
     }
-    const pixelRatio = window.devicePixelRatio || 1;
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, MAX_DEVICE_PIXEL_RATIO);
     const width = window.innerWidth;
     const height = window.innerHeight;
     canvas.width = Math.floor(width * pixelRatio);
@@ -89,7 +100,7 @@
   function createParticles() {
     const icons = pickIconsForTheme();
     particles = icons.map((icon, index) => ({
-      paths: icon.paths,
+      cachedPaths: icon.paths.map((pathData) => new Path2D(pathData)),
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
       baseX: 0,
@@ -113,15 +124,13 @@
 
   /**
    * Returns stroke opacity for current theme with mouse proximity boost.
-   * boost --- particles near cursor brighten up to 1.6x, capped per theme ---
    * @param {object} particle - Particle state
    * @returns {number}
    */
   function getParticleOpacity(particle) {
-    const isDark = document.body.classList.contains('dark');
-    const minOpacity = isDark ? 0.12 : 0.08;
-    const maxOpacity = isDark ? 0.22 : 0.13;
-    const opacityCap = isDark ? 0.32 : 0.28;
+    const minOpacity = isDarkTheme ? 0.12 : 0.08;
+    const maxOpacity = isDarkTheme ? 0.22 : 0.13;
+    const opacityCap = isDarkTheme ? 0.32 : 0.28;
     let base = minOpacity + (particle.opacityBase % 1) * (maxOpacity - minOpacity);
     const dist = particle.mouseDistance ?? 9999;
     if (dist < REPEL_RADIUS) {
@@ -129,6 +138,33 @@
       base = Math.min(opacityCap, base * (1 + proximity * 0.6));
     }
     return base * (1 - particle.sinkProgress);
+  }
+
+  /**
+   * Whether the engine should render at full frame rate (~60fps).
+   * @returns {boolean}
+   */
+  function needsActiveFrameRate() {
+    for (const particle of particles) {
+      if (particle.sinkProgress > 0 || particle.sinkVelocity > 0) {
+        return true;
+      }
+      const dist = Math.hypot(particle.x - mouseX, particle.y - mouseY);
+      if (dist < REPEL_RADIUS) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Applies stroke style shared across all particles for the current theme.
+   */
+  function applyStrokeStyle() {
+    ctx.strokeStyle = isDarkTheme ? '#5bb4e0' : '#2f3847';
+    ctx.lineWidth = isDarkTheme ? 1.8 : 1.6;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
   }
 
   /**
@@ -146,29 +182,25 @@
     const scale = particle.size / VIEWBOX_SIZE;
     ctx.scale(scale, scale);
     ctx.translate(-VIEWBOX_SIZE / 2, -VIEWBOX_SIZE / 2);
-    const isDark = document.body.classList.contains('dark');
     ctx.globalAlpha = opacity;
-    ctx.strokeStyle = isDark ? '#5bb4e0' : '#2f3847';
-    ctx.lineWidth = isDark ? 1.8 : 1.6;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    for (const pathData of particle.paths) {
-      ctx.stroke(new Path2D(pathData));
+    for (const cachedPath of particle.cachedPaths) {
+      ctx.stroke(cachedPath);
     }
     ctx.restore();
   }
 
   /**
-   * Returns collision radius for a particle based on icon size.
-   * @param {object} particle - Particle state
-   * @returns {number}
+   * Renders all particles with shared stroke style.
    */
-  function getParticleRadius(particle) {
-    return particle.size * 0.42;
+  function renderParticles() {
+    applyStrokeStyle();
+    for (const particle of particles) {
+      drawParticle(particle);
+    }
   }
 
   /**
-   * Pushes particles apart and bounces them on overlap --- pairwise separation + elastic reflection ---
+   * Pushes overlapping particles apart --- soft separation only, no elastic bounce ---
    */
   function resolveParticleCollisions() {
     for (let index = 0; index < particles.length; index += 1) {
@@ -178,40 +210,17 @@
         const dx = particle.x - other.x;
         const dy = particle.y - other.y;
         const distance = Math.hypot(dx, dy);
-        if (distance < 0.001) {
+        if (distance < 0.001 || distance > PARTICLE_SEPARATION_RADIUS) {
           continue;
         }
         const normalX = dx / distance;
         const normalY = dy / distance;
-        const minDistance = getParticleRadius(particle) + getParticleRadius(other);
-
-        if (distance < PARTICLE_SEPARATION_RADIUS) {
-          const proximity = (PARTICLE_SEPARATION_RADIUS - distance) / PARTICLE_SEPARATION_RADIUS;
-          const push = proximity * PARTICLE_REPEL_FORCE;
-          particle.vx += normalX * push;
-          particle.vy += normalY * push;
-          other.vx -= normalX * push;
-          other.vy -= normalY * push;
-        }
-
-        if (distance < minDistance) {
-          const overlap = (minDistance - distance) * 0.5;
-          particle.x += normalX * overlap;
-          particle.y += normalY * overlap;
-          other.x -= normalX * overlap;
-          other.y -= normalY * overlap;
-
-          const relativeVelocityX = particle.vx - other.vx;
-          const relativeVelocityY = particle.vy - other.vy;
-          const closingSpeed = relativeVelocityX * normalX + relativeVelocityY * normalY;
-          if (closingSpeed < 0) {
-            const impulse = -(1 + COLLISION_BOUNCE) * closingSpeed;
-            particle.vx += impulse * normalX * 0.5;
-            particle.vy += impulse * normalY * 0.5;
-            other.vx -= impulse * normalX * 0.5;
-            other.vy -= impulse * normalY * 0.5;
-          }
-        }
+        const proximity = (PARTICLE_SEPARATION_RADIUS - distance) / PARTICLE_SEPARATION_RADIUS;
+        const push = proximity * PARTICLE_REPEL_FORCE;
+        particle.vx += normalX * push;
+        particle.vy += normalY * push;
+        other.vx -= normalX * push;
+        other.vy -= normalY * push;
       }
     }
   }
@@ -234,7 +243,6 @@
         const force = (REPEL_RADIUS - distance) / REPEL_RADIUS;
         targetX += (dx / distance) * force * 58;
         targetY += (dy / distance) * force * 58;
-        // subtle extra spin when mouse is close --- adds tactile feel ---
         particle.rotation += (dx / distance) * 0.004;
       }
 
@@ -275,18 +283,25 @@
   }
 
   /**
-   * Main animation frame callback.
+   * Main animation frame callback --- throttles to ~30fps when idle ---
+   * @param {number} frameTime - DOMHighResTimeStamp from requestAnimationFrame
    */
-  function tick() {
+  function tick(frameTime) {
     if (!ctx || !canvas || !isDocumentVisible) {
       animationFrameId = null;
       return;
     }
+
+    const frameBudgetMs = needsActiveFrameRate() ? ACTIVE_FRAME_MS : IDLE_FRAME_MS;
+    if (frameTime - lastFrameTime < frameBudgetMs) {
+      animationFrameId = window.requestAnimationFrame(tick);
+      return;
+    }
+    lastFrameTime = frameTime;
+
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     updateParticles();
-    for (const particle of particles) {
-      drawParticle(particle);
-    }
+    renderParticles();
     animationFrameId = window.requestAnimationFrame(tick);
   }
 
@@ -299,6 +314,7 @@
       animationFrameId = null;
     }
     particles = [];
+    lastFrameTime = 0;
     if (ctx && canvas) {
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     }
@@ -313,6 +329,7 @@
     if (reducedMotion || appearance.backgroundMode !== 'floating-icons' || !canvas || !ctx) {
       return;
     }
+    syncThemeCache();
     try {
       await loadIconThemes();
     } catch {
@@ -366,6 +383,7 @@
         return;
       }
       ctx = canvas.getContext('2d');
+      syncThemeCache();
       window.addEventListener('resize', resizeCanvas);
       document.addEventListener('mousemove', onMouseMove, { passive: true });
       document.addEventListener('click', onBackgroundClick);
@@ -384,12 +402,10 @@
     },
 
     updateTheme() {
-      // immediate repaint after dark/light toggle --- opacity/color read from body.dark each frame ---
+      syncThemeCache();
       if (animationFrameId && ctx && canvas) {
         ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-        for (const particle of particles) {
-          drawParticle(particle);
-        }
+        renderParticles();
       }
     },
 

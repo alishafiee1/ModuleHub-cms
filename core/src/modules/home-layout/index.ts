@@ -27,6 +27,7 @@ export {
   getLayoutHandler,
 } from './layout-routes';
 export { applyFolderCardsUpdate, patchFolderCardsHandler } from './folder-cards-update';
+export { ensureDeviceBreakpointLayouts, deriveCardGridForBreakpoint } from './derive-breakpoint-layout';
 export { buildCardBackgroundInlineStyle } from './card-background-inline-style';
 export { buildFolderCardPatchEntry } from './folder-card-patch-entry';
 export type { FolderCardPatchEntry } from './folder-card-patch-entry';
@@ -36,7 +37,9 @@ export type {
   CardBackground,
   CardBackgroundType,
   CardSpan,
+  FolderCardUpdateEntry,
   FolderCardsUpdatePayload,
+  LayoutBreakpoint,
   LayoutApiResponse,
   LayoutNodeType,
   LayoutParseResult,

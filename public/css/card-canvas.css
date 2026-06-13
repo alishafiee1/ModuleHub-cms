@@ -6,13 +6,20 @@
 .card-canvas {
   position: relative;
   z-index: 2;
-  width: 100%;
+  width: min(100%, var(--app-shell-width, 1280px));
+  max-width: 100%;
   min-height: var(--card-canvas-min-height, 280px);
   margin: 0 auto;
   padding: 0 2rem 2rem;
+  box-sizing: border-box;
+  /* Grid uses physical LTR coords (col 0 = far left); ltr prevents RTL overflow from
+     clipping col 0 area (visual right in Persian UI) on sub-1288px viewports */
+  direction: ltr;
   touch-action: pan-y;
   overflow: hidden;
   border-radius: 1.25rem;
+  border: 1px solid rgba(6, 182, 212, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
   background:
     radial-gradient(ellipse 80% 50% at 50% 0%, rgba(45, 90, 130, 0.12), transparent 70%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
@@ -21,9 +28,17 @@
 
 .card-canvas--edit-mode {
   touch-action: none;
+  border-color: rgba(6, 182, 212, 0.45);
+}
+
+.card-canvas--device-desktop,
+.card-canvas--device-tablet,
+.card-canvas--device-mobile {
+  /* outer width from --app-shell-width (JS) */
 }
 
 body.dark .card-canvas {
+  border-color: rgba(91, 180, 224, 0.22);
   background:
     radial-gradient(ellipse 80% 50% at 50% 0%, rgba(45, 90, 130, 0.2), transparent 70%),
     linear-gradient(180deg, rgba(15, 23, 42, 0.5) 0%, rgba(15, 23, 42, 0.2) 100%);
@@ -72,6 +87,8 @@ body.dark .card-canvas {
 .card-canvas-item,
 .card-canvas .back-card {
   position: absolute;
+  /* Restore RTL for Persian card content — canvas itself is forced ltr for grid math */
+  direction: rtl;
   margin: 0;
   min-height: 0;
   transition:
@@ -224,6 +241,8 @@ body.dark .resize-handle:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
+  /* canvas is forced ltr; restore rtl for Persian text */
+  direction: rtl;
   color: var(--text-secondary);
   font-size: 0.95rem;
   pointer-events: none;

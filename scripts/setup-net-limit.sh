@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Applies egress bandwidth limit (tc) to a Docker container veth — called after docker run.
-# Usage: setup_net_limit.sh <container_name> <net_mbps>
+# purpose --- Applies egress bandwidth limit (tc) to a Docker container veth — called after docker run ---
+# Usage: bash scripts/setup-net-limit.sh <container_name> <net_mbps>
 set -euo pipefail
 
 CONTAINER_NAME="${1:?container name required}"
@@ -25,4 +25,4 @@ fi
 
 RATE="${NET_MBPS}mbit"
 nsenter -t "$PID" -n tc qdisc replace dev "$IFACE" root tbf rate "$RATE" burst 32kbit latency 400ms
-echo "Applied ${RATE} egress limit on $CONTAINER_NAME ($IFACE)"
+echo "[setup-net-limit] Applied ${RATE} egress on ${CONTAINER_NAME} (${IFACE})"

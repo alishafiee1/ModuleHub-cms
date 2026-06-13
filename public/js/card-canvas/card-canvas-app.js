@@ -2,7 +2,7 @@
  * موتور گرید کارت ModuleHub — bootstrap و API سراسری
  * Card canvas engine — init, refresh, edit mode, ResizeObserver.
  */
-import { GRID_CONFIG } from './config.js';
+import { GRID_CONFIG, resolveBreakpoint, resolveDesignWidth, resolveShellOuterWidth } from './config.js';
 import {
   computeGridMetrics,
   computeMinCanvasRowsForCards,
@@ -28,6 +28,15 @@ let editMode = false;
 let prefersReducedMotion = false;
 let resizeFrame = 0;
 let activeGridRows = GRID_CONFIG.minCanvasRows;
+/** @type {'desktop'|'tablet'|'mobile'} */
+let activeBreakpoint = 'desktop';
+/** @type {'desktop'|'tablet'|'mobile'} */
+let activeEditDevice = 'desktop';
+let lockedDesignWidth = null;
+/** @type {object[]|null} */
+let lastRefreshChildren = null;
+/** @type {object|null} */
+let lastRefreshContext = null;
 
 /** @type {import('./grid.js').GridMetrics | null} */
 let metrics = null;
@@ -53,10 +62,51 @@ function getPlacementStartCol() {
   return backInfo?.showBack ? GRID_CONFIG.backCardColSpan : 0;
 }
 
+function getEffectiveBreakpoint() {
+  return editMode ? activeEditDevice : activeBreakpoint;
+}
+
+function getContainerInnerWidth() {
+  if (!container) {
+    return 1;
+  }
+  const rect = container.getBoundingClientRect();
+  return Math.max(rect.width - GRID_CONFIG.containerPadding * 2, 1);
+}
+
+function lockDesignWidthForBreakpoint(breakpoint) {
+  lockedDesignWidth = resolveDesignWidth(breakpoint, getContainerInnerWidth());
+}
+
+/**
+ * applyAppShellWidth --- set CSS variables for centered shell (header + canvas share width) ---
+ */
+function applyAppShellWidth() {
+  const bp = getEffectiveBreakpoint();
+  const shellWidth = resolveShellOuterWidth(bp, window.innerWidth);
+  const inner = lockedDesignWidth ?? resolveDesignWidth(bp, shellWidth);
+  const root = document.documentElement;
+  root.style.setProperty('--app-shell-width', `${shellWidth}px`);
+  root.style.setProperty('--card-canvas-inner-width', `${inner}px`);
+  root.dataset.activeDevice = bp;
+}
+
+function applyDeviceCanvasClasses() {
+  if (!container) return;
+  const bp = getEffectiveBreakpoint();
+  container.classList.remove(
+    'card-canvas--device-desktop',
+    'card-canvas--device-tablet',
+    'card-canvas--device-mobile',
+  );
+  container.classList.add(`card-canvas--device-${bp}`);
+  container.dataset.activeDevice = bp;
+  applyAppShellWidth();
+}
+
 function applyCanvasHeight() {
   if (!container) return;
-  const rect = container.getBoundingClientRect();
-  const innerWidth = Math.max(rect.width - GRID_CONFIG.containerPadding * 2, 1);
+  const innerWidth = lockedDesignWidth ?? getContainerInnerWidth();
   const cellWidth = innerWidth / GRID_CONFIG.maxColumns;
   const height = GRID_CONFIG.containerPadding * 2 + cellWidth * activeGridRows;
   container.style.height = `${Math.max(height, GRID_CONFIG.minCanvasHeightPx)}px`;
@@ -68,7 +118,9 @@ function getMetrics() {
     throw new Error('Card canvas not mounted');
   }
   applyCanvasHeight();
-  metrics = computeGridMetrics(container, activeGridRows);
+  metrics = computeGridMetrics(container, activeGridRows, {
+    designWidth: lockedDesignWidth ?? undefined,
+  });
   return metrics;
 }
 
@@ -287,12 +339,51 @@ function init(options) {
   applyCanvasHeight();
 
   const resizeObserver = new ResizeObserver(() => {
-    cancelAnimationFrame(resizeFrame);
-    resizeFrame = requestAnimationFrame(() => refreshLayout());
+    if (editMode) {
+      return;
+    }
+    syncViewportBreakpoint();
   });
-  resizeObserver.observe(container);
+  resizeObserver.observe(document.documentElement);
+
+  window.addEventListener('resize', () => {
+    if (editMode) {
+      applyAppShellWidth();
+      return;
+    }
+    syncViewportBreakpoint();
+  });
+
+  activeBreakpoint = resolveBreakpoint(window.innerWidth);
+  lockDesignWidthForBreakpoint(activeBreakpoint);
+  applyDeviceCanvasClasses();
 
   canvasInitialized = true;
+}
+
+/**
+ * syncViewportBreakpoint --- switch layout when viewport crosses 1024 / 640 ---
+ */
+function syncViewportBreakpoint() {
+  cancelAnimationFrame(resizeFrame);
+  resizeFrame = requestAnimationFrame(() => {
+    const nextBreakpoint = resolveBreakpoint(window.innerWidth);
+    if (nextBreakpoint !== activeBreakpoint) {
+      handleBreakpointChange(nextBreakpoint);
+      return;
+    }
+    lockDesignWidthForBreakpoint(activeBreakpoint);
+    applyAppShellWidth();
+  });
+}
+
+function handleBreakpointChange(nextBreakpoint) {
+  activeBreakpoint = nextBreakpoint;
+  lockDesignWidthForBreakpoint(activeBreakpoint);
+  applyDeviceCanvasClasses();
+  window.dispatchEvent(new CustomEvent('modulehub:viewport-breakpoint-changed', {
+    detail: { breakpoint: nextBreakpoint },
+  }));
 }
 
 /**
@@ -303,11 +394,16 @@ function init(options) {
  * @param {string} [context.parentFolderId]
  * @param {string} [context.parentName]
  * @param {number} [context.canvasGridRows]
+ * @param {'desktop'|'tablet'|'mobile'} [context.breakpoint]
  */
 function refresh(children, context = {}) {
   if (!store) return;
 
+  lastRefreshChildren = children;
+  lastRefreshContext = context;
+
   const modules = hooks?.getModules() || {};
+  const breakpoint = context.breakpoint || getEffectiveBreakpoint();
   const reservedRects = context.showBackCard
     ? [{
       col: 0,
@@ -322,6 +418,7 @@ function refresh(children, context = {}) {
   store.cards = ModuleHubCardStore.fromLayoutNodes(children || [], modules, {
     startCol,
     gridRows,
+    breakpoint,
     reservedRects,
   });
   backInfo = context.showBackCard
@@ -335,34 +432,89 @@ function refresh(children, context = {}) {
   setActiveGridRows(gridRows, { skipMinCheck: true });
   setActiveGridRows(activeGridRows);
 
+  lockDesignWidthForBreakpoint(breakpoint);
+  applyDeviceCanvasClasses();
   refreshLayout({ forceRender: true });
 }
 
 function setEditMode(active) {
+  const wasEditMode = editMode;
   editMode = Boolean(active);
   if (container) {
     container.classList.toggle('card-canvas--edit-mode', editMode);
   }
+  if (editMode) {
+    if (!wasEditMode) {
+      activeEditDevice = 'desktop';
+    }
+    lockDesignWidthForBreakpoint(activeEditDevice);
+  } else {
+    lockDesignWidthForBreakpoint(activeBreakpoint);
+  }
+  applyDeviceCanvasClasses();
   syncHeightHandleVisibility();
-  refreshLayout({ forceRender: true });
+  if (wasEditMode === editMode) {
+    return;
+  }
+  if (!editMode) {
+    return;
+  }
+  if (lastRefreshChildren) {
+    refresh(lastRefreshChildren, lastRefreshContext || {});
+  } else {
+    refreshLayout({ forceRender: true });
+  }
 }
 
 /**
- * collectCardPayload --- PATCH entries; shape mirrors folder-card-patch-entry.ts ---
+ * setActiveEditDevice --- switch layout breakpoint while editing (after save flush) ---
+ * @param {'desktop'|'tablet'|'mobile'} device
+ */
+function setActiveEditDevice(device) {
+  activeEditDevice = device;
+  lockDesignWidthForBreakpoint(device);
+  applyDeviceCanvasClasses();
+  if (lastRefreshChildren) {
+    refresh(lastRefreshChildren, {
+      ...(lastRefreshContext || {}),
+      breakpoint: device,
+    });
+  }
+}
+
+function getActiveEditDevice() {
+  return activeEditDevice;
+}
+
+function getEffectiveBreakpointPublic() {
+  return getEffectiveBreakpoint();
+}
+
+const GRID_PATCH_FIELD = {
+  desktop: 'cardGrid',
+  tablet: 'cardGridTablet',
+  mobile: 'cardGridMobile',
+};
+
+/**
+ * collectCardPayload --- PATCH entries for the active edit breakpoint ---
  */
 function collectCardPayload() {
   if (!store) return [];
+  const breakpoint = editMode ? activeEditDevice : activeBreakpoint;
+  const gridField = GRID_PATCH_FIELD[breakpoint];
+
   return store.cards.map((card) => {
     const element = store.elements.get(card.id);
     const bgRaw = element?.dataset.cardBackground || 'null';
     const bgCleared = element?.getAttribute('data-card-background-cleared') === '1';
     const entry = {
       nodeId: card.id,
-      cardGrid: {
-        col: Number(element?.dataset.col ?? card.col),
-        row: Number(element?.dataset.row ?? card.row),
-        colSpan: Number(element?.dataset.colSpan ?? card.colSpan),
-        rowSpan: Number(element?.dataset.rowSpan ?? card.rowSpan),
+      [gridField]: {
+        col: card.col,
+        row: card.row,
+        colSpan: card.colSpan,
+        rowSpan: card.rowSpan,
       },
     };
     if (bgCleared) {
@@ -382,7 +534,14 @@ function collectCardPayload() {
 }
 
 function collectCanvasGridRows() {
-  return activeGridRows;
+  const breakpoint = editMode ? activeEditDevice : activeBreakpoint;
+  if (breakpoint === 'tablet') {
+    return { canvasGridRowsTablet: activeGridRows, breakpoint: 'tablet' };
+  }
+  if (breakpoint === 'mobile') {
+    return { canvasGridRowsMobile: activeGridRows, breakpoint: 'mobile' };
+  }
+  return { canvasGridRows: activeGridRows, breakpoint: 'desktop' };
 }
 
 function getCardElement(nodeId) {
@@ -409,6 +568,10 @@ window.CardCanvas = {
   init,
   refresh,
   setEditMode,
+  setActiveEditDevice,
+  getActiveEditDevice,
+  getEffectiveBreakpoint: getEffectiveBreakpointPublic,
+  syncViewportBreakpoint,
   collectCardPayload,
   collectCanvasGridRows,
   getCardElement,

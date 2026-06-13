@@ -167,3 +167,84 @@ describe('applyFolderCardsUpdate — cardBackground', () => {
     expect(updated.tree.folderCanvas).toEqual({ gridRows: 15 });
   });
 });
+
+describe('applyFolderCardsUpdate — per-device breakpoints', () => {
+  const baseLayout = migrateSiteLayoutCardGrid(parseSiteLayout(validFixture)).layout;
+
+  function getNode(layout: ReturnType<typeof parseSiteLayout>, nodeId: string) {
+    return layout.tree.children?.find((c) => c.id === nodeId);
+  }
+
+  const rootCards = [
+    { nodeId: 'folder-a', cardGrid: { col: 0, row: 0, colSpan: 7, rowSpan: 3 } },
+    { nodeId: 'node-mod-2', cardGrid: { col: 7, row: 0, colSpan: 15, rowSpan: 3 } },
+  ];
+
+  it('stores tablet and mobile grids on nodes', () => {
+    const updated = applyFolderCardsUpdate(baseLayout, 'root', {
+      canvasGridRowsTablet: 12,
+      canvasGridRowsMobile: 15,
+      cards: [
+        {
+          nodeId: 'folder-a',
+          cardGridTablet: { col: 0, row: 0, colSpan: 7, rowSpan: 3 },
+          cardGridMobile: { col: 0, row: 0, colSpan: 15, rowSpan: 3 },
+        },
+        {
+          nodeId: 'node-mod-2',
+          cardGridTablet: { col: 7, row: 0, colSpan: 15, rowSpan: 3 },
+          cardGridMobile: { col: 0, row: 3, colSpan: 15, rowSpan: 3 },
+        },
+      ],
+    });
+    expect(getNode(updated, 'folder-a')?.cardGridTablet).toEqual({ col: 0, row: 0, colSpan: 7, rowSpan: 3 });
+    expect(getNode(updated, 'folder-a')?.cardGridMobile).toEqual({ col: 0, row: 0, colSpan: 15, rowSpan: 3 });
+    expect(updated.tree.folderCanvas).toEqual({
+      gridRows: 9,
+      gridRowsTablet: 12,
+      gridRowsMobile: 15,
+    });
+  });
+
+  it('tablet-only PATCH preserves desktop cardGrid', () => {
+    const updated = applyFolderCardsUpdate(baseLayout, 'root', {
+      cards: [
+        { nodeId: 'folder-a', cardGridTablet: { col: 0, row: 3, colSpan: 7, rowSpan: 3 } },
+        { nodeId: 'node-mod-2', cardGridTablet: { col: 7, row: 0, colSpan: 15, rowSpan: 3 } },
+      ],
+    });
+    expect(getNode(updated, 'folder-a')?.cardGrid).toEqual(getNode(baseLayout, 'folder-a')?.cardGrid);
+    expect(getNode(updated, 'folder-a')?.cardGridTablet).toEqual({ col: 0, row: 3, colSpan: 7, rowSpan: 3 });
+  });
+
+  it('desktop PATCH preserves tablet and mobile grids on folderCanvas', () => {
+    const withTablet = applyFolderCardsUpdate(baseLayout, 'root', {
+      canvasGridRowsTablet: 12,
+      canvasGridRowsMobile: 15,
+      cards: [
+        { nodeId: 'folder-a', cardGridTablet: { col: 0, row: 0, colSpan: 7, rowSpan: 3 } },
+        { nodeId: 'node-mod-2', cardGridTablet: { col: 7, row: 0, colSpan: 15, rowSpan: 3 } },
+      ],
+    });
+    const updated = applyFolderCardsUpdate(withTablet, 'root', {
+      canvasGridRows: 18,
+      cards: rootCards,
+    });
+    expect(updated.tree.folderCanvas).toEqual({
+      gridRows: 18,
+      gridRowsTablet: 12,
+      gridRowsMobile: 15,
+    });
+  });
+
+  it('rejects invalid cardGridTablet colSpan', () => {
+    expect(() =>
+      applyFolderCardsUpdate(baseLayout, 'root', {
+        cards: [
+          { nodeId: 'folder-a', cardGridTablet: { col: 0, row: 0, colSpan: 2, rowSpan: 3 } },
+          { nodeId: 'node-mod-2', cardGrid: { col: 7, row: 0, colSpan: 15, rowSpan: 3 } },
+        ],
+      }),
+    ).toThrow('colSpan must be 3');
+  });
+});

@@ -154,7 +154,7 @@ flowchart TB
 └── scripts/                  # ابزارهای خط فرمان و کمکی
     ├── cli.js
     ├── network-metric-toggler.py
-    └── setup_net_limit.sh
+    └── setup-net-limit.sh
 
 /var/cache/modulehub/pkg/     # کش پکیج‌های هش‌شده (<hash>/)
 /var/log/modulehub/modules/   # لاگ‌های جداگانه هر ماژول (<module-id>.log)
@@ -351,7 +351,7 @@ request → session parser
 | RAM | حد سخت (hard limit) | `-p MemoryMax=512M` / `--memory=512m` | ۵۱۲ MB |
 | Swap | محدودیت مجموع | `-p MemorySwapMax=128M` / `--memory-swap=640m` | ۱۲۸ MB |
 | Disk I/O | اولویت (weight) | `-p IOWeight=50` / `--blkio-weight=500` | وزن ۵۰ (نسبی) |
-| Network Bandwidth | توکن بکت با `tc` | اسکریپت `setup_net_limit.sh` (برای هر کانتینر) | ۱۰ Mbps |
+| Network Bandwidth | توکن بکت با `tc` | اسکریپت `setup-net-limit.sh` (برای هر کانتینر) | ۱۰ Mbps |
 
 > **نکته:** محدودیت شبکه برای ماژول‌های غیر Docker در فاز اول به دلیل پیچیدگی بیشتر پیاده‌سازی نشده و فقط از طریق اطلاع‌رسانی به ادمین رعایت می‌شود. برای Dockerized با استفاده از `tc` روی اینترفیس مجازی کانتینر اعمال می‌گردد.
 
@@ -384,7 +384,7 @@ request → session parser
 
 **npm تحت systemd:** سرویس CMS معمولاً nvm در PATH ندارد — `resolveNpmExecutablePath()` از `~/.nvm/versions/node/v*/bin/npm` یا env `MODULEHUB_NPM_PATH`.
 
-**اسکریپت smoke:** `scripts/test-package-cache-manual.sh` — ZIP باید manifest در ریشه archive باشد (`cd mod && zip ..` نه `zip mod/`).
+**اسکریپت smoke:** `scripts/smoke/test-package-cache.sh` — ZIP باید manifest در ریشه archive باشد (`cd mod && zip ..` نه `zip mod/`).
 
 ---
 

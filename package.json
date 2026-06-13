@@ -9,6 +9,9 @@
     "start": "node dist/core/src/server/index.js",
     "dev": "tsx watch core/src/server/index.ts",
     "test": "jest --runInBand",
+    "test:unit": "jest --runInBand",
+    "checks": "bash scripts/run-checks.sh",
+    "smoke:package-cache": "bash scripts/run-checks.sh --smoke",
     "build:icons": "node scripts/build-home-icon-themes.js",
     "lint": "eslint \"core/src/**/*.ts\" \"tests/**/*.ts\""
   },

@@ -49,4 +49,16 @@ describe('resolveFolderCanvasGridRows', () => {
     expect(resolveFolderCanvasGridRows({ folderCanvas: { gridRows: 15 } } as LayoutTreeNode)).toBe(15);
     expect(resolveFolderCanvasGridRows(null)).toBe(9);
   });
+
+  it('falls back through tablet to desktop for mobile', () => {
+    const folder = { folderCanvas: { gridRows: 9, gridRowsTablet: 12, gridRowsMobile: 18 } } as LayoutTreeNode;
+    expect(resolveFolderCanvasGridRows(folder, 'mobile')).toBe(18);
+    expect(resolveFolderCanvasGridRows(folder, 'tablet')).toBe(12);
+    expect(resolveFolderCanvasGridRows(folder, 'desktop')).toBe(9);
+  });
+
+  it('mobile falls back to tablet then desktop when mobile rows omitted', () => {
+    const folder = { folderCanvas: { gridRows: 9, gridRowsTablet: 12 } } as LayoutTreeNode;
+    expect(resolveFolderCanvasGridRows(folder, 'mobile')).toBe(12);
+  });
 });

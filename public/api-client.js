@@ -396,14 +396,24 @@ const ModuleHubApi = (function createModuleHubApi() {
   /**
    * Saves card order, spans, backgrounds, and canvas height for a folder (Super Admin).
    * @param {string} folderId - Folder node id
-   * @param {Array<{ nodeId: string, cardGrid?: object, cardBackground?: object|null }>} cards - Ordered card list
-   * @param {number} [canvasGridRows] - Visible canvas row count
+   * @param {Array<object>} cards - Ordered card list with per-breakpoint grids
+   * @param {number|object} [canvasOptions] - canvasGridRows number (legacy) or options object
    * @returns {Promise<{ ok: boolean }>}
    */
-  async function saveFolderCards(folderId, cards, canvasGridRows) {
+  async function saveFolderCards(folderId, cards, canvasOptions) {
     const body = { cards };
-    if (typeof canvasGridRows === 'number') {
-      body.canvasGridRows = canvasGridRows;
+    if (typeof canvasOptions === 'number') {
+      body.canvasGridRows = canvasOptions;
+    } else if (canvasOptions && typeof canvasOptions === 'object') {
+      if (typeof canvasOptions.canvasGridRows === 'number') {
+        body.canvasGridRows = canvasOptions.canvasGridRows;
+      }
+      if (typeof canvasOptions.canvasGridRowsTablet === 'number') {
+        body.canvasGridRowsTablet = canvasOptions.canvasGridRowsTablet;
+      }
+      if (typeof canvasOptions.canvasGridRowsMobile === 'number') {
+        body.canvasGridRowsMobile = canvasOptions.canvasGridRowsMobile;
+      }
     }
     return requestJson(`/admin/folder/${encodeURIComponent(folderId)}/cards`, {
       method: 'PATCH',

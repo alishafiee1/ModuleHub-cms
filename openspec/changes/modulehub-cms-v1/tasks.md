@@ -57,7 +57,7 @@
 - [x] 4.2 Static/SPA handler + SPA fallback
 - [x] 4.3 Backend runner — systemd-run با CPUQuota/MemoryMax/IOWeight
 - [x] 4.4 Docker runner — cap_drop ALL
-- [x] 4.4.1 `scripts/setup_net_limit.sh` — `tc` برای `net_mbps`
+- [x] 4.4.1 `scripts/setup-net-limit.sh` — `tc` برای `net_mbps`
 - [x] 4.5 Reverse proxy — http-proxy-middleware
 - [x] 4.6 OOM detection → status=crashed
 - [x] 4.6.1 `maxConcurrentRunningModules` قبل از start → 409

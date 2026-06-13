@@ -1,7 +1,7 @@
 {
-  "name": "phase4-cache-test",
+  "name": "package-cache-test",
   "version": "1.0.0",
-  "description": "ModuleHub phase 4 package cache verification module",
+  "description": "ModuleHub package cache verification module",
   "main": "server.js",
   "dependencies": {
     "express": "4.21.2",

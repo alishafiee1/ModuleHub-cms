@@ -63,6 +63,8 @@ input.task-list-item-checkbox {
 | ۷ | versioning + log levels | ✅ 2026-05-29 |
 | ۷.۵ | تنظیمات سراسری `/admin/settings` (کارتی) | ✅ 2026-06-12 |
 | ۷.۶ | بوم cardGrid + ویرایش چیدمان + cardBackground | ✅ 2026-06-13 |
+| ۷.۷ | چیدمان per-device (موبایل / تبلت / PC) | ✅ 2026-06-13 — [change/device-card-layout](./change/device-card-layout/proposal.md) |
+| ۷.۸ | استاندارد به‌روزرسانی کد روی سرور | 🔄 باز — [change/server-code-update-standard](./change/server-code-update-standard/proposal.md) |
 | ۸ | auth کامل (CSRF، Module Manager WAN، …) | ⏳ جزئی |
 | ۸+ | integration · … | ⏳ |
 
@@ -119,7 +121,7 @@ input.task-list-item-checkbox {
 
 ## فاز ۴: کش پکیج متمرکز (۲ روز) — ✅ انجام شد 2026-05-28
 
-> smoke سرور: `bash scripts/test-package-cache-manual.sh` · fixture: `tests/fixtures/modules/phase4-cache-test/` · verify: `bash scripts/verify-phase4-cache.sh <module-id>`  
+> smoke سرور: `bash scripts/smoke/test-package-cache.sh` · fixture: `tests/fixtures/modules/package-cache-test/` · verify: `bash scripts/verify-package-cache.sh <module-id>`  
 > **وابستگی‌ها:** `node_modules` در ZIP نه — manifest در **ریشه** ZIP · [`developer-guide.md` §۲.۱](developer-guide.md)
 
 | # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |
@@ -128,7 +130,7 @@ input.task-list-item-checkbox {
 | 4.2 | محاسبه هش SHA256 | از محتوای فایل(ها) | هش یکتا ایجاد شود | unit hash.test |
 | 4.3 | بررسی کش | وجود دایرکتوری `/var/cache/modulehub/pkg/<hash>` | در صورت وجود، symbolic link ایجاد شود | `ls -la standalone-modules/<id>/node_modules` |
 | 4.4 | نصب در صورت عدم وجود کش | `npm`/`pip`/`composer` با `network-metric-toggler` (رابط `enp63s0` موقت) | خروجی در کش + symlink | upload اول ~چند ثانیه |
-| 4.5 | تست با دو ماژول مشابه | fixture ZIP `phase4-cache-test` — Backend + diagnostics | بار دوم `installed:false` · diagnostics PASS | `build-phase4-test-zip.sh` + `test-package-cache-manual.sh` + `verify-phase4-cache.sh` |
+| 4.5 | تست با دو ماژول مشابه | fixture ZIP `package-cache-test` — Backend + diagnostics | بار دوم `installed:false` · diagnostics PASS | `build-package-cache-fixture-zip.sh` + `smoke/test-package-cache.sh` + `verify-package-cache.sh` |
 | 4.6 | LRU eviction | وقتی کش > `maxPackageCacheGb` (۵ GB) | قدیمی‌ترین entry حذف شود | unit lru-eviction |
 | 4.7 | npm تحت systemd | سرویس CMS بدون nvm در PATH | مسیر npm از `~/.nvm/versions/node/` یا `MODULEHUB_NPM_PATH` | لاگ upload بدون `npm: not found` |
 
@@ -223,6 +225,20 @@ input.task-list-item-checkbox {
 | 7.6.6 | folder navigation | history.pushState، back-card، breadcrumb | `/?folder=` | UI manual |
 | 7.6.7 | home appearance | floating Lucide icons + settings card | `system-settings.json` | UI + unit schema |
 | 7.6.8 | shared theme | `public/theme.js` — home + admin | لایت/دارک یکپارچه | visual |
+
+---
+
+## فاز ۷.۷: چیدمان کارت per-device — ✅ 2026-06-13
+
+> پلن کامل: [`docs/change/device-card-layout/`](./change/device-card-layout/proposal.md) (proposal · design · tasks)
+
+| # | وظیفه | جزئیات | خروجی | تست |
+|---|-------|--------|-------|-----|
+| 7.7.1 | schema + PATCH | `cardGridTablet`, `cardGridMobile`, gridRows per device | `site-layout.json` | unit |
+| 7.7.2 | derive layout | مشتق یک‌بار از desktop + ذخیره | بدون derive تکراری | unit derive-breakpoint-layout |
+| 7.7.3 | toolbar device buttons | PC / تبلت / موبایل در حالت ویرایش | `card-layout-editor.js` | UI manual |
+| 7.7.4 | fixed cell display | breakpoint از viewport؛ بدون resize روان کارت | `card-canvas-app.js` | E2E-DCL-01 |
+| 7.7.5 | UI-behavior | به‌روزرسانی §۱.۱ و §۸.۴ | `docs/UI-behavior.md` | بعد از پیاده‌سازی |
 
 ---
 

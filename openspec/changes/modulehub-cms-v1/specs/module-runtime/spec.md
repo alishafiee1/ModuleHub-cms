@@ -47,11 +47,11 @@ Stopping a module SHALL terminate its process or container.
 - **THEN** the scoped process is terminated and status becomes `stopped`
 
 ### Requirement: Network bandwidth limiting for Docker modules
-For Docker modules with `resources.net_mbps` set, the system SHALL apply a token bucket filter using `tc` on the container's virtual interface via `scripts/setup_net_limit.sh`.
+For Docker modules with `resources.net_mbps` set, the system SHALL apply a token bucket filter using `tc` on the container's virtual interface via `scripts/setup-net-limit.sh`.
 
 #### Scenario: Network limit applied
 - **WHEN** a Docker module with `net_mbps: 10` starts
-- **THEN** the container's egress traffic is shaped to 10 Mbps via `scripts/setup_net_limit.sh`
+- **THEN** the container's egress traffic is shaped to 10 Mbps via `scripts/setup-net-limit.sh`
 
 #### Scenario: No network limit for non-Docker
 - **WHEN** a non-Docker module starts with `net_mbps` set

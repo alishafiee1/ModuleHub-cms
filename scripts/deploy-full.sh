@@ -326,20 +326,17 @@ run_optional_extras() {
 run_health_checks() {
   log_step "health and auth checks"
   if [[ "${DEPLOY_DRY_RUN}" == true ]]; then
-    log_info "[dry-run] curl ${DEPLOY_HEALTH_URL}"
+    log_info "[dry-run] bash scripts/run-checks.sh"
     return 0
   fi
 
-  if curl -sf "${DEPLOY_HEALTH_URL}"; then
-    printf '\n'
-    log_ok "health OK"
+  local home_clone
+  home_clone="$(resolve_home_clone)"
+  if MODULEHUB_CMS_URL="${DEPLOY_HEALTH_URL%/health}" bash "${home_clone}/scripts/run-checks.sh"; then
+    log_ok "health checks OK"
   else
-    log_error "health check failed: ${DEPLOY_HEALTH_URL}"
+    log_error "health checks failed (run-checks.sh)"
     exit 1
-  fi
-
-  if curl -sf "${DEPLOY_AUTH_URL}"; then
-    printf '\n'
   fi
 }
 

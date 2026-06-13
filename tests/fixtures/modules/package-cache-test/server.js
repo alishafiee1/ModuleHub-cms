@@ -77,5 +77,5 @@ app.get('/', (_request, response) => {
 
 app.listen(listenPort, '127.0.0.1', () => {
   // eslint-disable-next-line no-console -- module bootstrap log
-  console.log(`phase4-cache-test listening on 127.0.0.1:${listenPort}`);
+  console.log(`package-cache-test listening on 127.0.0.1:${listenPort}`);
 });

@@ -1,17 +1,17 @@
-# ماژول تست فاز ۴ — Package Cache
+# ماژول تست — Package Cache
 
 Backend Express برای تأیید کش پکیج ModuleHub (symlink + npm install).
 
 ## manifest hash (ثابت)
 
 ```
-7064c31c899b1d8c9f847a6de82080a5892647a1717e461351651213bbc69c5f
+36ac3dc3c1c3e0acb45bf01d7bdbe262facce1c24bb31f03abf84db5ea951107
 ```
 
 ## ساخت ZIP
 
 ```bash
-bash scripts/build-phase4-test-zip.sh
+bash scripts/build-package-cache-fixture-zip.sh
 ```
 
 ## تست دستی (UI)
@@ -24,8 +24,8 @@ bash scripts/build-phase4-test-zip.sh
 ## تست خودکار
 
 ```bash
-bash scripts/test-package-cache-manual.sh
-bash scripts/verify-phase4-cache.sh <module-id>
+bash scripts/smoke/test-package-cache.sh
+bash scripts/verify-package-cache.sh <module-id>
 ```
 
 ## معیار PASS در `/api/diagnostics`

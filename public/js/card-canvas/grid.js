@@ -7,14 +7,16 @@ import { GRID_CONFIG } from './config.js';
 /** @typedef {{ cellWidth: number, cellHeight: number, columns: number, rows: number, width: number, height: number }} GridMetrics */
 
 /**
- * computeGridMetrics --- pixel cell size from container width and row count ---
+ * computeGridMetrics --- pixel cell size from design width and row count ---
  * @param {HTMLElement} container
  * @param {number} [gridRows]
+ * @param {{ designWidth?: number }} [options]
  * @returns {GridMetrics}
  */
-export function computeGridMetrics(container, gridRows = GRID_CONFIG.minCanvasRows) {
+export function computeGridMetrics(container, gridRows = GRID_CONFIG.minCanvasRows, options = {}) {
   const rect = container.getBoundingClientRect();
-  const innerWidth = Math.max(rect.width - GRID_CONFIG.containerPadding * 2, 1);
+  const containerInner = Math.max(rect.width - GRID_CONFIG.containerPadding * 2, 1);
+  const innerWidth = options.designWidth ?? containerInner;
   const cellWidth = innerWidth / GRID_CONFIG.maxColumns;
   const cellHeight = cellWidth;
   const rows = Math.max(GRID_CONFIG.minCanvasRows, gridRows);

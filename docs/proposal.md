@@ -224,7 +224,7 @@ table th code {
 - بدون `package.json` / `requirements.txt` / `composer.json` → CMS چیزی دانلود نمی‌کند
 - ماژول دوم با همان وابستگی → ثانیه‌ها نه دقیقه‌ها
 
-جزئیات فنی: `design plan.md` §۸ · سازنده ماژول: `developer-guide.md` §۲.۱ · smoke: `scripts/test-package-cache-manual.sh`
+جزئیات فنی: `design plan.md` §۸ · سازنده ماژول: `developer-guide.md` §۲.۱ · smoke: `scripts/smoke/test-package-cache.sh`
 
 ---
 

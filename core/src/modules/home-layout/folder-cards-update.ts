@@ -4,7 +4,16 @@ import { computeMinCanvasRowsForCards, resolveFolderCanvasGridRows } from './gri
 import { readSiteLayout, writeSiteLayout } from './layout-store';
 import { findNodeById } from './layout-tree';
 import { assertValidCardGrid } from './migrate-card-grid';
-import type { CardBackground, CardGridPosition, FolderCardsUpdatePayload, LayoutTreeNode, SiteLayoutDocument } from './types';
+import type {
+  CardBackground,
+  CardGridPosition,
+  FolderCardUpdateEntry,
+  FolderCardsUpdatePayload,
+  FolderCanvasSettings,
+  LayoutBreakpoint,
+  LayoutTreeNode,
+  SiteLayoutDocument,
+} from './types';
 
 /**
  * purpose --- validates folder canvas row count from PATCH payload ---
@@ -18,6 +27,17 @@ function assertValidCanvasGridRows(gridRows: number): void {
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 const CARD_BG_IMAGE_PREFIX = '/card-backgrounds/';
+
+const BREAKPOINT_GRID_FIELDS: ReadonlyArray<{
+  breakpoint: LayoutBreakpoint;
+  gridField: keyof Pick<FolderCardUpdateEntry, 'cardGrid' | 'cardGridTablet' | 'cardGridMobile'>;
+  canvasField: keyof Pick<FolderCardsUpdatePayload, 'canvasGridRows' | 'canvasGridRowsTablet' | 'canvasGridRowsMobile'>;
+  folderCanvasField: keyof Pick<FolderCanvasSettings, 'gridRows' | 'gridRowsTablet' | 'gridRowsMobile'>;
+}> = [
+  { breakpoint: 'desktop', gridField: 'cardGrid', canvasField: 'canvasGridRows', folderCanvasField: 'gridRows' },
+  { breakpoint: 'tablet', gridField: 'cardGridTablet', canvasField: 'canvasGridRowsTablet', folderCanvasField: 'gridRowsTablet' },
+  { breakpoint: 'mobile', gridField: 'cardGridMobile', canvasField: 'canvasGridRowsMobile', folderCanvasField: 'gridRowsMobile' },
+];
 
 /**
  * purpose --- validates a CardBackground object from the PATCH payload ---
@@ -72,7 +92,7 @@ export function applyFolderCardsUpdate(
     existingChildren.map((child) => [child.id, child]),
   );
 
-  const { cards, canvasGridRows } = payload;
+  const { cards, canvasGridRows, canvasGridRowsTablet, canvasGridRowsMobile } = payload;
   if (!Array.isArray(cards)) {
     throw new Error('cards must be an array');
   }
@@ -80,8 +100,18 @@ export function applyFolderCardsUpdate(
   if (canvasGridRows !== undefined) {
     assertValidCanvasGridRows(canvasGridRows);
   }
+  if (canvasGridRowsTablet !== undefined) {
+    assertValidCanvasGridRows(canvasGridRowsTablet);
+  }
+  if (canvasGridRowsMobile !== undefined) {
+    assertValidCanvasGridRows(canvasGridRowsMobile);
+  }
 
-  const effectiveCanvasRows = canvasGridRows ?? resolveFolderCanvasGridRows(folderNode);
+  const canvasRowsByBreakpoint: Record<LayoutBreakpoint, number> = {
+    desktop: canvasGridRows ?? resolveFolderCanvasGridRows(folderNode, 'desktop'),
+    tablet: canvasGridRowsTablet ?? resolveFolderCanvasGridRows(folderNode, 'tablet'),
+    mobile: canvasGridRowsMobile ?? resolveFolderCanvasGridRows(folderNode, 'mobile'),
+  };
 
   for (const entry of cards) {
     if (typeof entry.nodeId !== 'string' || !entry.nodeId) {
@@ -90,9 +120,14 @@ export function applyFolderCardsUpdate(
     if (!existingById.has(entry.nodeId)) {
       throw new Error(`Node "${entry.nodeId}" is not a child of folder "${folderId}"`);
     }
-    if (entry.cardGrid !== undefined) {
-      assertValidCardGrid(entry.cardGrid, entry.nodeId, effectiveCanvasRows);
+
+    for (const { breakpoint, gridField } of BREAKPOINT_GRID_FIELDS) {
+      const grid = entry[gridField];
+      if (grid !== undefined) {
+        assertValidCardGrid(grid, entry.nodeId, canvasRowsByBreakpoint[breakpoint]);
+      }
     }
+
     if (entry.cardBackground !== undefined && entry.cardBackground !== null) {
       assertValidCardBackground(entry.cardBackground, entry.nodeId);
     }
@@ -107,12 +142,20 @@ export function applyFolderCardsUpdate(
     throw new Error(`cards list is missing existing nodes: ${missingIds.join(', ')}`);
   }
 
-  const placedGrids = cards
-    .map((entry) => entry.cardGrid)
-    .filter((grid): grid is CardGridPosition => grid !== undefined);
-  const minRequiredRows = computeMinCanvasRowsForCards(placedGrids);
-  if (effectiveCanvasRows < minRequiredRows) {
-    throw new Error(`canvasGridRows ${effectiveCanvasRows} is too small for placed cards (need ${minRequiredRows})`);
+  for (const { breakpoint, gridField } of BREAKPOINT_GRID_FIELDS) {
+    const placedGrids = cards
+      .map((entry) => entry[gridField])
+      .filter((grid): grid is CardGridPosition => grid !== undefined);
+    if (placedGrids.length === 0) {
+      continue;
+    }
+    const minRequiredRows = computeMinCanvasRowsForCards(placedGrids);
+    const effectiveRows = canvasRowsByBreakpoint[breakpoint];
+    if (effectiveRows < minRequiredRows) {
+      throw new Error(
+        `canvas rows for ${breakpoint} (${effectiveRows}) is too small for placed cards (need ${minRequiredRows})`,
+      );
+    }
   }
 
   const updatedChildren = cards.map((entry) => {
@@ -122,6 +165,12 @@ export function applyFolderCardsUpdate(
     if (entry.cardGrid !== undefined) {
       updated.cardGrid = entry.cardGrid as CardGridPosition;
       delete updated.cardSpan;
+    }
+    if (entry.cardGridTablet !== undefined) {
+      updated.cardGridTablet = entry.cardGridTablet as CardGridPosition;
+    }
+    if (entry.cardGridMobile !== undefined) {
+      updated.cardGridMobile = entry.cardGridMobile as CardGridPosition;
     }
 
     if (entry.cardBackground === null) {
@@ -135,9 +184,26 @@ export function applyFolderCardsUpdate(
 
   function patchNodeInTree(node: LayoutTreeNode): LayoutTreeNode {
     if (node.id === folderId) {
-      const folderCanvas = canvasGridRows !== undefined
-        ? { gridRows: canvasGridRows }
-        : node.folderCanvas;
+      const hasCanvasUpdate = canvasGridRows !== undefined
+        || canvasGridRowsTablet !== undefined
+        || canvasGridRowsMobile !== undefined;
+
+      let folderCanvas = node.folderCanvas;
+      if (hasCanvasUpdate) {
+        folderCanvas = {
+          ...(node.folderCanvas ?? { gridRows: resolveFolderCanvasGridRows(node, 'desktop') }),
+        };
+        if (canvasGridRows !== undefined) {
+          folderCanvas.gridRows = canvasGridRows;
+        }
+        if (canvasGridRowsTablet !== undefined) {
+          folderCanvas.gridRowsTablet = canvasGridRowsTablet;
+        }
+        if (canvasGridRowsMobile !== undefined) {
+          folderCanvas.gridRowsMobile = canvasGridRowsMobile;
+        }
+      }
+
       return {
         ...node,
         children: updatedChildren,

@@ -27,6 +27,11 @@
 
   let editModeActive = false;
   let saveTimer = null;
+
+  /** getActiveEditDevice --- single source of truth from CardCanvas --- */
+  function getActiveEditDevice() {
+    return window.CardCanvas?.getActiveEditDevice?.() ?? 'desktop';
+  }
   let currentFolderIdFn = () => 'root';
   let mountedToolbar = null;
   let addButtonEl = null;
@@ -38,15 +43,15 @@
   async function persistLayout() {
     const folderId = currentFolderIdFn();
     const cards = window.CardCanvas?.collectCardPayload?.() || [];
-    const canvasGridRows = window.CardCanvas?.collectCanvasGridRows?.();
+    const canvasOptions = window.CardCanvas?.collectCanvasGridRows?.() || {};
     const savingIndicator = document.getElementById('layoutEditSaving');
     if (savingIndicator) {
       savingIndicator.classList.add('is-visible');
     }
     try {
-      await ModuleHubApi.saveFolderCards(folderId, cards, canvasGridRows);
+      await ModuleHubApi.saveFolderCards(folderId, cards, canvasOptions);
       window.dispatchEvent(new CustomEvent('modulehub:folder-cards-saved', {
-        detail: { folderId, cards, canvasGridRows },
+        detail: { folderId, cards, ...canvasOptions },
       }));
       return true;
     } catch (error) {
@@ -250,6 +255,39 @@
     scheduleSaveFromCanvas();
   }
 
+  const DEVICE_TOOLBAR_BUTTONS = [
+    { id: 'layoutDeviceDesktop', device: 'desktop', icon: 'fa-desktop', label: 'PC' },
+    { id: 'layoutDeviceTablet', device: 'tablet', icon: 'fa-tablet-alt', label: 'تبلت' },
+    { id: 'layoutDeviceMobile', device: 'mobile', icon: 'fa-mobile-alt', label: 'موبایل' },
+  ];
+
+  let deviceToolsGroup = null;
+
+  function syncDeviceToolbarButtons() {
+    if (!deviceToolsGroup) return;
+    deviceToolsGroup.hidden = !editModeActive;
+    DEVICE_TOOLBAR_BUTTONS.forEach(({ id, device }) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      const activeDevice = getActiveEditDevice();
+      const isActive = activeDevice === device;
+      btn.classList.toggle('is-active', isActive);
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+    if (mountedToolbar) {
+      mountedToolbar.dataset.activeDevice = editModeActive ? getActiveEditDevice() : '';
+    }
+  }
+
+  async function switchEditDevice(device) {
+    if (!editModeActive || device === getActiveEditDevice()) {
+      return;
+    }
+    await flushSave();
+    window.CardCanvas?.setActiveEditDevice?.(device);
+    syncDeviceToolbarButtons();
+  }
+
   const CARD_TOOLBAR_PLACEHOLDERS = [
     { id: 'cardAlign', icon: 'fa-border-all', label: 'تراز گرید' },
     { id: 'cardTheme', icon: 'fa-fill-drip', label: 'استایل کارت' },
@@ -288,6 +326,23 @@
     editBtn.className = 'layout-edit-tool-btn layout-edit-tool-btn--primary';
     editBtn.innerHTML = '<i class="fas fa-th-large"></i><span>ویرایش</span>';
     toolsGroup.appendChild(editBtn);
+
+    deviceToolsGroup = document.createElement('div');
+    deviceToolsGroup.className = 'layout-edit-device-tools';
+    deviceToolsGroup.hidden = true;
+    DEVICE_TOOLBAR_BUTTONS.forEach((tool) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = tool.id;
+      btn.className = 'layout-edit-tool-btn layout-edit-tool-btn--device';
+      btn.title = `چیدمان ${tool.label}`;
+      btn.innerHTML = `<i class="fas ${tool.icon}"></i><span>${tool.label}</span>`;
+      btn.addEventListener('click', () => {
+        void switchEditDevice(tool.device);
+      });
+      deviceToolsGroup.appendChild(btn);
+    });
+    toolsGroup.appendChild(deviceToolsGroup);
 
     const addBtn = document.createElement('button');
     addBtn.type = 'button';
@@ -337,16 +392,19 @@
     const editBtn = document.getElementById('layoutEditToggleBtn');
 
     async function exitEditMode() {
+      await flushSave();
       editModeActive = false;
       mountedToolbar.classList.remove('is-editing');
+      syncDeviceToolbarButtons();
       window.CardCanvas?.setEditMode(false);
       syncEditToggleLabel(editBtn);
-      await flushSave();
+      window.dispatchEvent(new CustomEvent('modulehub:layout-edit-ended'));
     }
 
     async function enterEditMode() {
       editModeActive = true;
       mountedToolbar.classList.add('is-editing');
+      syncDeviceToolbarButtons();
       window.CardCanvas?.setEditMode(true);
       syncEditToggleLabel(editBtn);
     }
@@ -368,12 +426,15 @@
         window.dispatchEvent(new CustomEvent('modulehub:add-content'));
       });
     }
+
+    window.CardCanvas?.syncViewportBreakpoint?.();
   }
 
   function refresh() {
     if (editModeActive) {
       window.CardCanvas?.setEditMode(true);
     }
+    window.CardCanvas?.syncViewportBreakpoint?.();
   }
 
   async function flushAndReset() {
@@ -384,14 +445,23 @@
   }
 
   function reset() {
+    const wasEditing = editModeActive;
     editModeActive = false;
     clearTimeout(saveTimer);
     saveTimer = null;
     if (mountedToolbar) {
       mountedToolbar.classList.remove('is-editing');
     }
+    syncDeviceToolbarButtons();
     syncEditToggleLabel(document.getElementById('layoutEditToggleBtn'));
     window.CardCanvas?.setEditMode(false);
+    if (wasEditing) {
+      window.dispatchEvent(new CustomEvent('modulehub:layout-edit-ended'));
+    }
+  }
+
+  function isEditModeActive() {
+    return editModeActive;
   }
 
   window.CardLayoutEditor = {
@@ -403,5 +473,6 @@
     setAdminToolbarVisible,
     scheduleSaveFromCanvas,
     openBackgroundForCard,
+    isEditModeActive,
   };
 })();

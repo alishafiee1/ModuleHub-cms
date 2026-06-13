@@ -4,6 +4,7 @@ import { PATHS } from '../../config/paths';
 import { loadSystemSettings } from '../system-settings/settings-loader';
 import { toHomePageAppearance } from '../system-settings/home-appearance';
 import { LayoutParseError, parseSiteLayout } from './layout-parser';
+import { ensureDeviceBreakpointLayouts } from './derive-breakpoint-layout';
 import { migrateSiteLayoutCardGrid } from './migrate-card-grid';
 import type { LayoutApiCore, LayoutApiResponse, ModuleEntry, PublicModuleEntry, SiteLayoutDocument } from './types';
 
@@ -70,11 +71,16 @@ export async function seedSiteLayoutIfMissing(): Promise<void> {
   await fs.copy(PATHS.siteLayoutSeed, PATHS.siteLayout);
 }
 
+export interface ReadSiteLayoutResult {
+  layout: SiteLayoutDocument;
+  derivedLayoutsSaved: boolean;
+}
+
 /**
  * Reads and validates site-layout.json from storage.
- * @returns Parsed layout document
+ * @returns Parsed layout and whether device breakpoint layouts were derived this read
  */
-export async function readSiteLayout(): Promise<SiteLayoutDocument> {
+export async function readSiteLayoutWithMeta(): Promise<ReadSiteLayoutResult> {
   await seedSiteLayoutIfMissing();
   const rawText = await fs.readFile(PATHS.siteLayout, 'utf8');
   let parsed: unknown;
@@ -87,10 +93,27 @@ export async function readSiteLayout(): Promise<SiteLayoutDocument> {
 
   const layout = parseSiteLayout(parsed);
   const { layout: migratedLayout, migrated } = migrateSiteLayoutCardGrid(layout);
+  let resultLayout = migratedLayout;
   if (migrated) {
     await writeSiteLayout(migratedLayout);
   }
-  return migratedLayout;
+
+  const { layout: withDevices, changed: devicesChanged } = ensureDeviceBreakpointLayouts(resultLayout);
+  if (devicesChanged) {
+    await writeSiteLayout(withDevices);
+    resultLayout = withDevices;
+  }
+
+  return { layout: resultLayout, derivedLayoutsSaved: devicesChanged };
+}
+
+/**
+ * Reads and validates site-layout.json from storage.
+ * @returns Parsed layout document
+ */
+export async function readSiteLayout(): Promise<SiteLayoutDocument> {
+  const { layout } = await readSiteLayoutWithMeta();
+  return layout;
 }
 
 /**
@@ -98,13 +121,14 @@ export async function readSiteLayout(): Promise<SiteLayoutDocument> {
  * @returns Layout API response
  */
 export async function loadLayoutForApi(): Promise<LayoutApiResponse> {
-  const [layout, settings] = await Promise.all([
-    readSiteLayout(),
+  const [{ layout, derivedLayoutsSaved }, settings] = await Promise.all([
+    readSiteLayoutWithMeta(),
     loadSystemSettings(),
   ]);
   return {
     ...toLayoutApiResponse(layout),
     appearance: toHomePageAppearance(settings),
+    ...(derivedLayoutsSaved ? { derivedLayoutsSaved: true } : {}),
   };
 }
 

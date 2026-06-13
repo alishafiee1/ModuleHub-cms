@@ -229,9 +229,11 @@ bash scripts/setup-server-dirs.sh
 
 | فایل | چیه |
 |------|-----|
-| `scripts/test-package-cache-manual.sh` | smoke فاز ۴ — دو upload با fixture ZIP |
-| `scripts/build-phase4-test-zip.sh` | ساخت ZIP تست از `tests/fixtures/modules/phase4-cache-test/` |
-| `scripts/verify-phase4-cache.sh` | بررسی symlink، left-pad، diagnostics HTTP |
+| `scripts/smoke/test-package-cache.sh` | smoke کش پکیج — دو upload با fixture ZIP |
+| `scripts/build-package-cache-fixture-zip.sh` | ساخت ZIP تست |
+| `scripts/verify-package-cache.sh` | بررسی symlink، left-pad، diagnostics HTTP |
+| `scripts/run-checks.sh` | health محلی + smoke اختیاری (`npm run checks`) |
+| `scripts/README.md` | منوی کامل اسکریپت‌ها |
 | `config/systemd/modulehub-cms.service` | نمونه با مسیر `/opt` — ولی unit واقعی رو `install-systemd.sh` می‌سازه |
 | `config/nginx/modulehub-cms.conf.example` | وقتی بخوای از بیرون با `example.com` بیای تو CMS |
 | `.env.example` | الگوی `SESSION_SECRET` و `ADMIN_PASSWORD_HASH` |

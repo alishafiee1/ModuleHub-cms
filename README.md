@@ -18,7 +18,7 @@ curl http://127.0.0.1:4000/health
 
 **Phase 3:** `POST /admin/module/:id/start|stop`, `GET /modules/<id>/` — Static/SPA serve + backend proxy (systemd-run / Docker).
 
-**Phase 4:** After ZIP upload — dependency cache at `/var/cache/modulehub/pkg/<hash>/` (SHA256 manifest, symlink, LRU). Smoke: `bash scripts/test-package-cache-manual.sh` on server.
+**Phase 4:** After ZIP upload — dependency cache at `/var/cache/modulehub/pkg/<hash>/` (SHA256 manifest, symlink, LRU). Smoke: `bash scripts/smoke/test-package-cache.sh` on server.
 
 **Phase 6:** Full backup/restore — API + UI in `/admin/settings` (backup card); per-module ZIP in ⚙. See `docs/backup-restore.md` and `docs/developer-guide.md` §9.1.
 

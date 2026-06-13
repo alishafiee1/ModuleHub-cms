@@ -92,7 +92,7 @@ input.task-list-item-checkbox {
 
 ### 2026-05-28 — /sync-docs وابستگی‌ها + fixture تست
 - **درخواست (UTC):** توضیح «معمای وابستگی‌ها» + `/sync-docs` — `node_modules` لازم نیست؛ نصب موقع upload
-- **نتیجه:** `developer-guide.md` §۲.۱ · patch `proposal` · `module-hosting-guide` · fixture `phase4-cache-test` + اسکریپت build ZIP
+- **نتیجه:** `developer-guide.md` §۲.۱ · patch `proposal` · `module-hosting-guide` · fixture `package-cache-test` + اسکریپت build ZIP
 
 ### 2026-05-28 — /sync-docs هم‌راستا با کد (فاز ۰–۴)
 - **درخواست (18:00 UTC):** `/sync-docs` — بروزرسانی `proposal` · `design plan` · `tasks` طبق §۶
@@ -106,7 +106,7 @@ input.task-list-item-checkbox {
 ### 2026-05-28 — فاز ۴ کش پکیج
 - **درخواست (13:00 سرور):** شروع فاز بعدی — openspec + `design plan.md` §۸
 - **نتیجه (13:45 سرور):** `package-cache` · ۵۶ تست unit · deploy `/opt` · تست دستی: upload1 ~۴s `installed:true` · upload2 ~۰s cache hit
-- **دستور تست:** `bash scripts/test-package-cache-manual.sh` (روی سرور؛ ZIP flat — نه پوشهٔ `mod/` داخل zip)
+- **دستور تست:** `bash scripts/smoke/test-package-cache.sh` (روی سرور؛ ZIP flat — نه پوشهٔ `mod/` داخل zip)
 
 ### 2026-05-28 — فاز ۳ runtime + deploy سایت
 - **درخواست (~صبح):** شروع فاز ۳؛ اجرای ماژول، Start/Stop، باز شدن `/modules/`

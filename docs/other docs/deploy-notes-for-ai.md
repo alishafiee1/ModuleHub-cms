@@ -160,8 +160,8 @@ bash scripts/deploy-full.sh
 ## package-cache (فاز ۴)
 
 - کش: `/var/cache/modulehub/pkg/<hash>/` — symlink به `node_modules` / `venv` / `vendor`
-- smoke: `bash scripts/test-package-cache-manual.sh` (ZIP باید `package.json` در **ریشه** zip باشد، نه داخل `mod/`)
-- اسکریپت از ویندوز → قبل از اجرا: `sed -i 's/\r$//' scripts/test-package-cache-manual.sh`
+- smoke: `bash scripts/smoke/test-package-cache.sh` (ZIP باید `package.json` در **ریشه** zip باشد، نه داخل `mod/`)
+- اسکریپت از ویندوز → قبل از اجرا: `sed -i 's/\r$//' scripts/smoke/test-package-cache.sh`
 
 ---
 

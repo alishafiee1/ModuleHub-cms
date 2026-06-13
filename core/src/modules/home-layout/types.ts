@@ -65,10 +65,17 @@ export interface CardBackground {
   overlayOpacity?: number;
 }
 
+/** Device breakpoint for per-device card layout */
+export type LayoutBreakpoint = 'desktop' | 'tablet' | 'mobile';
+
 /** Per-folder home canvas size (rows on the 30-column grid) */
 export interface FolderCanvasSettings {
-  /** Visible row count — default 9, expandable via UI */
+  /** Visible row count — default 9, expandable via UI (desktop) */
   gridRows: number;
+  /** Tablet canvas rows — falls back to gridRows when omitted */
+  gridRowsTablet?: number;
+  /** Mobile canvas rows — falls back to gridRowsTablet then gridRows */
+  gridRowsMobile?: number;
 }
 
 /** Tree node — folders contain children; modules reference modules map */
@@ -83,18 +90,33 @@ export interface LayoutTreeNode {
   folderCanvas?: FolderCanvasSettings;
   /** @deprecated Migrated to cardGrid — may appear briefly before lazy migration */
   cardSpan?: CardSpan;
-  /** Position and size on the 30×9 canvas */
+  /** Position and size on the desktop canvas (source of truth for PC) */
   cardGrid?: CardGridPosition;
+  /** Tablet breakpoint layout — optional; derived from desktop on first read */
+  cardGridTablet?: CardGridPosition;
+  /** Mobile breakpoint layout — optional; derived from tablet/desktop on first read */
+  cardGridMobile?: CardGridPosition;
   /** Custom card background (color or image + opacity); omitted means default glass style */
   cardBackground?: CardBackground;
 }
 
+/** One card entry in PATCH /admin/folder/:folderId/cards */
+export interface FolderCardUpdateEntry {
+  nodeId: string;
+  cardGrid?: CardGridPosition;
+  cardGridTablet?: CardGridPosition;
+  cardGridMobile?: CardGridPosition;
+  cardBackground?: CardBackground | null;
+}
+
 /** Payload for PATCH /admin/folder/:folderId/cards */
 export interface FolderCardsUpdatePayload {
-  /** Ordered list of nodes; order + cardGrid + cardBackground */
-  cards: Array<{ nodeId: string; cardGrid?: CardGridPosition; cardBackground?: CardBackground | null }>;
-  /** Optional canvas row count for the folder being edited */
+  /** Ordered list of nodes; order + per-breakpoint grids + cardBackground */
+  cards: FolderCardUpdateEntry[];
+  /** Desktop canvas row count */
   canvasGridRows?: number;
+  canvasGridRowsTablet?: number;
+  canvasGridRowsMobile?: number;
 }
 
 /** Parsed site-layout document */
@@ -136,6 +158,8 @@ export interface LayoutApiCore {
 /** API payload for GET /api/layout */
 export interface LayoutApiResponse extends LayoutApiCore {
   appearance: HomePageAppearance;
+  /** True when tablet/mobile layouts were derived and saved during this read */
+  derivedLayoutsSaved?: boolean;
 }
 
 /** Breadcrumb segment for folder navigation */

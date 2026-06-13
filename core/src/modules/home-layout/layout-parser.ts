@@ -126,7 +126,26 @@ function parseFolderCanvas(raw: unknown, nodeId: string): FolderCanvasSettings |
     );
   }
 
-  return { gridRows };
+  const settings: FolderCanvasSettings = { gridRows };
+
+  for (const [field, label] of [
+    ['gridRowsTablet', 'gridRowsTablet'],
+    ['gridRowsMobile', 'gridRowsMobile'],
+  ] as const) {
+    const rawValue = obj[field];
+    if (rawValue === undefined || rawValue === null) {
+      continue;
+    }
+    const value = Number(rawValue);
+    if (!Number.isInteger(value) || value < GRID_MIN_CANVAS_ROWS || value > GRID_MAX_CANVAS_ROWS) {
+      throw new LayoutParseError(
+        `Node "${nodeId}" folderCanvas.${label} must be ${GRID_MIN_CANVAS_ROWS}–${GRID_MAX_CANVAS_ROWS}`,
+      );
+    }
+    settings[field] = value;
+  }
+
+  return settings;
 }
 
 /** Thrown when site-layout JSON fails validation */
@@ -227,6 +246,16 @@ function parseTreeNode(raw: unknown, modules: Record<string, ModuleEntry>): Layo
   const cardGrid = parseCardGrid(raw.cardGrid, node.id);
   if (cardGrid !== undefined) {
     node.cardGrid = cardGrid;
+  }
+
+  const cardGridTablet = parseCardGrid(raw.cardGridTablet, node.id);
+  if (cardGridTablet !== undefined) {
+    node.cardGridTablet = cardGridTablet;
+  }
+
+  const cardGridMobile = parseCardGrid(raw.cardGridMobile, node.id);
+  if (cardGridMobile !== undefined) {
+    node.cardGridMobile = cardGridMobile;
   }
 
   const cardBg = parseCardBackground(raw.cardBackground, node.id);

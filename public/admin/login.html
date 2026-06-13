@@ -44,33 +44,25 @@
             transition: background 0.3s ease;
         }
 
-        /* Moving animated background bubbles/glows */
+        /* Static soft background glows — no blur or animation */
         .bg-glow-1, .bg-glow-2 {
             position: absolute;
-            width: 400px;
-            height: 400px;
+            width: 420px;
+            height: 420px;
             border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.15;
+            opacity: 0.14;
             z-index: 0;
             pointer-events: none;
-            animation: floatGlow 12s infinite alternate ease-in-out;
         }
         .bg-glow-1 {
-            background: #4f46e5;
+            background: radial-gradient(circle at center, rgba(79, 70, 229, 0.35) 0%, rgba(79, 70, 229, 0) 70%);
             top: -10%;
             right: -10%;
         }
         .bg-glow-2 {
-            background: #06b6d4;
+            background: radial-gradient(circle at center, rgba(6, 182, 212, 0.3) 0%, rgba(6, 182, 212, 0) 70%);
             bottom: -10%;
             left: -10%;
-            animation-delay: -6s;
-        }
-
-        @keyframes floatGlow {
-            0% { transform: translateY(0) scale(1); }
-            100% { transform: translateY(40px) scale(1.15); }
         }
 
         .login-wrapper {
@@ -82,8 +74,6 @@
 
         .login-card {
             background: var(--card-glass-bg);
-            backdrop-filter: blur(24px) saturate(190%);
-            -webkit-backdrop-filter: blur(24px) saturate(190%);
             border: 1px solid var(--card-glass-border);
             border-radius: 24px;
             padding: 2.5rem;

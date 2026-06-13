@@ -6,7 +6,7 @@ import {
   GRID_MIN_COLUMN_SPAN,
   GRID_MIN_ROW_SPAN,
 } from './grid-config';
-import type { CardGridPosition, LayoutTreeNode } from './types';
+import type { CardGridPosition, LayoutBreakpoint, LayoutTreeNode } from './types';
 
 /**
  * purpose --- checks whether two grid rectangles overlap ---
@@ -58,14 +58,58 @@ export function computeMinCanvasRowsForCards(cards: CardGridPosition[]): number 
 }
 
 /**
- * purpose --- default gridRows for a folder canvas ---
+ * purpose --- default gridRows for a folder canvas at a device breakpoint ---
+ * @param folder - Folder node (or null)
+ * @param breakpoint - desktop | tablet | mobile
  */
-export function resolveFolderCanvasGridRows(folder: LayoutTreeNode | null | undefined): number {
-  const raw = folder?.folderCanvas?.gridRows;
-  if (typeof raw === 'number' && raw >= GRID_MIN_CANVAS_ROWS) {
-    return raw;
+export function resolveFolderCanvasGridRows(
+  folder: LayoutTreeNode | null | undefined,
+  breakpoint: LayoutBreakpoint = 'desktop',
+): number {
+  const canvas = folder?.folderCanvas;
+  if (!canvas) {
+    return GRID_MIN_CANVAS_ROWS;
+  }
+
+  if (breakpoint === 'mobile') {
+    const mobile = canvas.gridRowsMobile;
+    if (typeof mobile === 'number' && mobile >= GRID_MIN_CANVAS_ROWS) {
+      return mobile;
+    }
+    const tablet = canvas.gridRowsTablet;
+    if (typeof tablet === 'number' && tablet >= GRID_MIN_CANVAS_ROWS) {
+      return tablet;
+    }
+  }
+
+  if (breakpoint === 'tablet') {
+    const tablet = canvas.gridRowsTablet;
+    if (typeof tablet === 'number' && tablet >= GRID_MIN_CANVAS_ROWS) {
+      return tablet;
+    }
+  }
+
+  const desktop = canvas.gridRows;
+  if (typeof desktop === 'number' && desktop >= GRID_MIN_CANVAS_ROWS) {
+    return desktop;
   }
   return GRID_MIN_CANVAS_ROWS;
+}
+
+/**
+ * purpose --- reads stored cardGrid for a node at the given breakpoint ---
+ */
+export function getNodeCardGridForBreakpoint(
+  node: LayoutTreeNode,
+  breakpoint: LayoutBreakpoint,
+): CardGridPosition | undefined {
+  if (breakpoint === 'mobile') {
+    return node.cardGridMobile ?? node.cardGridTablet ?? node.cardGrid;
+  }
+  if (breakpoint === 'tablet') {
+    return node.cardGridTablet ?? node.cardGrid;
+  }
+  return node.cardGrid;
 }
 
 /**

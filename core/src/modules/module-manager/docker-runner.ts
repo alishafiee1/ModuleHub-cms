@@ -125,7 +125,8 @@ async function applyDockerNetworkLimit(
   containerName: string,
   netMbps: number,
 ): Promise<void> {
-  const scriptPath = path.join(getAppRoot(), 'scripts', 'setup_net_limit.sh');
+  const scriptsDir = path.join(getAppRoot(), 'scripts');
+  const scriptPath = path.join(scriptsDir, 'setup-net-limit.sh');
   if (!(await fs.pathExists(scriptPath))) {
     return;
   }

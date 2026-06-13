@@ -45,11 +45,39 @@
   }
 
   /**
+   * purpose --- active layout breakpoint from viewport (mirrors card-canvas config) ---
+   */
+  function resolveViewportBreakpoint() {
+    const width = window.innerWidth;
+    if (width >= 1024) return 'desktop';
+    if (width >= 641) return 'tablet';
+    return 'mobile';
+  }
+
+  /**
+   * purpose --- canvas row count for folder at a device breakpoint ---
+   */
+  function resolveCanvasGridRowsForFolder(folderNode, breakpoint) {
+    const canvas = folderNode.folderCanvas;
+    if (!canvas) {
+      return 9;
+    }
+    if (breakpoint === 'mobile') {
+      return canvas.gridRowsMobile ?? canvas.gridRowsTablet ?? canvas.gridRows ?? 9;
+    }
+    if (breakpoint === 'tablet') {
+      return canvas.gridRowsTablet ?? canvas.gridRows ?? 9;
+    }
+    return canvas.gridRows ?? 9;
+  }
+
+  /**
    * purpose --- merges saved folder card order/grid/backgrounds into in-memory siteLayout ---
    * @param {string} folderId - Folder node id
-   * @param {Array<{ nodeId: string, cardGrid?: object, cardBackground?: object|null }>} cards - Saved payload
+   * @param {Array<object>} cards - Saved payload
+   * @param {number|object} [canvasOptions] - Legacy row count or per-breakpoint canvas options
    */
-  function applyFolderCardsToLocalLayout(folderId, cards, canvasGridRows) {
+  function applyFolderCardsToLocalLayout(folderId, cards, canvasOptions) {
     if (!siteLayout?.tree) {
       return;
     }
@@ -57,9 +85,26 @@
     if (!folderNode || folderNode.type !== 'folder' || !folderNode.children) {
       return;
     }
-    if (typeof canvasGridRows === 'number') {
-      folderNode.folderCanvas = { gridRows: canvasGridRows };
+
+    const options = typeof canvasOptions === 'number'
+      ? { canvasGridRows: canvasOptions }
+      : (canvasOptions || {});
+
+    if (
+      typeof options.canvasGridRows === 'number'
+      || typeof options.canvasGridRowsTablet === 'number'
+      || typeof options.canvasGridRowsMobile === 'number'
+    ) {
+      folderNode.folderCanvas = {
+        ...(folderNode.folderCanvas || { gridRows: 9 }),
+        ...(typeof options.canvasGridRows === 'number' ? { gridRows: options.canvasGridRows } : {}),
+        ...(typeof options.canvasGridRowsTablet === 'number'
+          ? { gridRowsTablet: options.canvasGridRowsTablet } : {}),
+        ...(typeof options.canvasGridRowsMobile === 'number'
+          ? { gridRowsMobile: options.canvasGridRowsMobile } : {}),
+      };
     }
+
     const existingById = new Map(folderNode.children.map((child) => [child.id, child]));
     folderNode.children = cards.map((entry) => {
       const original = existingById.get(entry.nodeId);
@@ -70,6 +115,12 @@
       if (entry.cardGrid) {
         updated.cardGrid = entry.cardGrid;
         delete updated.cardSpan;
+      }
+      if (entry.cardGridTablet) {
+        updated.cardGridTablet = entry.cardGridTablet;
+      }
+      if (entry.cardGridMobile) {
+        updated.cardGridMobile = entry.cardGridMobile;
       }
       if (entry.cardBackground === null) {
         delete updated.cardBackground;
@@ -235,6 +286,16 @@
     if (siteLayout.appearance) {
       siteAppearance = siteLayout.appearance;
     }
+    if (siteLayout.derivedLayoutsSaved && authStatus.isSuperAdmin && window.Swal) {
+      void Swal.fire({
+        toast: true,
+        position: 'top',
+        icon: 'warning',
+        title: 'چیدمان تبلت/موبایل از روی PC ساخته و ذخیره شد — در صورت نیاز ویرایش کنید.',
+        showConfirmButton: false,
+        timer: 4000,
+      });
+    }
     if (window.HomeFloatingBackground) {
       window.HomeFloatingBackground.updateAppearance(siteAppearance);
     }
@@ -279,6 +340,9 @@
   }
 
   function renderCards() {
+    if (window.CardLayoutEditor?.isEditModeActive?.()) {
+      return;
+    }
     const folderNode = findNodeById(siteLayout.tree, currentFolderId);
     if (!window.CardCanvas) {
       return;
@@ -297,7 +361,10 @@
         parentName: path[path.length - 2]?.name || 'خانه',
       }
       : {};
-    context.canvasGridRows = folderNode.folderCanvas?.gridRows;
+    const breakpoint = window.CardCanvas?.getEffectiveBreakpoint?.()
+      || resolveViewportBreakpoint();
+    context.breakpoint = breakpoint;
+    context.canvasGridRows = resolveCanvasGridRowsForFolder(folderNode, breakpoint);
 
     if (children.length === 0 && !context.showBackCard) {
       window.CardCanvas.showEmptyState('این پوشه خالی است.');
@@ -618,8 +685,22 @@
   window.addEventListener('modulehub:folder-cards-saved', (event) => {
     const detail = event.detail || {};
     if (detail.folderId && detail.cards) {
-      applyFolderCardsToLocalLayout(detail.folderId, detail.cards, detail.canvasGridRows);
+      const { folderId, cards, canvasGridRows, canvasGridRowsTablet, canvasGridRowsMobile } = detail;
+      applyFolderCardsToLocalLayout(folderId, cards, {
+        canvasGridRows,
+        canvasGridRowsTablet,
+        canvasGridRowsMobile,
+      });
     }
+  });
+
+  window.addEventListener('modulehub:layout-edit-ended', () => {
+    window.CardCanvas?.syncViewportBreakpoint?.();
+    renderCards();
+  });
+
+  window.addEventListener('modulehub:viewport-breakpoint-changed', () => {
+    renderCards();
   });
 
   window.addEventListener('modulehub:add-content', () => {
