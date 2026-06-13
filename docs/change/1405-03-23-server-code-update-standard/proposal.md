@@ -2,7 +2,7 @@
 
 # پروپزال — یک راه مشخص برای به‌روز کردن کد روی سرور
 
-> **مسیر:** `docs/change/server-code-update-standard/proposal.md`  
+> **مسیر:** `docs/change/1405-03-23-server-code-update-standard/proposal.md`  
 > **مرتبط:** استاندارد اسکریپت‌ها · وضعیت شبکهٔ سرور (اینترنت آزاد پیش‌فرض)
 
 ---

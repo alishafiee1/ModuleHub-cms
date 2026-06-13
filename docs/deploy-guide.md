@@ -62,7 +62,7 @@ git -C ~/ModuleHub-cms fetch origin   # باید بدون prompt باشد
 
 **جایگزین:** HTTPS + Personal Access Token در `git credential helper`.
 
-جزئیات خطاها: [`change/server-code-update-standard/design.md`](change/server-code-update-standard/design.md)
+جزئیات خطاها: [`change/1405-03-23-server-code-update-standard/design.md`](change/1405-03-23-server-code-update-standard/design.md)
 
 ## Deploy روزمره (بعد از هر push از ویندوز)
 

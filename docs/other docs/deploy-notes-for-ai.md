@@ -59,7 +59,7 @@ input.task-list-item-checkbox {
 
 ```bash
 source ~/.nvm/nvm.sh && nvm use 20
-bash ~/ModuleHub-cms/scripts/deploy-full.sh
+bash ~/ModuleHub-cms/scripts/deploy-full.sh --yes
 ```
 
 **دستی (مرحله‌به‌مرحله):**
@@ -80,7 +80,8 @@ curl -sf http://127.0.0.1:4000/health
 | `--yes` | تأیید خودکار سؤالات |
 | `--force-reset` | reset به origin/main بدون سؤال |
 | `--force-rebuild` | build حتی وقتی marker برابر است |
-| `--skip-wan` | بدون metric toggle |
+| `--skip-wan` | فقط git — بدون metric toggle (npm همچنان toggler) |
+| `--skip-wan-all` | git + npm بدون toggler (legacy — روی registry فیلترشده build می‌شکند) |
 | `--dry-run` | فقط چاپ مراحل |
 | `--no-restart` | build بدون restart |
 
@@ -139,7 +140,8 @@ bash scripts/deploy-full.sh
 | `ufw allow 4000` | فقط Nginx :443 |
 | SSH + `sudo systemctl` بدون TTY | `ssh -t` یا sudo broker |
 | ویرایش `scripts/` روی سرور | لوکال + push |
-| metric toggler crash | `MODULEHUB_SKIP_WAN=1` + همگام‌سازی git |
+| metric toggler crash | git: auto SKIP_WAN وقتی default=enp63s0 · npm: `run-with-free-wan` · **نه** `--skip-wan-all` روی registry فیلتر |
+| کپی unit با `User=deploy` | `deploy-full` از `install-systemd.sh` با `MODULEHUB_SERVICE_USER` استفاده می‌کند |
 | `npm: not found` در package-cache (systemd) | `MODULEHUB_NPM_PATH` در `.env` یا auto از `~/.nvm/versions/node/` |
 | SCP اسکریپت به clone + pull | `git push` + `deploy-full` · یا `reset --hard && git clean -fd` |
 | CRLF در `.sh` از ویندوز | `.gitattributes` · `sed -i 's/\r$//'` · LF قبل از SCP |

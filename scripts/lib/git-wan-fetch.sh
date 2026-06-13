@@ -150,7 +150,7 @@ log_git_auth_failure_hint() {
   local remote_url=""
   remote_url="$(git -C "${home_clone}" remote get-url origin 2>/dev/null || echo unknown)"
   log_error "Git auth failed — one-time setup required:"
-  log_error "  1) SSH deploy key: docs/change/server-code-update-standard/design.md (section 4)"
+  log_error "  1) SSH deploy key: docs/change/1405-03-23-server-code-update-standard/design.md (section 4)"
   log_error "  2) Or HTTPS + PAT in git credential helper"
   log_error "  Current remote: ${remote_url}"
 }

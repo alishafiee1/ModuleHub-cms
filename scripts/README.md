@@ -63,7 +63,7 @@ bash scripts/run-checks.sh
 |-----|--------|
 | عیب‌یابی سریع (health) | `bash scripts/run-checks.sh` یا `npm run checks` |
 | smoke کش پکیج (روی سرور) | `npm run smoke:package-cache` |
-| deploy کامل بعد از push | `bash scripts/deploy-full.sh` |
+| deploy کامل بعد از push | `bash scripts/deploy-full.sh --yes` |
 | deploy در opt (بدون pull) | `bash scripts/deploy-on-server.sh --skip-pull` |
 | git/npm از اینترنت آزاد | `bash scripts/run-with-free-wan.sh git pull origin main` |
 | backup ZIP کل سایت | `node scripts/cli.js backup --output /tmp/full.zip` |
@@ -109,7 +109,7 @@ fixture: `tests/fixtures/modules/package-cache-test/`
 | فایل | نقش |
 |------|-----|
 | `lib/deploy-common.sh` | log، مسیر home/opt |
-| `lib/git-wan-fetch.sh` | pull با fallback WAN |
+| `lib/git-wan-fetch.sh` | fetch/pull — auto SKIP_WAN وقتی default route = packageInstallInterface |
 | `lib/sudo-exec.sh` | broker یا sudo تعاملی |
 
 ---

@@ -49,7 +49,7 @@
 
 ## تموم شدن change
 
-- [ ] `/sync-docs` → پوشه `1405-XX-XX-server-code-update-standard`
+- [x] `/sync-docs` → پوشه `1405-03-23-server-code-update-standard`
 - [x] یک خط در `docs-personal/walkthrough.md`
 
 </div>
