@@ -3,7 +3,7 @@
 # پروپزال — چیدمان جداگانهٔ کارت برای موبایل، تبلت و PC
 
 > **مسیر:** `docs/change/device-card-layout/proposal.md`  
-> **مرتبط:** [UI-behavior.md](../../UI-behavior.md) §۱.۱ · بوم cardGrid فعلی  
+> **مرتبط:** [UI-behavior.md](../../UI-behavior.md) §۱.۱ · [behavior.md](./behavior.md) · بوم cardGrid فعلی  
 > **راهنما:** `AI learning docs/00-start-new-project/how-to-manage-change-folders.md`
 
 ---

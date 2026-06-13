@@ -3,7 +3,7 @@
 # tasks — چیدمان کارت per-device
 
 > **مسیر:** `docs/change/device-card-layout/tasks.md`  
-> **طراحی:** [design.md](./design.md)
+> **طراحی:** [design.md](./design.md) · **رفتار:** [behavior.md](./behavior.md)
 
 ---
 

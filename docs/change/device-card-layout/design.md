@@ -3,7 +3,7 @@
 # طراحی — چیدمان کارت per-device (موبایل / تبلت / PC)
 
 > **مسیر:** `docs/change/device-card-layout/design.md`  
-> **پیش‌نیاز:** [proposal.md](./proposal.md)
+> **پیش‌نیاز:** [proposal.md](./proposal.md) · **رفتار کاربر:** [behavior.md](./behavior.md)
 
 ---
 
