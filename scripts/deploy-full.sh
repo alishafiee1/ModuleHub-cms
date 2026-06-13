@@ -323,10 +323,9 @@ run_install_and_build() {
 }
 
 run_service_restart() {
-  local home_clone opt_dir service_file
+  local home_clone opt_dir
   home_clone="$(resolve_home_clone)"
   opt_dir="$(resolve_opt_dir)"
-  service_file="${opt_dir}/config/systemd/${DEPLOY_SERVICE_NAME}.service"
 
   if [[ "${DEPLOY_FLAG_NO_RESTART}" == true ]]; then
     log_warn "skipping service restart (--no-restart)"
@@ -340,10 +339,9 @@ run_service_restart() {
   fi
 
   detect_sudo_mode
-  if [[ -f "${service_file}" ]]; then
-    sudo_exec_run "cp '${service_file}' '/etc/systemd/system/${DEPLOY_SERVICE_NAME}.service' && systemctl daemon-reload && systemctl enable '${DEPLOY_SERVICE_NAME}'"
-  fi
-  sudo_exec_run "systemctl restart '${DEPLOY_SERVICE_NAME}'"
+  local service_user
+  service_user="${MODULEHUB_SERVICE_USER:-$(whoami)}"
+  sudo_exec_run "MODULEHUB_APP_DIR='${opt_dir}' MODULEHUB_SERVICE='${DEPLOY_SERVICE_NAME}' MODULEHUB_SERVICE_USER='${service_user}' bash '${opt_dir}/scripts/install-systemd.sh'"
   sleep 2
 }
 
