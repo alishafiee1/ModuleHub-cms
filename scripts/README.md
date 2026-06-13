@@ -65,7 +65,7 @@ bash scripts/run-checks.sh
 | smoke کش پکیج (روی سرور) | `npm run smoke:package-cache` |
 | deploy کامل بعد از push | `bash scripts/deploy-full.sh --yes` |
 | deploy در opt (بدون pull) | `bash scripts/deploy-on-server.sh --skip-pull` |
-| git/npm از اینترنت آزاد | `bash scripts/run-with-free-wan.sh git pull origin main` |
+| git pull در home | `bash scripts/lib/git-fetch.sh` یا `git pull --ff-only` |
 | backup ZIP کل سایت | `node scripts/cli.js backup --output /tmp/full.zip` |
 | sudo بدون پسورد مکرر | `python3 scripts/sudo_broker.py` + `run_via_broker.py` |
 
@@ -98,9 +98,7 @@ fixture: `tests/fixtures/modules/package-cache-test/`
 
 ## manual/
 
-| اسکریپت | کار |
-|---------|-----|
-| `manual/temp-free-wan-default.sh` | تغییر موقت default route — **ترجیحاً** `run-with-free-wan.sh` |
+(خالی — اسکریپت‌های موقت route حذف شده‌اند.)
 
 ---
 
@@ -109,7 +107,7 @@ fixture: `tests/fixtures/modules/package-cache-test/`
 | فایل | نقش |
 |------|-----|
 | `lib/deploy-common.sh` | log، مسیر home/opt |
-| `lib/git-wan-fetch.sh` | fetch/pull — auto SKIP_WAN وقتی default route = packageInstallInterface |
+| `lib/git-fetch.sh` | fetch/pull ساده با راهنمای auth |
 | `lib/sudo-exec.sh` | broker یا sudo تعاملی |
 
 ---
@@ -119,7 +117,6 @@ fixture: `tests/fixtures/modules/package-cache-test/`
 | قدیمی (ریشه) | canonical |
 |--------------|-----------|
 | `test-package-cache-manual.sh` | `smoke/test-package-cache.sh` |
-| `temp-free-wan-default.sh` | `manual/temp-free-wan-default.sh` |
 | `server-fix-deploy.sh` | `deploy-full.sh --yes` |
 
 ---

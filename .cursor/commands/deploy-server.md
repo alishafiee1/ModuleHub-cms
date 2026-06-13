@@ -1,6 +1,6 @@
 # Deploy ModuleHub CMS to production server
 
-You have SSH access to `deploy@203.0.113.1` (replace with your server). Deploy only after changes are pushed to GitHub (`main`). On **dual-NIC** hosts, `git pull` and `npm` may need temporary secondary route via `run-with-free-wan.sh`.
+You have SSH access to `deploy@203.0.113.1` (replace with your server). Deploy only after changes are pushed to GitHub (`main`). Server default route is on free internet — `git pull` and `npm ci` run directly.
 
 ## Architecture (do not confuse paths)
 
@@ -35,7 +35,7 @@ source ~/.nvm/nvm.sh && nvm use 20
 bash ~/ModuleHub-cms/scripts/deploy-full.sh
 ```
 
-`deploy-full.sh` runs: WAN-aware `git fetch/pull` → dirty-tree warning → commit compare vs `/opt/storage/.deploy-commit` → `install-to-opt` → `deploy-on-server.sh --skip-pull --skip-restart` → sudo restart (broker → passwordless → password prompt) → health → optional logrotate/nginx/dev-admin.
+`deploy-full.sh` runs: `git fetch/pull` → dirty-tree warning → commit compare vs `/opt/storage/.deploy-commit` → `install-to-opt` → `deploy-on-server.sh --skip-pull --skip-restart` → sudo restart (broker → passwordless → password prompt) → health → optional logrotate/nginx/dev-admin.
 
 **Non-interactive (AI):** `bash scripts/deploy-full.sh --yes --force-reset` when recovery needed.
 
@@ -45,7 +45,7 @@ bash ~/ModuleHub-cms/scripts/deploy-full.sh
 source ~/.nvm/nvm.sh && nvm use 20
 cd ~/ModuleHub-cms
 
-bash scripts/run-with-free-wan.sh git pull origin main
+git pull --ff-only origin main
 
 bash scripts/install-to-opt.sh
 
@@ -64,7 +64,6 @@ Only resets **home clone**, not `/opt` data:
 
 ```bash
 source ~/.nvm/nvm.sh && nvm use 20
-export MODULEHUB_SKIP_WAN=1
 cd ~/ModuleHub-cms
 git fetch origin
 git reset --hard origin/main
@@ -88,7 +87,7 @@ Re-check: `curl -s http://127.0.0.1:4000/api/auth/status` → `"isSuperAdmin":tr
 
 | Step | Needs sudo? | Why |
 |------|-------------|-----|
-| `git pull` + `run-with-free-wan` | Sometimes | `ip route` via `network-metric-toggler.py` |
+| `git pull` | No | runs as deploy user |
 | `install-to-opt.sh` | Sometimes | `mkdir/chown` under `/opt` if missing |
 | `deploy-on-server.sh` | **Yes** | `systemctl restart modulehub-cms`, install unit file |
 | `enable-dev-admin-on-server.sh` | **Yes** | systemd drop-in / restart |
@@ -100,8 +99,6 @@ python3 ~/ModuleHub-cms/scripts/run_via_broker.py 'systemctl restart modulehub-c
 ```
 
 If broker is missing or fails, **stop and ask the user** to either: (1) run `ssh -t deploy@your-server` once and enter sudo password, (2) configure passwordless sudo for `systemctl`/`cp`, or (3) start broker: `python3 ~/ModuleHub-cms/scripts/sudo_broker.py` (socket at `~/ModuleHub-cms/runtime/sudo_broker.sock`).
-
-If `run-with-free-wan` crashes (`ip route add` error): `export MODULEHUB_SKIP_WAN=1` and retry pull/deploy (user must ensure GitHub is reachable another way).
 
 ## Debug quick map
 

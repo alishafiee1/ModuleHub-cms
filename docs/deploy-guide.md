@@ -33,14 +33,7 @@ curl -s http://127.0.0.1:4000/health
 |--------|-----|--------|
 | توسعه | ویندوز | `commit` + `push` به `main` |
 | deploy | سرور home | `deploy-full.sh --yes` |
-| git | auto | اگر مسیر پیش‌فرض = `packageInstallInterface` → بدون metric toggle |
-| npm build | opt | هنوز از `run-with-free-wan` استفاده می‌کند — `--skip-wan-all` فقط برای legacy |
-
-### npm با اینترنت آزاد (dual-NIC)
-
-```bash
-bash scripts/run-with-free-wan.sh npm ci
-```
+| git / npm | مستقیم | سرور روی اینترنت آزاد — بدون تغییر metric یا route |
 
 ### build فقط در `/opt` (بدون git)
 
@@ -105,18 +98,6 @@ git -C ~/ModuleHub-cms fetch origin   # باید بدون prompt باشد
 **جایگزین:** HTTPS + Personal Access Token در `git credential helper`.
 
 جزئیات خطاها: [`change/1405-03-23-server-code-update-standard/design.md`](change/1405-03-23-server-code-update-standard/design.md)
-
-## dual-NIC (جزئیات)
-
-مسیر پیش‌فرض سرور روی اینترنت آزاد (`enp63s0`) است — **git** معمولاً بدون toggler کار می‌کند.
-
-**npm** / **docker** ممکن است هنوز به metric موقت یا `run-with-free-wan.sh` نیاز داشته باشند. اگر `npm ci` در `/opt` شکست خورد ولی `~/ModuleHub-cms/node_modules` موجود است، `deploy-full` خودکار از home build می‌گیرد.
-
-```bash
-bash scripts/run-with-free-wan.sh npm ci
-```
-
-`--skip-wan-all` در `deploy-full` هر دو git و npm را بدون toggler می‌گذارد — روی registry فیلترشده ممکن است build بشکند.
 
 ## Nginx
 

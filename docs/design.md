@@ -107,7 +107,6 @@ flowchart TB
 ├── thumbnails/               # تصاویر کارت ماژول‌ها
 └── scripts/                  # ابزارهای خط فرمان و کمکی
     ├── cli.js
-    ├── network-metric-toggler.py
     └── setup-net-limit.sh
 
 /var/cache/modulehub/pkg/     # کش پکیج‌های هش‌شده (<hash>/)
@@ -123,7 +122,7 @@ flowchart TB
 ### ۴.۱ پیش‌نیازهای سرور (از قبل مهیا است)
 - Ubuntu 22.04+ (کرنل 7.0+)
 - Node.js 20, npm, Docker, Nginx, systemd, git, curl
-- دسترسی به اینترنت آزاد (موقت) برای `docker pull` و `npm install` از طریق اسکریپت `network-metric-toggler`
+- دسترسی به اینترنت آزاد برای `docker pull` و `npm install` (مسیر پیش‌فرض سرور)
 
 ### ۴.۲ نصب هسته CMS
 
@@ -324,7 +323,7 @@ request → session parser
 | scan | `package.json` · `requirements.txt` · `composer.json` در **ریشه** پوشه ماژول (فایل داخل زیرپوشه zip شناسایی نمی‌شود) |
 | hash | SHA256 از محتوای manifestها (ترتیب ثابت بر اساس نام فایل) |
 | cache hit | symlink در ماژول: `node_modules` · `venv` · `vendor` → `/var/cache/modulehub/pkg/<hash>/` |
-| cache miss | نصب داخل `<hash>/` با `network-metric-toggler.py` (رابط `packageInstallInterface`، پیش‌فرض `enp63s0`) سپس symlink |
+| cache miss | نصب مستقیم داخل `<hash>/` سپس symlink |
 | LRU | وقتی مجموع > `maxPackageCacheGb` (۵ GB) — حذف قدیمی‌ترین entry (`.cache-meta.json`) |
 | پاسخ API | فیلد `dependencies` در JSON آپلود: `hash` · `installed` · `linkedTargets` · `message` |
 
@@ -366,7 +365,6 @@ request → session parser
 | **مهلت نصب وابستگی (ثانیه)** | ۶۰۰ | timeout npm/pip |
 | **ری‌استارت خودکار پس از crash** | خاموش | حداکثر ۳ بار/ساعت |
 | **پاک‌سازی ZIP موقت** | ۲۴ ساعت | `/tmp/modulehub-upload/` |
-| **رابط شبکه برای نصب پکیج** | `enp63s0` | موقت — npm/docker/git |
 | **حداکثر خطوط لاگ در پنل** | ۵۰ | دیالوگ چرخ‌دنده |
 | **مدت Session Super Admin (ساعت)** | ۸ | `sessionTtlHours` |
 | **حداکثر تلاش login در دقیقه** | ۵ | `loginRateLimitPerMinute` |
@@ -376,7 +374,7 @@ request → session parser
 | **پس‌زمینه صفحه اصلی** | `none` | `none` \| `floating-icons` — canvas Lucide |
 | **دسته آیکون صفحه اصلی** | `mixed` | `nature` \| `technology` \| `tools` \| `vehicles` \| `mixed` |
 
-**رادیو باکس رابط شبکه** (فقط ≥۲ NIC فعال): لیست از `ip -o link show up` — انتخاب رابط برای عملیات نصب. CMS با `network-metric-toggler` موقتاً metric را عوض و **restore** می‌کند. مسیر دائمی Ubuntu از پنل وب عوض **نمی‌شود** (ریسک خراب شدن default route سیستم).
+---
 
 **API (پیاده‌سازی 2026-05-29):** `GET /admin/settings` (صفحه) · `GET /admin/settings/data` · `POST /admin/settings` — `core/src/modules/system-settings/` · multer limit از `maxZipUploadMb` در هر upload.
 

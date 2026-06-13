@@ -150,7 +150,7 @@ fixture: [`tests/fixtures/modules/package-cache-test/`](../tests/fixtures/module
 | `requirements.txt` | `pip install -r requirements.txt` |
 | `composer.json` | `composer install` |
 
-- نصب پکیج ممکن است **اینترنت آزاد** بخواهد (dual-WAN — `design.md` §۱۰).
+- نصب پکیج به **اینترنت آزاد** (مسیر پیش‌فرض سرور) نیاز دارد.
 
 ---
 

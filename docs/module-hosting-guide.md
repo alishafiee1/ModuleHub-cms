@@ -84,15 +84,15 @@ my-site.zip
 
 > **کمبود doc:** persistence و DB هنوز در `tasks.md` تست نشده — فاز بعدی.
 
-### ۳.۵ شبکه dual-NIC (نصب vs اجرا)
+### ۳.۵ شبکه (نصب vs اجرا)
 
-| فاز | رابط | توضیح |
-|-----|------|--------|
-| **نinstall** (`npm`, `docker pull`) | secondary NIC موقت | `network-metric-toggler` + restore |
-| **سرو Static به کاربر** | از nginx/CMS | ترافیک عادی سایت |
-| **Runtime outbound** (ماژول به API خارجی) | **تعریف نشده کامل** | اگر ماژول در runtime به GitHub نیاز دارد → Docker + egress یا proxy داخلی |
+| فاز | توضیح |
+|-----|--------|
+| **نصب** (`npm`, `docker pull`) | از مسیر پیش‌فرض سرور (اینترنت آزاد) |
+| **سرو Static به کاربر** | از nginx/CMS — ترافیک عادی سایت |
+| **Runtime outbound** (ماژول به API خارجی) | **تعریف نشده کامل** — Docker + egress یا proxy داخلی |
 
-> **تناقض جزئی:** `proposal.md` می‌گوید «در تنظیمات هر ماژول رابط شبکه» — در `design.md` و `system-settings` فقط **نصب پکیج** global است. **رفع پیشنهادی:** runtime egress = فاز ۲ یا فقط Docker.
+> **تناقض جزئی:** `proposal.md` قدیمی می‌گوید «رابط شبکه هر ماژول» — در عمل فقط مسیر پیش‌فرض OS استفاده می‌شود.
 
 ### ۳.۶ امنیت
 

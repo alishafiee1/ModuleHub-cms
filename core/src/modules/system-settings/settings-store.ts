@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { PATHS } from '../../config/paths';
-import { listUpNetworkInterfaces, validatePackageInstallInterface } from './nic-validator';
 import { mergeSystemSettings } from './settings-merge';
 import { DEFAULT_SYSTEM_SETTINGS, seedSystemSettingsIfMissing } from './settings-loader';
 import { assertValidSystemSettings, SystemSettingsValidationError } from './schema-validator';
@@ -18,7 +17,7 @@ export async function writeSystemSettings(settings: SystemSettings): Promise<voi
 }
 
 /**
- * Applies a partial update with merge, schema validation, and NIC checks.
+ * Applies a partial update with merge and schema validation.
  * @param partialUpdate - Fields to change from the settings form
  * @returns Saved settings after validation
  */
@@ -40,12 +39,6 @@ export async function saveSystemSettingsUpdate(
       throw error;
     }
     throw new SystemSettingsValidationError('Invalid system settings');
-  }
-
-  const interfaces = await listUpNetworkInterfaces();
-  const nicError = validatePackageInstallInterface(validated.packageInstallInterface, interfaces);
-  if (nicError) {
-    throw new SystemSettingsValidationError(nicError);
   }
 
   await writeSystemSettings(validated);

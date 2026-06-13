@@ -5,15 +5,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/deploy-common.sh
 source "${SCRIPT_DIR}/lib/deploy-common.sh"
-# shellcheck source=lib/git-wan-fetch.sh
-source "${SCRIPT_DIR}/lib/git-wan-fetch.sh"
+# shellcheck source=lib/git-fetch.sh
+source "${SCRIPT_DIR}/lib/git-fetch.sh"
 # shellcheck source=lib/sudo-exec.sh
 source "${SCRIPT_DIR}/lib/sudo-exec.sh"
 
 DEPLOY_FLAG_YES=false
 DEPLOY_FLAG_FORCE_RESET=false
-DEPLOY_FLAG_SKIP_WAN=false
-DEPLOY_FLAG_SKIP_WAN_ALL=false
 DEPLOY_FLAG_DRY_RUN=false
 DEPLOY_FLAG_NO_RESTART=false
 DEPLOY_FLAG_FORCE_REBUILD=false
@@ -35,8 +33,6 @@ Options:
   --yes            Auto-confirm prompts
   --force-reset    Reset home clone to origin/main without asking (when local commits exist)
   --force-rebuild  Run install/build even when commit matches deployed marker
-  --skip-wan       Force MODULEHUB_SKIP_WAN=1 for git fetch/pull (npm still uses WAN toggler)
-  --skip-wan-all   Set MODULEHUB_SKIP_WAN=1 for git and npm (legacy — may break npm on filtered registry)
   --no-restart     Build only — skip systemd restart
   --dry-run        Print planned steps only
   -h, --help       Show this help
@@ -45,7 +41,6 @@ Environment:
   MODULEHUB_SOURCE          Home git clone (default: ~/ModuleHub-cms)
   MODULEHUB_APP_DIR           Live app dir (default: /opt/modulehub-cms)
   MODULEHUB_GIT_BRANCH        Branch (default: main)
-  MODULEHUB_WAN_INTERFACES    Comma-separated NIC list for git/npm fallback
 EOF
 }
 
@@ -55,8 +50,10 @@ parse_args() {
       --yes) DEPLOY_FLAG_YES=true; shift ;;
       --force-reset) DEPLOY_FLAG_FORCE_RESET=true; shift ;;
       --force-rebuild) DEPLOY_FLAG_FORCE_REBUILD=true; shift ;;
-      --skip-wan) DEPLOY_FLAG_SKIP_WAN=true; shift ;;
-      --skip-wan-all) DEPLOY_FLAG_SKIP_WAN=true; DEPLOY_FLAG_SKIP_WAN_ALL=true; shift ;;
+      --skip-wan|--skip-wan-all)
+        log_warn "ignored deprecated flag: $1 (WAN toggling removed — server uses default route)"
+        shift
+        ;;
       --no-restart) DEPLOY_FLAG_NO_RESTART=true; shift ;;
       --dry-run) DEPLOY_FLAG_DRY_RUN=true; shift ;;
       -h|--help) usage; exit 0 ;;
@@ -70,20 +67,6 @@ parse_args() {
   if [[ "${DEPLOY_FLAG_DRY_RUN}" == true ]]; then
     DEPLOY_DRY_RUN=true
   fi
-}
-
-enable_git_skip_wan() {
-  local home_clone="$1"
-  if [[ "${DEPLOY_FLAG_SKIP_WAN}" == true ]] || default_route_matches_package_interface "${home_clone}"; then
-    export MODULEHUB_SKIP_WAN=1
-  fi
-}
-
-restore_skip_wan_after_git() {
-  if [[ "${DEPLOY_FLAG_SKIP_WAN_ALL}" == true ]]; then
-    return 0
-  fi
-  unset MODULEHUB_SKIP_WAN
 }
 
 preflight_checks() {
@@ -229,10 +212,8 @@ run_git_sync() {
   local branch
   branch="$(resolve_branch)"
 
-  log_step "git fetch with WAN fallback"
-  enable_git_skip_wan "${home_clone}"
-  git_fetch_with_wan_fallback "${home_clone}"
-  restore_skip_wan_after_git
+  log_step "git fetch"
+  git_fetch_origin "${home_clone}"
 
   log_step "compare commits and plan deploy"
   compare_commits_and_plan "${home_clone}"
@@ -255,10 +236,6 @@ run_build_in_opt() {
   local opt_dir="$2"
   local deploy_args=(--skip-pull --skip-restart)
 
-  if [[ "${DEPLOY_FLAG_SKIP_WAN_ALL}" == true ]]; then
-    deploy_args+=(--skip-wan)
-  fi
-
   (
     cd "${opt_dir}"
     bash scripts/deploy-on-server.sh "${deploy_args[@]}"
@@ -274,11 +251,11 @@ run_build_with_home_fallback() {
   fi
 
   if [[ ! -d "${home_clone}/node_modules" ]]; then
-    log_error "opt build failed and home clone has no node_modules — run npm ci in home once from PC cache or free WAN"
+    log_error "opt build failed and home clone has no node_modules — run npm ci in home once"
     return 1
   fi
 
-  log_warn "opt npm ci failed (registry may be filtered) — building from home clone"
+  log_warn "opt npm ci failed — building from home clone"
   if [[ "${DEPLOY_DRY_RUN}" == true ]]; then
     log_info "[dry-run] cd ${home_clone} && npm run build && rsync dist → opt"
     return 0
@@ -305,11 +282,7 @@ run_install_and_build() {
   if [[ "${DEPLOY_DRY_RUN}" == true ]]; then
     log_info "[dry-run] bash ${home_clone}/scripts/install-to-opt.sh"
   else
-    local install_env=()
-    if [[ "${DEPLOY_FLAG_SKIP_WAN_ALL}" == true ]]; then
-      install_env+=(MODULEHUB_SKIP_WAN=1)
-    fi
-    env "${install_env[@]}" MODULEHUB_SOURCE="${home_clone}" MODULEHUB_APP_DIR="${opt_dir}" \
+    env MODULEHUB_SOURCE="${home_clone}" MODULEHUB_APP_DIR="${opt_dir}" \
       bash "${home_clone}/scripts/install-to-opt.sh"
   fi
 

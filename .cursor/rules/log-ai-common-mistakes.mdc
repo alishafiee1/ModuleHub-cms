@@ -68,7 +68,6 @@ alwaysApply: true
 | SSH Ubuntu | هرگز فقط سینتکس PowerShell (`$env:…`) نده — bash: `export VAR=1` |
 | سرور production | `npm start` / systemd / `.env` — نه `npm run dev` مگر devDeps نصب باشد |
 | راهنمای env | خط `.env` را **داخل nano** بنویس؛ کامنت `#` را در بلوک bash قابل اجرا نگذار |
-| dual-WAN / toggler crash | `export MODULEHUB_SKIP_WAN=1` + همگام‌سازی git (`reset --hard origin/main`) قبل از deploy دوباره |
 | تست UI | ویندوز و سرور را در دو بلوک جدا توضیح بده |
 
 ## پس از موفقیت کامل deploy/نصب

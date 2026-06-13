@@ -1,7 +1,6 @@
 import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs-extra';
-import { getAppRoot } from '../../config/paths';
 import type { SystemSettings } from '../system-settings/types';
 import type { CommandRunner, CommandRunResult } from './types';
 
@@ -49,36 +48,24 @@ export async function runShellCommand(
 }
 
 /**
- * Resolves path to network metric toggler script.
- * @returns Absolute path to Python toggler
- */
-export function getNetworkMetricTogglerPath(): string {
-  return path.join(getAppRoot(), 'scripts', 'network-metric-toggler.py');
-}
-
-/**
- * Runs an install command with temporary free-WAN routing when enabled.
+ * Runs a dependency install command in the given working directory.
  * @param installCommand - Shell install command
  * @param cwd - Working directory for install
- * @param settings - System settings with interface and timeout
+ * @param settings - System settings (timeout)
  * @param runner - Optional injectable runner for tests
  * @returns Command result
  */
-export async function runInstallWithNetworkToggle(
+export async function runInstallCommand(
   installCommand: string,
   cwd: string,
   settings: SystemSettings,
   runner: CommandRunner = { run: runShellCommand },
 ): Promise<CommandRunResult> {
-  if (process.env.MODULEHUB_SKIP_WAN === '1') {
-    return runner.run(installCommand, cwd, settings.dependencyInstallTimeoutSec);
-  }
-
-  const togglerPath = getNetworkMetricTogglerPath();
-  const escapedCommand = installCommand.replace(/"/g, '\\"');
-  const wrappedCommand = `python3 "${togglerPath}" --interface "${settings.packageInstallInterface}" --command "${escapedCommand}"`;
-  return runner.run(wrappedCommand, cwd, settings.dependencyInstallTimeoutSec);
+  return runner.run(installCommand, cwd, settings.dependencyInstallTimeoutSec);
 }
+
+/** @deprecated Use runInstallCommand — kept for import compatibility during transition */
+export const runInstallWithNetworkToggle = runInstallCommand;
 
 /**
  * Resolves absolute path to npm for dependency installs under systemd.

@@ -29,7 +29,6 @@ export interface SystemSettings {
   autoRestartOnCrash: boolean;
   autoRestartMaxAttemptsPerHour: number;
   uploadTempCleanupHours: number;
-  packageInstallInterface: string;
   logViewerMaxLines: number;
   sessionTtlHours: number;
   loginRateLimitPerMinute: number;

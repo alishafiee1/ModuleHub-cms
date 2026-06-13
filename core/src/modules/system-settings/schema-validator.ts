@@ -115,10 +115,6 @@ export function validateSystemSettingsSchema(
     errors.push('autoRestartOnCrash must be a boolean');
   }
 
-  if (typeof settings.packageInstallInterface !== 'string' || !settings.packageInstallInterface.trim()) {
-    errors.push('packageInstallInterface must be a non-empty string');
-  }
-
   const backgroundModes = ['none', 'floating-icons'];
   if (
     typeof settings.homePageBackgroundMode !== 'string'

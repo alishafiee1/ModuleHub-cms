@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Module management password storage
-Each module MAY have `managementPasswordHash` (bcrypt) and `managementPermissions` (default: `["start","stop","logs","edit"]`) in `site-layout.json`.
+Each module SHALL support optional `managementPasswordHash` (bcrypt) and `managementPermissions` (default: `["start","stop","logs","edit"]`) in `site-layout.json`.
 
 #### Scenario: Password set by Super Admin
 - **WHEN** Super Admin sets a module management password in edit dialog

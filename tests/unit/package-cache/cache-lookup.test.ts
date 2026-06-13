@@ -14,7 +14,6 @@ describe('package-cache cache lookup', () => {
   let cacheRoot: string;
   const previousAppRoot = process.env.MODULEHUB_APP_ROOT;
   const previousCacheDir = process.env.MODULEHUB_PACKAGE_CACHE_DIR;
-  const previousSkipWan = process.env.MODULEHUB_SKIP_WAN;
 
   beforeEach(async () => {
     tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'modulehub-cache-'));
@@ -22,7 +21,6 @@ describe('package-cache cache lookup', () => {
     cacheRoot = path.join(tempRoot, 'cache');
     process.env.MODULEHUB_APP_ROOT = tempRoot;
     process.env.MODULEHUB_PACKAGE_CACHE_DIR = cacheRoot;
-    process.env.MODULEHUB_SKIP_WAN = '1';
     await fs.ensureDir(moduleDirectory);
     await fs.writeFile(
       path.join(moduleDirectory, 'package.json'),
@@ -34,7 +32,6 @@ describe('package-cache cache lookup', () => {
   afterEach(async () => {
     process.env.MODULEHUB_APP_ROOT = previousAppRoot;
     process.env.MODULEHUB_PACKAGE_CACHE_DIR = previousCacheDir;
-    process.env.MODULEHUB_SKIP_WAN = previousSkipWan;
     await fs.remove(tempRoot);
   });
 

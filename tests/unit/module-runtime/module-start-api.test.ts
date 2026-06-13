@@ -95,7 +95,6 @@ describe('POST /admin/module/:id/start', () => {
       autoRestartOnCrash: false,
       autoRestartMaxAttemptsPerHour: 3,
       uploadTempCleanupHours: 24,
-      packageInstallInterface: 'enp63s0',
       logViewerMaxLines: 50,
       sessionTtlHours: 8,
       loginRateLimitPerMinute: 5,

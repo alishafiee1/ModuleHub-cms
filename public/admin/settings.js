@@ -3,8 +3,6 @@
   const cardsGrid = document.getElementById('settingsCardsGrid');
 
   let currentSettings = null;
-  let networkInterfaces = [];
-  let showNicSelector = false;
 
   const SETTINGS_HELP_TEXTS = {
     maxZipUploadMb: { title: 'حداکثر حجم ZIP', text: 'بزرگ‌ترین حجم فایل ZIP که می‌توانید آپلود کنید. اگر ماژول سنگین‌تر باشد، سرور خطای ۴۱۳ می‌دهد.' },
@@ -23,7 +21,6 @@
     logViewerMaxLines: { title: 'حداکثر خطوط log viewer', text: 'تعداد خطوط نمایش در دیالوگ مشاهده لاگ.' },
     autoRestartOnCrash: { title: 'راه‌اندازی مجدد خودکار', text: 'پس از crash، CMS تا سقف مجاز دوباره start می‌کند.' },
     autoRestartMaxAttemptsPerHour: { title: 'حداکثر تلاش در ساعت', text: 'سقف auto-restart در هر ساعت.' },
-    packageInstallInterface: { title: 'رابط شبکه نصب پکیج', text: 'کارت شبکه برای npm/docker/git — مسیر دائمی Ubuntu عوض نمی‌شود.' },
     sessionTtlHours: { title: 'Session Super Admin', text: 'چند ساعت بعد از login، session ادمین منقضی شود.' },
     loginRateLimitPerMinute: { title: 'محدودیت login', text: 'حداکثر تلاش login در دقیقه — بیشتر خطای ۴۲۹.' },
     moduleManagerSessionTtlHours: { title: 'Session Module Manager', text: 'مدت session ورود با رمز ماژول.' },
@@ -63,12 +60,6 @@
       summary: (s) => (s.autoRestartOnCrash
         ? `فعال · حداکثر ${s.autoRestartMaxAttemptsPerHour}/ساعت`
         : 'غیرفعال'),
-    },
-    {
-      id: 'network',
-      title: 'رابط شبکه نصب پکیج',
-      icon: 'fa-network-wired',
-      summary: (s) => `رابط: ${s.packageInstallInterface || '—'}`,
     },
     {
       id: 'home-appearance',
@@ -172,26 +163,28 @@
       + fieldHtml('autoRestartMaxAttemptsPerHour', 'حداکثر تلاش در ساعت', 'autoRestartMaxAttemptsPerHour', 'number', s.autoRestartMaxAttemptsPerHour, 'min="1"');
   }
 
-  function buildNetworkHtml(s) {
-    if (showNicSelector && networkInterfaces.length > 0) {
-      const options = networkInterfaces.map((iface) => {
-        const checked = s.packageInstallInterface === iface ? 'checked' : '';
-        return `<label data-help-key="packageInstallInterface">
-          <input type="radio" name="swal-nic" value="${iface}" ${checked}> ${iface}
-        </label>`;
-      }).join('');
-      return `<div class="swal-nic-options">${options}</div>
-        <p style="font-size:0.8rem;color:#64748b;margin-top:0.5rem;">وقتی ≥۲ NIC فعال باشد، انتخاب رابط الزامی است.</p>`;
-    }
-    return fieldHtml('packageInstallInterface', 'packageInstallInterface', 'packageInstallInterface', 'text', s.packageInstallInterface || '', 'required');
-  }
-
   function buildAuthHtml(s) {
     return fieldHtml('sessionTtlHours', 'Session TTL Super Admin (ساعت)', 'sessionTtlHours', 'number', s.sessionTtlHours, 'min="1"')
       + fieldHtml('loginRateLimitPerMinute', 'محدودیت login در دقیقه', 'loginRateLimitPerMinute', 'number', s.loginRateLimitPerMinute, 'min="1"')
       + fieldHtml('moduleManagerSessionTtlHours', 'Session TTL Module Manager (ساعت)', 'moduleManagerSessionTtlHours', 'number', s.moduleManagerSessionTtlHours, 'min="1"')
       + fieldHtml('modulePasswordMaxAttempts', 'حداکثر تلاش رمز ماژول', 'modulePasswordMaxAttempts', 'number', s.modulePasswordMaxAttempts, 'min="1"')
       + fieldHtml('modulePasswordLockoutMinutes', 'مدت lockout (دقیقه)', 'modulePasswordLockoutMinutes', 'number', s.modulePasswordLockoutMinutes, 'min="1"');
+  }
+
+  const DIALOG_BUILDERS = {
+    'upload-port': buildUploadPortHtml,
+    resources: buildResourcesHtml,
+    'schedule-cache': buildScheduleCacheHtml,
+    'auto-restart': buildAutoRestartHtml,
+    auth: buildAuthHtml,
+  };
+
+  function readSwalValue(id) {
+    return document.getElementById(`swal-${id}`)?.value;
+  }
+
+  function readSwalNumber(id) {
+    return Number(readSwalValue(id));
   }
 
   function buildHomeAppearanceHtml(s) {
@@ -240,23 +233,6 @@
     syncThemeSelectState();
   }
 
-  const DIALOG_BUILDERS = {
-    'upload-port': buildUploadPortHtml,
-    resources: buildResourcesHtml,
-    'schedule-cache': buildScheduleCacheHtml,
-    'auto-restart': buildAutoRestartHtml,
-    network: buildNetworkHtml,
-    auth: buildAuthHtml,
-  };
-
-  function readSwalValue(id) {
-    return document.getElementById(`swal-${id}`)?.value;
-  }
-
-  function readSwalNumber(id) {
-    return Number(readSwalValue(id));
-  }
-
   function readSwalChecked(id) {
     return Boolean(document.getElementById(`swal-${id}`)?.checked);
   }
@@ -295,13 +271,6 @@
         autoRestartOnCrash: readSwalChecked('autoRestartOnCrash'),
         autoRestartMaxAttemptsPerHour: readSwalNumber('autoRestartMaxAttemptsPerHour'),
       };
-    }
-    if (cardId === 'network') {
-      if (showNicSelector) {
-        const selected = document.querySelector('input[name="swal-nic"]:checked');
-        return { packageInstallInterface: selected?.value?.trim() || '' };
-      }
-      return { packageInstallInterface: readSwalValue('packageInstallInterface')?.trim() || '' };
     }
     if (cardId === 'auth') {
       return {
@@ -412,8 +381,6 @@
     try {
       const data = await ModuleHubApi.loadSystemSettings();
       currentSettings = data.settings;
-      networkInterfaces = data.networkInterfaces ?? [];
-      showNicSelector = Boolean(data.showNicSelector);
       await BackupSettingsDialog.refreshBackupMeta();
       renderCards();
     } catch (error) {

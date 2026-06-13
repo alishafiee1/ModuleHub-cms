@@ -83,7 +83,7 @@
 | 4.1 | شناسایی فایل وابستگی | اسکن پوشه ماژول برای `package.json`, `requirements.txt`, `composer.json` | لیست فایل‌ها شناسایی شود | unit manifest-scanner |
 | 4.2 | محاسبه هش SHA256 | از محتوای فایل(ها) | هش یکتا ایجاد شود | unit hash.test |
 | 4.3 | بررسی کش | وجود دایرکتوری `/var/cache/modulehub/pkg/<hash>` | در صورت وجود، symbolic link ایجاد شود | `ls -la standalone-modules/<id>/node_modules` |
-| 4.4 | نصب در صورت عدم وجود کش | `npm`/`pip`/`composer` با `network-metric-toggler` (رابط `enp63s0` موقت) | خروجی در کش + symlink | upload اول ~چند ثانیه |
+| 4.4 | نصب در صورت عدم وجود کش | `npm`/`pip`/`composer` مستقیم | خروجی در کش + symlink | upload اول ~چند ثانیه |
 | 4.5 | تست با دو ماژول مشابه | fixture ZIP `package-cache-test` — Backend + diagnostics | بار دوم `installed:false` · diagnostics PASS | `build-package-cache-fixture-zip.sh` + `smoke/test-package-cache.sh` + `verify-package-cache.sh` |
 | 4.6 | LRU eviction | وقتی کش > `maxPackageCacheGb` (۵ GB) | قدیمی‌ترین entry حذف شود | unit lru-eviction |
 | 4.7 | npm تحت systemd | سرویس CMS بدون nvm در PATH | مسیر npm از `~/.nvm/versions/node/` یا `MODULEHUB_NPM_PATH` | لاگ upload بدون `npm: not found` |
@@ -142,7 +142,7 @@
 |---|-------|--------|------------------|----------|
 | 7.5.1 | صفحه `/admin/settings` | فرم تنظیمات با ذخیره در `storage/system-settings.json` | مقادیر پیش‌فرض بارگذاری و ذخیره شوند | تغییر حد ZIP و reload |
 | 7.5.2 | محدودیت ZIP | multer از `maxZipUploadMb` (پیش‌فرض ۲۰۰) بخواند | ZIP بزرگ → 413 | آپلود 201MB |
-| 7.5.3 | رادیو رابط شبکه | لیست NIC از سرور؛ فقط ≥۲ کارت → نمایش radio | `packageInstallInterface` ذخیره شود | npm install + بررسی metric |
+| 7.5.3 | ~~رادیو رابط شبکه~~ | حذف شد — سرور روی اینترنت آزاد | — | — |
 | 7.5.4 | تخصیص پورت خودکار | allocator در محدوده `portRangeStart`–`portRangeEnd` | پورت آزاد بدون تداخل | نصب ۲ ماژول بدون پورت دستی |
 | 7.5.5 | restore metric | پس از npm/docker/git حتماً restore | لاگ toggler موفق | قطع وسط install → restore |
 
@@ -201,7 +201,7 @@
 | # | سناریو تست | روش تست | معیار قبولی |
 |---|------------|---------|-------------|
 | 9.1 | سناریوی کامل نصب ماژول | login Super Admin → + → ZIP → wizard → start → کلیک کارت | ماژول اجرا شود و محتوا نمایش یابد |
-| 9.2 | تست dual‑WAN برای npm install | نصب ماژول با `package.json` | لاگ `network-metric-toggler` |
+| 9.2 | تست نصب npm پس از upload | نصب ماژول با `package.json` | کش hit/miss در لاگ |
 | 9.3 | تست محدودیت Disk I/O | ماژول ۱۰۰MB write | سرعت کمتر با `dd` |
 | 9.4 | تست محدودیت Network | Docker `net_mbps: 1`، دانلود 5MB | ~40 ثانیه |
 | 9.5 | تست auth از اینترنت | login Super Admin از WAN | session + admin UI |

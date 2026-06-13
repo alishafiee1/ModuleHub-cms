@@ -16,6 +16,7 @@ export {
   buildComposerInstallCommand,
   buildNpmInstallCommand,
   buildPipInstallCommand,
+  runInstallCommand,
   runInstallWithNetworkToggle,
   runShellCommand,
 } from './network-install';

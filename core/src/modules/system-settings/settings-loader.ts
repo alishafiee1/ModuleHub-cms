@@ -23,7 +23,6 @@ export const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
   autoRestartOnCrash: false,
   autoRestartMaxAttemptsPerHour: 3,
   uploadTempCleanupHours: 24,
-  packageInstallInterface: 'enp63s0',
   logViewerMaxLines: 50,
   sessionTtlHours: 8,
   loginRateLimitPerMinute: 5,

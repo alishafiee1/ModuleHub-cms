@@ -89,8 +89,6 @@ input.task-list-item-checkbox {
 | `deploy-on-server.sh` | بعد از هر آپدیت کد: pull، build، restart، چک سلامت |
 | `deploy-full.sh` | **استاندارد روزمره** — fetch در home، sync به opt، build، restart |
 | `install-to-opt.sh` | home → `/opt` + **`npm ci` در opt** |
-| `run-with-free-wan.sh` | هر دستور (git/npm) را موقت از `enp63s0` می‌فرستد و برمی‌گرداند |
-| `network-metric-toggler.py` | موتور پایین — معمولاً مستقیم صدا نزن |
 
 ---
 
@@ -150,36 +148,6 @@ bash scripts/install-to-opt.sh
 cd /opt/modulehub-cms
 bash scripts/install-systemd.sh   # ترمینال با sudo
 ```
-
----
-
-## `run-with-free-wan.sh` — npm و docker (git معمولاً بدون آن)
-
-از ۱۴۰۵/۰۳/۲۱ مسیر پیش‌فرض سرور روی **`enp63s0`** (اینترنت آزاد) است — **`git fetch`/`pull`** در `deploy-full` معمولاً بدون metric toggle انجام می‌شود.
-
-**npm registry** و **docker pull** ممکن است هنوز فیلتر باشند؛ این wrapper موقت metric را روی `packageInstallInterface` (پیش‌فرض `enp63s0`) تنظیم می‌کند و بعد restore می‌کند.
-
-```bash
-cd ~/ModuleHub-cms
-bash scripts/run-with-free-wan.sh npm ci
-bash scripts/run-with-free-wan.sh docker pull node:20-alpine
-```
-
-NIC: `storage/system-settings.json` → `packageInstallInterface` — یا env `MODULEHUB_PACKAGE_INSTALL_INTERFACE`
-
-`deploy-on-server.sh` و `install-to-opt.sh` برای **npm** خودکار از همین wrapper استفاده می‌کنند. `deploy-full.sh` فقط با `--skip-wan-all` npm را هم بدون toggler می‌گذارد.
-
----
-
-## `network-metric-toggler.py` — برای dual-WAN (پایین‌لایه)
-
-روی سرورهای dual-NIC دو کارت شبکه داری (مثلاً `eth0` primary، `eth1` secondary). وقتی ماژولی `npm install` می‌خواد، این اسکریپت موقتاً ترافیک دانلود را از رابط ثانویه رد می‌کند و بعد metric را restore می‌کند.
-
-```bash
-python3 scripts/network-metric-toggler.py --interface enp63s0 --command "npm install"
-```
-
-فعلاً فاز اول CMS بهش نیاز نداره — بعداً با ماژول‌ها کار می‌کنیم.
 
 ---
 

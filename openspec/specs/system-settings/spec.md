@@ -1,5 +1,8 @@
-## ADDED Requirements
+# system-settings Specification
 
+## Purpose
+TBD - created by archiving change modulehub-cms-v1. Update Purpose after archive.
+## Requirements
 ### Requirement: Settings page
 The system SHALL expose `/admin/settings` as a form page editable only by Super Admin session (from internet or LAN).
 
@@ -24,13 +27,6 @@ Upload middleware SHALL read `maxZipUploadMb` from system settings for multer li
 #### Scenario: Updated ZIP limit
 - **WHEN** admin changes `maxZipUploadMb` to 100 and saves
 - **THEN** subsequent uploads over 100 MB are rejected with 413
-
-### Requirement: Network interface radio
-When server has ≥2 active NICs, settings page SHALL show radio buttons listing interfaces from `ip -o link show up`.
-
-#### Scenario: Interface selection saved
-- **WHEN** admin selects `enp63s0` for package install interface
-- **THEN** `packageInstallInterface` is saved and used for dependency installs
 
 ### Requirement: Default module resources
 New modules SHALL inherit `defaultModuleResources` from system settings in the add wizard.
@@ -70,3 +66,4 @@ System settings SHALL include `sessionTtlHours` (8), `loginRateLimitPerMinute` (
 #### Scenario: Module lockout configured
 - **WHEN** `modulePasswordMaxAttempts` is 5 and user fails 5 times
 - **THEN** module auth is locked for `modulePasswordLockoutMinutes`
+

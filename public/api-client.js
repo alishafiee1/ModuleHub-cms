@@ -379,7 +379,7 @@ const ModuleHubApi = (function createModuleHubApi() {
 
   /**
    * Loads system settings for the admin settings page.
-   * @returns {Promise<{ settings: object, networkInterfaces: string[], showNicSelector: boolean }>}
+   * @returns {Promise<{ settings: object }>}
    */
   async function loadSystemSettings() {
     return requestJson('/admin/settings/data');

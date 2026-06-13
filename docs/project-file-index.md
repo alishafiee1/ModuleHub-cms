@@ -63,8 +63,7 @@
 | `scripts/deploy-full.sh` | **تنها** نقطهٔ ورود deploy سرور |
 | `scripts/deploy-on-server.sh` | build در `/opt` |
 | `scripts/install-to-opt.sh` | rsync home → `/opt` |
-| `scripts/run-with-free-wan.sh` | wrap با dual-NIC |
-| `scripts/network-metric-toggler.py` | موقت کردن metric اینترنت آزاد |
+| `scripts/lib/git-fetch.sh` | fetch/pull ساده در deploy |
 | `scripts/sudo_broker.py` | broker sudo برای deploy |
 | `scripts/cli.js` | بکاپ CLI از ترمینال |
 | `scripts/smoke/test-package-cache.sh` | smoke تست کش پکیج |

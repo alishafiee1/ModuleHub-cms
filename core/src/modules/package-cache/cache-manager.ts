@@ -22,7 +22,7 @@ import {
   buildComposerInstallCommand,
   buildNpmInstallCommand,
   buildPipInstallCommand,
-  runInstallWithNetworkToggle,
+  runInstallCommand,
   runShellCommand,
 } from './network-install';
 import type {
@@ -78,7 +78,7 @@ async function installKindIntoCache(
 ): Promise<void> {
   await copyManifestFilesForInstall(moduleDirectory, cacheEntryDirectory, manifest);
   const command = getInstallCommandForKind(manifest.kind);
-  const result = await runInstallWithNetworkToggle(command, cacheEntryDirectory, settings, runner);
+  const result = await runInstallCommand(command, cacheEntryDirectory, settings, runner);
 
   if (result.exitCode !== 0) {
     throw new Error(

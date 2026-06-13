@@ -3,7 +3,6 @@ import { Router as createRouter } from 'express';
 import path from 'path';
 import { PATHS } from '../../config/paths';
 import { requireSuperAdminMiddleware } from '../admin-auth';
-import { listUpNetworkInterfaces } from './nic-validator';
 import { loadSystemSettings } from './settings-loader';
 import { saveSystemSettingsUpdate } from './settings-store';
 import { SystemSettingsValidationError } from './schema-validator';
@@ -20,23 +19,15 @@ export function getSettingsPageHandler(request: Request, response: Response): vo
 }
 
 /**
- * Handles GET /admin/settings/data — returns current settings and NIC options.
+ * Handles GET /admin/settings/data — returns current settings.
  * @param request - Express request
  * @param response - Express response
  */
 export async function getSettingsDataHandler(request: Request, response: Response): Promise<void> {
   void request;
   try {
-    const [settings, networkInterfaces] = await Promise.all([
-      loadSystemSettings(),
-      listUpNetworkInterfaces(),
-    ]);
-
-    response.status(200).json({
-      settings,
-      networkInterfaces,
-      showNicSelector: networkInterfaces.length >= 2,
-    });
+    const settings = await loadSystemSettings();
+    response.status(200).json({ settings });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to load settings';
     response.status(500).json({ error: message });

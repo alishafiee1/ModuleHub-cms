@@ -5,11 +5,6 @@ export {
   SystemSettingsValidationError,
   validateSystemSettingsSchema,
 } from './schema-validator';
-export {
-  listUpNetworkInterfaces,
-  parseNetworkInterfaceList,
-  validatePackageInstallInterface,
-} from './nic-validator';
 export { saveSystemSettingsUpdate, writeSystemSettings } from './settings-store';
 export { createDynamicUploadMiddleware, createSystemSettingsRouter } from './settings-routes';
 export type { SystemSettings } from './types';
