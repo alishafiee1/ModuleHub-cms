@@ -1,56 +1,10 @@
-<style>
-body, p, h1, h2, h3, h4, h5, h6, li, ul, ol {
-  font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
-  direction: rtl;
-  text-align: right;
-}
-pre, code {
-  direction: ltr;
-  text-align: left;
-}
-.markdown-body table,
-.markdown-preview-section table,
-table {
-  direction: rtl !important;
-  text-align: right !important;
-  width: 100%;
-  border-collapse: collapse;
-  margin-inline-start: 0;
-  margin-inline-end: auto;
-}
-.markdown-body th,
-.markdown-body td,
-.markdown-preview-section th,
-.markdown-preview-section td,
-table thead th,
-table tbody td,
-table th,
-table td {
-  text-align: right !important;
-  direction: rtl;
-  vertical-align: top;
-  padding: 0.35em 0.5em;
-}
-table td code,
-table th code,
-.markdown-body table td code,
-.markdown-body table th code {
-  direction: ltr;
-  unicode-bidi: embed;
-  text-align: right !important;
-  display: inline-block;
-}
-.task-list-item input[type="checkbox"],
-input.task-list-item-checkbox {
-  margin: 0 0.5em 0 0 !important;
-}
-</style>
+<div dir="rtl" style="text-align:right;">
 
+# ModuleHub CMS — طراحی فنی
 
+## سامانهٔ مدیریت محتوای ماژولار — معماری، مسیرها، API
 
-# ModuleHub CMS – پروپزال جامع
-
-## سامانه‌ی مدیریت محتوای ماژولار با قابلیت افزودن ماژول‌های مستقل بدون تغییر در کد هسته
+> روایت محصول و «چرا» → [`proposal.md`](proposal.md)
 
 ---
 
@@ -469,7 +423,7 @@ request → session parser
 | POST | `/admin/card-background/upload` | multipart — jpeg/png/webp ≤۲MB → `storage/card-backgrounds/` |
 | GET | `/card-backgrounds/<file>` | سرو عمومی تصویر پس‌زمینه |
 
-**UI ویرایش:** نوار ابزار بالای بوم — drag/resize، دستگیره ارتفاع بوم، پالت پس‌زمینه — debounce ۵۰۰ms → PATCH. جزئیات رفتار: `docs/UI-behavior.md` §۱.۱.
+**UI ویرایش:** نوار ابزار بالای بوم — drag/resize، دستگیره ارتفاع بوم، پالت پس‌زمینه — debounce ۵۰۰ms → PATCH. جزئیات رفتار: `docs/ui-behavior.md` §۱.۱.
 
 ---
 
@@ -505,12 +459,12 @@ request → session parser
 
 ### ۱۳.۳ نقش فایل‌های docs (برای AI)
 
-قواعد کامل: **`docs/ai-doc-guide.md`**
+قواعد کامل: **`docs-for-ai/map.md`**
 
 | فایل | نقش |
 |------|-----|
 | `proposal.md` | روایی — چالش و راه‌حل برای انسان |
-| `design plan.md` | فنی — جدول، مسیر، API داخلی |
+| `design.md` | فنی — جدول، مسیر، API داخلی |
 | `tasks.md` | چک‌لیست — فقط تسک و تست |
 | `system-settings.example.json` | پیش‌فرض‌های واقعی — منبع عدد |
 | `site-layout.json` | نمونه schema ماژول |
@@ -520,11 +474,11 @@ request → session parser
 | `code-rolls.md` | قواعد کد برای AI |
 
 **AI معمولاً این‌ها را رعایت نمی‌کند — ممنوع:**
-- جدول/عدد فنی در `proposal.md` (→ `design plan.md`)
+- جدول/عدد فنی در `proposal.md` (→ `design.md`)
 - مسیر کش/لاگ زیر `storage/` (→ `/var/cache/modulehub/` و `/var/log/modulehub/`)
 - تغییر دائمی `default route` از پنل (→ فقط metric موقت + restore)
 - حدس زدن پیش‌فرض تنظیمات (→ `system-settings.example.json`)
-- داستان و تشبیه در `design plan.md` / `tasks.md`
+- داستان و تشبیه در `design.md` / `tasks.md`
 
 ### ۱۳.۴ ساختار مخزن Git (اصلی)
 ```
@@ -566,16 +520,55 @@ modulehub-cms/
 
 ## ۱۵. جمع‌بندی
 
-ModuleHub CMS پلتفرمی است که **امنیت، جداسازی، و سهولت توسعه** را با هم ترکیب می‌کند. با حذف API خارجی و استفاده از مکانیزم‌های بومی لینوکس، به شما قدرت افزودن هر نوع محتوای وب را بدون دخالت در کد اصلی می‌دهد.
+جزئیات endpoint و جدول‌ها در §های بالا. برای داستان محصول → `proposal.md`.
 
-**مزایای کلیدی:**
-- ✓ بدون تغییر در کد هسته
-- ✓ پشتیبانی از انواع ماژول‌ها (Static, SPA, Backend, Dockerized)
-- ✓ محدودیت دقیق منابع (CPU, RAM, I/O, Network)
-- ✓ کش پکیج برای نصب سریع
-- ✓ پشتیبان‌گیری و بازیابی یکپارچه
-- ✓ مستندات کامل و قوانین کدنویسی شفاف
-- ✓ احراز هویت Session — Super Admin از اینترنت + Module Manager per-module
-- ✓ عدم API عمومی بدون session — مدیریت با login یا رمز ماژول
+**فیچرهای بسته‌شده (جزئیات در change/):** card canvas per-device → `change/1405-03-23-device-card-layout/` · استاندارد deploy سرور → `change/1405-03-23-server-code-update-standard/`
 
-**آماده برای پیاده‌سازی فاز صفر.**
+</div>
+<style>
+body, p, h1, h2, h3, h4, h5, h6, li, ul, ol {
+  font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
+  direction: rtl;
+  text-align: right;
+}
+pre, code {
+  direction: ltr;
+  text-align: left;
+}
+.markdown-body table,
+.markdown-preview-section table,
+table {
+  direction: rtl !important;
+  text-align: right !important;
+  width: 100%;
+  border-collapse: collapse;
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+}
+.markdown-body th,
+.markdown-body td,
+.markdown-preview-section th,
+.markdown-preview-section td,
+table thead th,
+table tbody td,
+table th,
+table td {
+  text-align: right !important;
+  direction: rtl;
+  vertical-align: top;
+  padding: 0.35em 0.5em;
+}
+table td code,
+table th code,
+.markdown-body table td code,
+.markdown-body table th code {
+  direction: ltr;
+  unicode-bidi: embed;
+  text-align: right !important;
+  display: inline-block;
+}
+.task-list-item input[type="checkbox"],
+input.task-list-item-checkbox {
+  margin: 0 0.5em 0 0 !important;
+}
+</style>

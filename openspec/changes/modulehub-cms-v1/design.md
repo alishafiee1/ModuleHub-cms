@@ -14,7 +14,7 @@ table td code, table th code { direction: ltr; unicode-bidi: embed; text-align: 
 
 ModuleHub CMS یک پلتفرم greenfield است که روی Ubuntu 22.04+ با Nginx (HTTPS → `127.0.0.1:4000`) اجرا می‌شود. در سرورهای dual-NIC، نصب وابستگی‌ها از رابط ثانویه با `network-metric-toggler` انجام می‌شود. **امنیت admin در لایه CMS** — Session Super Admin + Module Manager (نه محدودیت IP در Nginx).
 
-**مرجع:** `docs/design plan.md` §۶.۵، `docs/system-settings.example.json`
+**مرجع:** `docs/design.md` §۶.۵، `docs/system-settings.example.json`
 
 **محدودیت‌ها:**
 - بدون DB خارجی — JSON + session store (memory یا file)
@@ -41,7 +41,7 @@ ModuleHub CMS یک پلتفرم greenfield است که روی Ubuntu 22.04+ با
 
 ### 1–7. (Stack, storage, frontend, runtime, resources, cache, dual-WAN)
 
-همان تصمیمات قبلی — مرجع `docs/design plan.md` §۱–§۷.
+همان تصمیمات قبلی — مرجع `docs/design.md` §۱–§۷.
 
 ### 8. احراز هویت — Session + Module Manager
 

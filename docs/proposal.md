@@ -1,39 +1,4 @@
-<style>
-body, p, h1, h2, h3, h4, h5, h6, li, ul, ol {
-    font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
-    direction: rtl;
-    text-align: right;
-}
-
-pre, code {
-    direction: ltr;
-    text-align: left;
-}
-
-table {
-    direction: rtl;
-    text-align: right;
-    width: 100%;
-    border-collapse: collapse;
-    margin-inline-start: 0;
-    margin-inline-end: auto;
-}
-
-thead th,
-tbody td {
-    text-align: right;
-    vertical-align: top;
-    padding: 0.35em 0.5em;
-}
-
-table td code,
-table th code {
-    direction: ltr;
-    unicode-bidi: embed;
-    text-align: left;
-    display: inline-block;
-}
-</style>
+<div dir="rtl" style="text-align:right;">
 
 # ModuleHub CMS
 
@@ -92,7 +57,7 @@ table th code {
 - Session امن (cookie) تا چند ساعت فعال می‌ماند.
 - با این ورود: کارت **+**، تنظیمات سراسری، backup کامل، نصب و حذف ماژول — همه در دسترس است.
 
-> جزئیات فنی: `design plan.md` §۶.۵
+> جزئیات فنی: `design.md` §۶.۵
 
 ### Module Manager — رمز جدا برای هر ماژول
 
@@ -224,7 +189,7 @@ table th code {
 - بدون `package.json` / `requirements.txt` / `composer.json` → CMS چیزی دانلود نمی‌کند
 - ماژول دوم با همان وابستگی → ثانیه‌ها نه دقیقه‌ها
 
-جزئیات فنی: `design plan.md` §۸ · سازنده ماژول: `developer-guide.md` §۲.۱ · smoke: `scripts/smoke/test-package-cache.sh`
+جزئیات فنی: `design.md` §۸ · سازنده ماژول: `developer-guide.md` §۲.۱ · smoke: `scripts/smoke/test-package-cache.sh`
 
 ---
 
@@ -238,7 +203,7 @@ table th code {
 - پورت خالی در Add wizard → CMS خودش از محدوده ۴۱۰۰–۴۹۹۹ می‌دهد
 - دو کارت شبکه → با radio انتخاب می‌کنید نصب پکیج از کدام خط برود؛ **مسیر دائمی Ubuntu عوض نمی‌شود** (default route سیستم ثابت می‌ماند)
 
-جزئیات اعداد، فیلدها و JSON: `design plan.md` §۱۰ و `system-settings.example.json`.
+جزئیات اعداد، فیلدها و JSON: `design.md` §۱۰ و `system-settings.example.json`.
 
 ---
 
@@ -253,7 +218,7 @@ table th code {
 - بکاپ **کل سایت** از **تنظیمات سراسری** → کارت «پشتیبان‌گیری و بازیابی»: ایجاد، لیست، دانلود، بازیابی از سرور یا آپلود ZIP.
 - هر بار بکاپ → فایل جدید در `storage/backups/`؛ API/CLI همچنان در دسترس است.
 
-جزئیات: `docs/backup-restore.md` · `design plan.md` §۱۱
+جزئیات: `docs/backup-restore.md` · `design.md` §۱۱
 
 ---
 
@@ -305,3 +270,52 @@ table th code {
 - **برای سایت:** کد اصلی هیچوقت تغییر نمی‌کند.
 
 هر قابلیت جدید، یک ماژول جدید، یک کارت جدید. به همین سادگی.
+
+</div>
+<style>
+body, p, h1, h2, h3, h4, h5, h6, li, ul, ol {
+  font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
+  direction: rtl;
+  text-align: right;
+}
+pre, code {
+  direction: ltr;
+  text-align: left;
+}
+.markdown-body table,
+.markdown-preview-section table,
+table {
+  direction: rtl !important;
+  text-align: right !important;
+  width: 100%;
+  border-collapse: collapse;
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+}
+.markdown-body th,
+.markdown-body td,
+.markdown-preview-section th,
+.markdown-preview-section td,
+table thead th,
+table tbody td,
+table th,
+table td {
+  text-align: right !important;
+  direction: rtl;
+  vertical-align: top;
+  padding: 0.35em 0.5em;
+}
+table td code,
+table th code,
+.markdown-body table td code,
+.markdown-body table th code {
+  direction: ltr;
+  unicode-bidi: embed;
+  text-align: right !important;
+  display: inline-block;
+}
+.task-list-item input[type="checkbox"],
+input.task-list-item-checkbox {
+  margin: 0 0.5em 0 0 !important;
+}
+</style>

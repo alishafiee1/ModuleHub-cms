@@ -16,6 +16,48 @@ pre, code {
 
 راهنمای عمومی برای deploy روی Ubuntu. IP و دامنهٔ نمونه: `deploy@203.0.113.1` و `example.com` (RFC5737 — با مقادیر واقعی خودت جایگزین کن).
 
+## کامندهای پرکاربرد
+
+> **قانون:** روی سرور کد ننویس — فقط pull، build، restart. توسعه روی ویندوز: `commit` + `push` → بعد روی سرور deploy.
+
+### Deploy روزمره (بعد از هر push)
+
+```bash
+cd ~/ModuleHub-cms
+bash scripts/deploy-full.sh --yes
+bash scripts/run-checks.sh
+curl -s http://127.0.0.1:4000/health
+```
+
+| مرحله | کجا | توضیح |
+|--------|-----|--------|
+| توسعه | ویندوز | `commit` + `push` به `main` |
+| deploy | سرور home | `deploy-full.sh --yes` |
+| git | auto | اگر مسیر پیش‌فرض = `packageInstallInterface` → بدون metric toggle |
+| npm build | opt | هنوز از `run-with-free-wan` استفاده می‌کند — `--skip-wan-all` فقط برای legacy |
+
+### npm با اینترنت آزاد (dual-NIC)
+
+```bash
+bash scripts/run-with-free-wan.sh npm ci
+```
+
+### build فقط در `/opt` (بدون git)
+
+```bash
+cd /opt/modulehub-cms
+bash scripts/deploy-on-server.sh
+curl -s http://127.0.0.1:4000/health
+```
+
+### خاموش کردن bypass ادمین (قبل go-live)
+
+```bash
+bash scripts/disable-dev-admin-on-server.sh
+```
+
+---
+
 ## پیش‌نیازها
 
 - Ubuntu 22.04+
@@ -64,28 +106,7 @@ git -C ~/ModuleHub-cms fetch origin   # باید بدون prompt باشد
 
 جزئیات خطاها: [`change/1405-03-23-server-code-update-standard/design.md`](change/1405-03-23-server-code-update-standard/design.md)
 
-## Deploy روزمره (بعد از هر push از ویندوز)
-
-```bash
-cd ~/ModuleHub-cms
-bash scripts/deploy-full.sh --yes
-bash scripts/run-checks.sh
-```
-
-| مرحله | کجا | توضیح |
-|--------|-----|--------|
-| توسعه | ویندوز | `commit` + `push` به `main` |
-| deploy | سرور home | `deploy-full.sh --yes` |
-| git | auto | اگر مسیر پیش‌فرض = `packageInstallInterface` → بدون metric toggle |
-| npm build | opt | هنوز از `run-with-free-wan` استفاده می‌کند — `--skip-wan-all` فقط برای legacy |
-
-**قانون:** روی سرور کد ننویس — فقط pull، build، restart.
-
-```bash
-curl -s http://127.0.0.1:4000/health
-```
-
-## dual-NIC (اختیاری)
+## dual-NIC (جزئیات)
 
 مسیر پیش‌فرض سرور روی اینترنت آزاد (`enp63s0`) است — **git** معمولاً بدون toggler کار می‌کند.
 
@@ -106,33 +127,6 @@ sudo ln -sf /etc/nginx/sites-available/modulehub-cms /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-## Deploy بعد از هر push
-
-**منسوخ برای روزمره** — از [`deploy-full.sh`](../scripts/deploy-full.sh) در home clone استفاده کن:
-
-```bash
-cd ~/ModuleHub-cms
-bash scripts/deploy-full.sh --yes
-```
-
-فقط برای build داخل `/opt` (بدون git):
-
-```bash
-cd /opt/modulehub-cms
-bash scripts/deploy-on-server.sh
-curl -s http://127.0.0.1:4000/health
-```
-
-## dual-NIC (اختیاری)
-
-اگر primary NIC برای `npm`/`git` کافی نیست:
-
-```bash
-bash scripts/run-with-free-wan.sh npm ci
-```
-
-جزئیات: [`server-scripts.md`](server-scripts.md) · [`developer-guide.md`](developer-guide.md)
-
 ## sudo broker (اختیاری)
 
 برای deploy بدون تایپ مکرر sudo:
@@ -146,17 +140,15 @@ python3 ~/ModuleHub-cms/scripts/sudo_broker.py
 
 - [`server-scripts.md`](server-scripts.md) — اسکریپت‌ها
 - [`developer-guide.md`](developer-guide.md) — ماژول ZIP و wizard
-- [`design plan.md`](design%20plan.md) — معماری
+- [`design.md`](design.md) — معماری
+- [`change/1405-03-23-server-code-update-standard/`](change/1405-03-23-server-code-update-standard/proposal.md) — استاندارد deploy
 
 ## چک‌لیست قبل از go-live (فاز ۸)
 
 قبل از اینکه سایت را بدون bypass ادمین موقت در معرض اینترنت بگذاری:
 
 1. فاز ۸ (login واقعی، Module Manager، rate limit) کامل شده باشد — [`tasks.md`](tasks.md)
-2. `MODULEHUB_DEV_SUPER_ADMIN` خاموش شود:
-   ```bash
-   bash scripts/disable-dev-admin-on-server.sh
-   ```
+2. `MODULEHUB_DEV_SUPER_ADMIN` خاموش شود — همان بلوک **خاموش کردن bypass ادمین** در ابتدای سند
 3. `SESSION_SECRET` و `ADMIN_PASSWORD_HASH` در `.env` تنظیم شده باشند
 4. بعد از deploy، `curl` بدون session به `/admin/settings/data` باید 401 برگرداند
 5. اسکریپت deploy هشدار `MODULEHUB_DEV_SUPER_ADMIN=1` را در لاگ نشان ندهد

@@ -23,7 +23,7 @@ table td code, table th code { direction: ltr; unicode-bidi: embed; text-align: 
 | مخاطب | الان بخوان | بعد از پیاده‌سازی هسته |
 |--------|------------|-------------------------|
 | **سازنده ماژول** (HTML، React، Node، …) | §۲–§۲.۱ · §۳–§۵ | §۹ (endpointها) |
-| **توسعه‌دهنده هسته CMS** | `design plan.md` + `tasks.md` | همین فایل §۶–§۷ |
+| **توسعه‌دهنده هسته CMS** | `design.md` + `tasks.md` | همین فایل §۶–§۷ |
 
 ---
 
@@ -76,7 +76,7 @@ my-app.zip
 
 ## ۲.۱ وابستگی‌ها — کی دانلود می‌شوند؟
 
-> روایت ساده: [`proposal.md`](proposal.md) §کش پکیج · فنی: [`design plan.md`](design%20plan.md) §۸
+> روایت ساده: [`proposal.md`](proposal.md) §کش پکیج · فنی: [`design.md`](design.md) §۸
 
 ### یک جمله
 
@@ -150,7 +150,7 @@ fixture: [`tests/fixtures/modules/package-cache-test/`](../tests/fixtures/module
 | `requirements.txt` | `pip install -r requirements.txt` |
 | `composer.json` | `composer install` |
 
-- نصب پکیج ممکن است **اینترنت آزاد** بخواهد (dual-WAN — `design plan.md` §۱۰).
+- نصب پکیج ممکن است **اینترنت آزاد** بخواهد (dual-WAN — `design.md` §۱۰).
 
 ---
 
@@ -170,11 +170,11 @@ fixture: [`tests/fixtures/modules/package-cache-test/`](../tests/fixtures/module
 | `POST /admin/module/:id/stop` | Stop | Super Admin (فاز ۸: Module Manager) |
 | `GET /modules/:id/*` | سرو Static یا پروکسی Backend | عمومی (وقتی `running`) |
 
-**Module Manager:** Super Admin می‌تواند در edit ماژول `managementPasswordHash` تنظیم کند. توسعه‌دهنده با همان رمز — از اینترنت — فقط start/stop/log/edit **همان** ماژول را دارد. جزئیات: `design plan.md` §۶.۵.
+**Module Manager:** Super Admin می‌تواند در edit ماژول `managementPasswordHash` تنظیم کند. توسعه‌دهنده با همان رمز — از اینترنت — فقط start/stop/log/edit **همان** ماژول را دارد. جزئیات: `design.md` §۶.۵.
 
 **پس از merge فاز ۱–۳ و ۸:** این جدول از کد واقعی استخراج و این § به‌روز شود.
 
-> **تناقض فعلی config:** `modulehub-cms.service` → `dist/core/src/server/index.js` — `design plan.md` → `core/server.js`. هنگام پیاده‌سازی یکی انتخاب و هر دو doc هماهنگ شوند.
+> **تناقض فعلی config:** `modulehub-cms.service` → `dist/core/src/server/index.js` — `design.md` → `core/server.js`. هنگام پیاده‌سازی یکی انتخاب و هر دو doc هماهنگ شوند.
 
 ---
 
@@ -329,7 +329,7 @@ hash ثابت fixture در README همان ماژول — unit: `tests/unit/pack
 |--------|------|
 | **وابستگی‌ها — کی دانلود می‌شود** | §۲.۱ همین فایل |
 | انواع ماژول و چالش سرور | `module-hosting-guide.md` |
-| معماری و تنظیمات | `design plan.md` |
+| معماری و تنظیمات | `design.md` |
 | چک‌لیست پیاده‌سازی | `openspec/changes/modulehub-cms-v1/tasks.md` |
 | نمونه JSON ماژول | `site-layout.json` |
 | deploy | `deploy-guide.md` |

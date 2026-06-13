@@ -2,9 +2,9 @@
 
 # رفتار — چیدمان کارت per-device (موبایل / تبلت / PC)
 
-> **مسیر:** `docs/change/device-card-layout/behavior.md`  
+> **مسیر:** `docs/change/1405-03-23-device-card-layout/behavior.md`  
 > **برای چیه:** همین‌جا بفهمی **کاربر و ادمین چی می‌بینند و چی اتفاق می‌افته** — بدون جزئیات کد.  
-> **فنی:** [design.md](./design.md) · **چرا ساختیم:** [proposal.md](./proposal.md) · **مرجع کلی سایت:** [UI-behavior.md](../../UI-behavior.md) §۱.۱ و §۸.۴
+> **فنی:** [design.md](./design.md) · **چرا ساختیم:** [proposal.md](./proposal.md) · **مرجع کلی سایت:** [ui-behavior.md](../../ui-behavior.md) §۱.۱ و §۸.۴
 
 ---
 
@@ -129,7 +129,7 @@
 |--------|----------|
 | schema، PATCH، الگوریتم derive | [design.md](./design.md) |
 | چرا و معیار موفقیت | [proposal.md](./proposal.md) |
-| رفتار کلی سایت (toast، login، …) | [UI-behavior.md](../../UI-behavior.md) |
+| رفتار کلی سایت (toast، login، …) | [ui-behavior.md](../../ui-behavior.md) |
 | تسک‌های انجام‌شده | [tasks.md](./tasks.md) |
 
 </div>

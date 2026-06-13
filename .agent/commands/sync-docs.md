@@ -57,7 +57,7 @@ alwaysApply: false
 
 ## ۱) Walk-through (اجباری)
 
-فایل: `docs/session-walkthrough.md` — **یک بلوک جدید در ابتدای «آخرین جلسات»** (جدیدترین بالا).
+فایل: `docs-personal/walkthrough.md` — **یک بلوک جدید در ابتدای «آخرین جلسات»** (جدیدترین بالا).
 
 | قاعده | مقدار |
 |--------|--------|
@@ -72,7 +72,7 @@ alwaysApply: false
 
 | نوع | مسیر |
 |-----|------|
-| پروژه | `docs/AI-common-mistakes/Composer 2.5.md` |
+| پروژه | `docs-for-ai/ai-common-mistakes.md` |
 | عمومی | `AI learning docs/AI common mistakes/Composer 2.5.md` |
 
 قالب: `readme.md` هر دو پوشه — پیشوند `DEPLOY-` / `OK-` / `DOC-` · حداکثر ۳ bullet · شماره ترتیبی · تکراری ننویس.
@@ -81,15 +81,15 @@ alwaysApply: false
 
 | فایل | چه زمانی |
 |------|----------|
-| `docs/deploy-notes-for-ai.md` | deploy، sudo broker، env، مسیرها |
+| `docs-for-ai/deploy-notes.md` | deploy، sudo broker، env، مسیرها |
 | `docs/deploy-guide.md` | روتین pull/deploy/discard |
 | `docs/developer-guide.md` | API/فاز جدید |
 | `README.md` | فاز یا دستور جدید در یک خط |
 | `openspec/.../tasks.md` | تیک کارهای تمام‌شده |
 
-**نخوان:** `proposal.md` سنگین نکن · `design plan.md` فقط عدد/مسیر فنی.
+**نخوان:** `proposal.md` سنگین نکن · `design.md` فقط عدد/مسیر فنی.
 
-مرجع نقش فایل‌ها: `docs/ai-doc-guide.md`.
+مرجع نقش فایل‌ها: `docs-for-ai/map.md`.
 
 ## ۴) پرهیز
 
@@ -103,27 +103,27 @@ alwaysApply: false
 
 ---
 
-## ۶) سه سند پیش از OpenSpec — `proposal.md` · `design plan.md` · `tasks.md`
+## ۶) سه سند پیش از OpenSpec — `proposal.md` · `design.md` · `tasks.md`
 
 > این سه فایل **قبل از OpenSpec** در `docs/` نوشته شده‌اند و نقش «معماری + روایت + چک‌لیست انسانی» را دارند.  
 > **OpenSpec** (`openspec/changes/.../tasks.md` + specs) مرجع **پیاده‌ساز و Agent** است؛ ولی این سه فایل برای **مالک سایت، QA، و درک کلی پروژه** باقی می‌مانند.  
-> مرجع نقش و سبک: [`docs/ai-doc-guide.md`](docs/ai-doc-guide.md)
+> مرجع نقش و سبک: [`docs-for-ai/map.md`](docs-for-ai/map.md)
 
 ### اصل مهم: «کد حقیقت است، docs باید هم‌راستا شود»
 
 در کدنویسی گاهی بعد از اتمام کار **اصلاح، میان‌بر، یا بهبود** نسبت به متن اولیه docs رخ می‌دهد (مثلاً مسیر npm تحت systemd، symlink به‌جای کپی، env جدید).  
 **اشتباه:** docs قدیمی را نگه داشتن و فقط openspec را تیک زدن.  
-**درست:** اگر رفتار واقعی عوض شد → **حداقل** `design plan.md` + (در صورت نیاز) یک جمله در `proposal.md` + تیک فاز در `tasks.md`.
+**درست:** اگر رفتار واقعی عوض شد → **حداقل** `design.md` + (در صورت نیاز) یک جمله در `proposal.md` + تیک فاز در `tasks.md`.
 
 | لایه | فایل | نقش | چه موقع sync-docs |
 |------|------|-----|-------------------|
 | روایت | `docs/proposal.md` | چرا و چه حسّی برای کاربر | فقط اگر **تجربه کاربر** یا **قابلیت قابل لمس** عوض شد |
-| فنی | `docs/design plan.md` | چگونه — مسیر، جدول، محدودیت | اگر **مسیر، عدد، endpoint، معماری** با کد فرق گرفت |
+| فنی | `docs/design.md` | چگونه — مسیر، جدول، محدودیت | اگر **مسیر، عدد، endpoint، معماری** با کد فرق گرفت |
 | چک‌لیست انسانی | `docs/tasks.md` | فاز + تست دستی سطح بالا | پایان هر فاز: وضعیت فاز را ✅ کن؛ تسک جدید → یک **ردیف** |
 | پیاده‌سازی Agent | `openspec/.../tasks.md` | تیک دقیق unit/integration | همیشه با sync-docs هم‌زمان (§۳) |
 
 **ترتیب به‌روزرسانی وقتی drift داری:**  
-`openspec/tasks` (تیک) → `design plan` (دلتا فنی) → `docs/tasks` (فاز) → `proposal` (یک پارagraph روایی اگر لازم) → `session-walkthrough` (چه شد واقعاً)
+`openspec/tasks` (تیک) → `design.md` (دلتا فنی) → `docs/tasks` (فاز) → `proposal` (یک پارagraph روایی اگر لازم) → `docs-personal/walkthrough.md` (چه شد واقعاً)
 
 ---
 
@@ -131,13 +131,13 @@ alwaysApply: false
 
 #### `proposal.md` — روایی، ساده، عامیانه
 - مخاطب: ادمین / مالک — **بدون** فرض دانش فنی
-- ساختار هر بخش: **چالش → پاسخ → تجربه کاربر (۲–۴ bullet) → ارجاع یک خطی** به design plan
+- ساختار هر بخش: **چالش → پاسخ → تجربه کاربر (۲–۴ bullet) → ارجاع یک خطی** به `design.md`
 - دوم شخص («شما»)، تشبیه کوتاه مجاز (کارت روی میز، پوشه روی کاغذ)
 - **اصطلاحات:** اول بار در همان بخش **یک جمله ساده** توضیح بده؛ مثلاً: «کش پکیج یعنی وابستگی‌های npm یک‌بار نصب می‌شوند و دفعه بعد فقط لینک می‌شوند — سریع‌تر»
-- **ممنوع:** جدول فنی بلند، endpoint، مسیر absolute، دستور shell، تکرار design plan
-- **تغییر کوچک فنی** (مثل env یا مسیر nvm): در proposal **ننویس** — فقط در design plan
+- **ممنوع:** جدول فنی بلند، endpoint، مسیر absolute، دستور shell، تکرار `design.md`
+- **تغییر کوچک فنی** (مثل env یا مسیر nvm): در proposal **ننویس** — فقط در `design.md`
 
-#### `design plan.md` — فنی، بدون داستان
+#### `design.md` — فنی، بدون داستان
 - جدول، مسیر فایل، دستور shell، محدودیت cgroups
 - **ممنوع:** «مثل این می‌ماند که…»، تکرار مقدمه proposal، پارagraph بلند انگیزشی
 - عدد پیش‌فرض → فقط اینجا + `system-settings.example.json` (هر دو با هم)
@@ -162,7 +162,7 @@ alwaysApply: false
 
 ### چک‌لیست §۶ قبل از پایان sync-docs
 
-- [ ] آیا **رفتار واقعی** با `design plan.md` فرق دارد؟ → دلتا در design plan
+- [ ] آیا **رفتار واقعی** با `design.md` فرق دارد؟ → دلتا در `design.md`
 - [ ] آیا **کاربر/ادمین** چیز جدیدی می‌بیند یا می‌فهمد؟ → یک بلوک کوتاه در proposal
 - [ ] فاز در `docs/tasks.md` ✅ یا ردیف جدید اضافه شد؟
 - [ ] `openspec/.../tasks.md` با docs/tasks **هم‌فاز** است (شماره فاز یکی باشد)
@@ -170,8 +170,8 @@ alwaysApply: false
 - [ ] تکرار جدول بین proposal و design **حذف/ارجاع** شده؟
 - [ ] اصطلاح جدید در proposal **یک خط** توضیح خورد؟
 
-**پرهیز:** کپی `openspec/specs` به design plan · بازنویسی proposal مثل design plan · حذف تاریخچه فازهای ✅ از tasks
+**پرهیز:** کپی `openspec/specs` به `design.md` · بازنویسی proposal مثل `design.md` · حذف تاریخچه فازهای ✅ از tasks
 
-**مرجع کامل:** [`docs/ai-doc-guide.md`](docs/ai-doc-guide.md) § «نقش هر فایل» و «قواعد نوشتن»
+**مرجع کامل:** [`docs-for-ai/map.md`](docs-for-ai/map.md) § «نقش هر فایل» و «قواعد نوشتن»
 
 This command will be available in chat with /sync-docs

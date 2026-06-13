@@ -121,4 +121,4 @@ If `run-with-free-wan` crashes (`ip route add` error): `export MODULEHUB_SKIP_WA
 - On Ubuntu SSH use `export VAR=1`, never PowerShell `$env:VAR`.
 - After deploy, report: git commit hash pulled, health curl output, auth status, any sudo/broker errors verbatim.
 
-Reference: `docs/deploy-guide.md`, `docs/other docs/deploy-notes-for-ai.md`.
+Reference: `docs/deploy-guide.md`, `docs-for-ai/deploy-notes.md`.

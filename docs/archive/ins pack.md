@@ -38,7 +38,7 @@ table th code {
 
 ## جمع‌بندی امکان‌سنجی
 
-**پروپزال تو شدنی است**، ولی نه یک‌جا — باید **فازبندی** شود. با [`design plan.md`](d:/2 Curent project git/ModuleHub-cms/docs/design plan.md) §۸ و [`module-hosting-guide.md`](d:/2 Curent project git/ModuleHub-cms/docs/module-hosting-guide.md) هم‌جهت است (نصب بعد از upload، dual-WAN، کش). چیزهای جدید: **UI realtime روی کارت**، **صف نصب**، **زنجیرهٔ سیاست شبکه** — در docs فعلی نیست و باید اضافه شود.
+**پروپزال تو شدنی است**، ولی نه یک‌جا — باید **فازبندی** شود. با [`design.md`](d:/2 Curent project git/ModuleHub-cms/docs/design.md) §۸ و [`module-hosting-guide.md`](d:/2 Curent project git/ModuleHub-cms/docs/module-hosting-guide.md) هم‌جهت است (نصب بعد از upload، dual-WAN، کش). چیزهای جدید: **UI realtime روی کارت**، **صف نصب**، **زنجیرهٔ سیاست شبکه** — در docs فعلی نیست و باید اضافه شود.
 
 ---
 
@@ -46,7 +46,7 @@ table th code {
 
 **هم‌خوان:**
 
-- نصب وابستگی بلافاصله بعد از extract ZIP (قبل از wizard) — همان §۸ design plan
+- نصب وابستگی بلافاصله بعد از extract ZIP (قبل از wizard) — همان §۸ design.md
 - `packageInstallInterface` (پیش‌فرض `enp63s0`) — [`system-settings`](d:/2 Curent project git/ModuleHub-cms/core/src/modules/system-settings/types.ts)
 - `network-metric-toggler.py` — موقت metric، **در `finally` برمی‌گردد** (netplan عوض نمی‌شود)
 - ماژول Static بدون `package.json` → بدون npm (تو تأیید کردی)
@@ -254,5 +254,5 @@ sequenceDiagram
 
 ---
 
-اگر موافقی، قدم بعد: **فاز A را در پلن رسمی بنویسم/اجرا کنم** (کد + یک بند در `design plan` §۸.۱). برای UI کارت realtime ترجیح می‌دهی کارت **قبل از wizard** در layout ثبت شود یا فقط **موقت در مرورگر** باشد؟
+اگر موافقی، قدم بعد: **فاز A را در پلن رسمی بنویسم/اجرا کنم** (کد + یک بند در `design.md` §۸.۱). برای UI کارت realtime ترجیح می‌دهی کارت **قبل از wizard** در layout ثبت شود یا فقط **موقت در مرورگر** باشد؟
 

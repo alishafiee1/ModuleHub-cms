@@ -202,7 +202,7 @@ input.task-list-item-checkbox {
 | سند | محتوا |
 |-----|--------|
 | `module-hosting-guide.md` | تفاوت Static، SPA، Backend، Docker — چالش مسیر پایه و RAM |
-| `UI-behavior.md` | رفتار ویزارد، دیالوگ‌ها و دکمه‌های کارت از دید کاربر |
+| `ui-behavior.md` | رفتار ویزارد، دیالوگ‌ها و دکمه‌های کارت از دید کاربر |
 | `developer-guide.md` | جزئیات پیاده‌سازی برای توسعه‌دهنده و AI |
 | `how-to-use.md` | دستورالعمل عملی استفاده (در صورت وجود) |
 | `project-file-index.md` | نام دقیق پوشه‌ها و فایل‌های کد |

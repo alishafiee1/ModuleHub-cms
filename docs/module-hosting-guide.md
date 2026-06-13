@@ -46,7 +46,7 @@ my-site.zip
 
 **اشتباه رایج:** ZIP شامل `node_modules/` یا `.git/` — حجم بالا، امنیت پایین. فقط سورس یا `dist/`.
 
-**نصب وابستگی:** اگر `package.json` / `requirements.txt` / `composer.json` در **ریشه** ZIP باشد، CMS **بلافاصله بعد از upload** (قبل از wizard) از npm/pip/composer نصب می‌کند یا از کش symlink می‌زند — **`node_modules` لازم نیست داخل ZIP باشد.** جزئیات: [`developer-guide.md`](developer-guide.md) §۲.۱ · [`design plan.md`](design%20plan.md) §۸.
+**نصب وابستگی:** اگر `package.json` / `requirements.txt` / `composer.json` در **ریشه** ZIP باشد، CMS **بلافاصله بعد از upload** (قبل از wizard) از npm/pip/composer نصب می‌کند یا از کش symlink می‌زند — **`node_modules` لازم نیست داخل ZIP باشد.** جزئیات: [`developer-guide.md`](developer-guide.md) §۲.۱ · [`design.md`](design.md) §۸.
 
 ---
 
@@ -92,7 +92,7 @@ my-site.zip
 | **سرو Static به کاربر** | از nginx/CMS | ترافیک عادی سایت |
 | **Runtime outbound** (ماژول به API خارجی) | **تعریف نشده کامل** | اگر ماژول در runtime به GitHub نیاز دارد → Docker + egress یا proxy داخلی |
 
-> **تناقض جزئی:** `proposal.md` می‌گوید «در تنظیمات هر ماژول رابط شبکه» — در `design plan` و `system-settings` فقط **نصب پکیج** global است. **رفع پیشنهادی:** runtime egress = فاز ۲ یا فقط Docker.
+> **تناقض جزئی:** `proposal.md` می‌گوید «در تنظیمات هر ماژول رابط شبکه» — در `design.md` و `system-settings` فقط **نصب پکیج** global است. **رفع پیشنهادی:** runtime egress = فاز ۲ یا فقط Docker.
 
 ### ۳.۶ امنیت
 
@@ -139,6 +139,6 @@ my-site.zip
 
 ## ۶. ارجاع
 
-- پروکسی: `design plan.md` §۲، `tasks.md` فاز ۳.۳
-- کش: §۸ design plan
+- پروکسی: `design.md` §۲، `tasks.md` فاز ۳.۳
+- کش: §۸ design.md
 - تنظیمات: `system-settings.example.json`

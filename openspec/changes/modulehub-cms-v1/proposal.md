@@ -6,7 +6,7 @@ ModuleHub CMS باید به‌عنوان هستهٔ CMS ماژولار روی `e
 
 - راه‌اندازی OpenSpec change برای پیاده‌سازی کامل ModuleHub CMS v1
 - ایجاد هسته Express روی `127.0.0.1:4000` با ذخیره‌سازی JSON (بدون DB خارجی)
-- پیاده‌سازی UI بر اساس `docs/Demo designe/` (RTL، دارک/لایت، کارت‌ها، breadcrumb، دیالوگ‌ها)
+- پیاده‌سازی UI بر اساس `docs/archive/demo-design/Demo designe/` (RTL، دارک/لایت، کارت‌ها، breadcrumb، دیالوگ‌ها)
 - **Super Admin:** Session login از اینترنت/LAN — `/admin/login` + CSRF + rate limit
 - **Module Manager:** رمز جدا per-module — مدیریت محدود همان ماژول بدون Super Admin
 - پوشه‌های مجازی و درخت `site-layout.json`
@@ -55,5 +55,5 @@ ModuleHub CMS باید به‌عنوان هستهٔ CMS ماژولار روی `e
 - **استاندارد کد:** TypeScript + JSDoc — `design.md` §۱۲، `docs/code-rolls.md`
 - **امنیت:** HTTPS + Session + CSRF؛ Super Admin از اینترنت؛ Module Manager scoped؛ Docker `cap_drop: ALL`
 - **env:** `SESSION_SECRET`، `ADMIN_PASSWORD_HASH`
-- **مرجع UI:** `docs/Demo designe/index.html`، `script.js`، `dialog.js`، `style.css`
-- **مرجع auth:** `docs/design plan.md` §۶.۵
+- **مرجع UI:** `docs/archive/demo-design/Demo designe/index.html`، `script.js`، `dialog.js`، `style.css`
+- **مرجع auth:** `docs/design.md` §۶.۵

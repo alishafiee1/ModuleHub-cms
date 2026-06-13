@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: RTL and theme support
-The frontend SHALL support RTL layout and dark/light theme toggle matching `docs/Demo designe/index.html`.
+The frontend SHALL support RTL layout and dark/light theme toggle matching `docs/archive/demo-design/Demo designe/index.html`.
 
 #### Scenario: Theme toggle
 - **WHEN** user clicks the theme toggle button
@@ -55,7 +55,7 @@ The add card (+) menu SHALL offer at least «پوشه جدید» and «آپلو�
 - **THEN** a menu appears with «پوشه جدید» and «آپلود ZIP» options
 
 ### Requirement: SweetAlert2 dialogs
-Module configuration dialogs SHALL use SweetAlert2 matching `docs/Demo designe/dialog.js` patterns, including module password prompt for Module Manager.
+Module configuration dialogs SHALL use SweetAlert2 matching `docs/archive/demo-design/Demo designe/dialog.js` patterns, including module password prompt for Module Manager.
 
 #### Scenario: Module password prompt
 - **WHEN** user without Super Admin session clicks gear on a module with `managementPasswordHash` set

@@ -2,7 +2,7 @@
 
 # tasks — چیدمان کارت per-device
 
-> **مسیر:** `docs/change/device-card-layout/tasks.md`  
+> **مسیر:** `docs/change/1405-03-23-device-card-layout/tasks.md`  
 > **طراحی:** [design.md](./design.md) · **رفتار:** [behavior.md](./behavior.md)
 
 ---
@@ -63,12 +63,12 @@
 - [x] ۵.۱ تست unit + smoke E2E-DCL-01 در checklist
 - [x] ۵.۲ تست unit derive + smoke E2E-DCL-02 در checklist
 - [x] ۵.۳ به‌روزرسانی `tests/smoke/card-canvas-checklist.md`
-- [x] ۵.۴ به‌روزرسانی `docs/UI-behavior.md` §۱.۱ و §۸.۴
+- [x] ۵.۴ به‌روزرسانی `docs/ui-behavior.md` §۱.۱ و §۸.۴
 - [x] ۵.۵ **تموم شدن فاز:** `/sync-docs` → audit + Playwright E2E + رفع رگرسیون بوم کامل `(۱۴۰۵-۰۳-۲۳)`
 
 ---
 
-> وقتی ۵.۵ زده شد → `/sync-docs` · یک خط در `docs/session-walkthrough.md`
+> وقتی ۵.۵ زده شد → `/sync-docs` · یک خط در `docs-personal/walkthrough.md`
 
 </div>
 

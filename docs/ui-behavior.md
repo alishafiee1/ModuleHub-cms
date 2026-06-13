@@ -1,50 +1,4 @@
-<style>
-body, p, h1, h2, h3, h4, h5, h6, li, ul, ol {
-  font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
-  direction: rtl;
-  text-align: right;
-}
-pre, code {
-  direction: ltr;
-  text-align: left;
-}
-.markdown-body table,
-.markdown-preview-section table,
-table {
-  direction: rtl !important;
-  text-align: right !important;
-  width: 100%;
-  border-collapse: collapse;
-  margin-inline-start: 0;
-  margin-inline-end: auto;
-}
-.markdown-body th,
-.markdown-body td,
-.markdown-preview-section th,
-.markdown-preview-section td,
-table thead th,
-table tbody td,
-table th,
-table td {
-  text-align: right !important;
-  direction: rtl;
-  vertical-align: top;
-  padding: 0.35em 0.5em;
-}
-table td code,
-table th code,
-.markdown-body table td code,
-.markdown-body table th code {
-  direction: ltr;
-  unicode-bidi: embed;
-  text-align: right !important;
-  display: inline-block;
-}
-.task-list-item input[type="checkbox"],
-input.task-list-item-checkbox {
-  margin: 0 0.5em 0 0 !important;
-}
-</style>
+<div dir="rtl" style="text-align:right;">
 
 # رفتار رابط کاربری (UI Behavior)
 
@@ -63,7 +17,7 @@ input.task-list-item-checkbox {
   - **موبایل:** `cardGridMobile` (اختیاری)
 - ارتفاع بوم هر پوشه: `folderCanvas.gridRows` (PC) + اختیاری `gridRowsTablet` / `gridRowsMobile`
 - اگر تبلت/موبایل ست نشده باشد، سرور هنگام خواندن layout از PC **یک‌بار مشتق و ذخیره** می‌کند.
-- **Breakpoint نمایش:** PC `≥1024px` · تبلت `641–1023px` · موبایل `≤640px` — با عبور از آستانه، چیدمان همان دستگاه اعمال می‌شود (بدون resize تدریجی **layout** کارت‌ها). جزئیات: [`behavior.md`](../change/device-card-layout/behavior.md)
+- **Breakpoint نمایش:** PC `≥1024px` · تبلت `641–1023px` · موبایل `≤640px` — با عبور از آستانه، چیدمان همان دستگاه اعمال می‌شود (بدون resize تدریجی **layout** کارت‌ها). جزئیات: [`behavior.md`](../change/1405-03-23-device-card-layout/behavior.md)
 - چیدمان legacy `cardSpan` (۱/۲/۴) هنگام خواندن layout به `cardGrid` migrate می‌شود.
 - هر کارت شامل:
   - **تصویر بندانگشتی** (در صورت آپلود توسط ادمین) یا آیکون پیش‌فرض.
@@ -355,7 +309,7 @@ input.task-list-item-checkbox {
 - **داخل هر breakpoint:** بوم/فونت با عرض پنجره جا می‌شوند (`clamp` روی متن کارت)؛ **چیدمان grid عوض نمی‌شود** تا از آستانه رد شوی.
 - هدر و `.demo-container` عرض `--app-shell-width` را از JS می‌گیرند (وسط‌چین در دسکتاپ).
 - عبور از **۱۰۲۴** یا **۶۴۱** → تعویض **یک‌باره** layout (بدون انیمیشن اندازهٔ کارت).
-- جزئیات رفتاری و سوءتفاهم‌های رایج: [`docs/change/device-card-layout/behavior.md`](change/device-card-layout/behavior.md)
+- جزئیات رفتاری و سوءتفاهم‌های رایج: [`docs/change/1405-03-23-device-card-layout/behavior.md`](change/1405-03-23-device-card-layout/behavior.md)
 - در حالت ویرایش، سه دکمه PC/تبلت/موبایل چیدمان **همان دستگاه** را ویرایش می‌کنند (نه فقط shrink دسکتاپ).
 - دیالوگ‌ها در عرض کمتر از ۶۴۰px تمام‌صفحه می‌شوند (به جز حاشیه کم).
 - چرخ‌دنده و کنترل‌های لمسی در موبایل سایز بزرگ‌تری دارند.
@@ -391,3 +345,52 @@ input.task-list-item-checkbox {
 
 **تاریخ آخرین به‌روزرسانی:** ۲۰۲۶-۰۶-۱۳  
 **هماهنگ با:** بوم cardGrid per-device، folderCanvas، cardBackground، منوی Super Admin، تنظیمات کارتی، ظاهر صفحه اصلی، بهینه‌سازی عملکرد UI.
+
+</div>
+<style>
+body, p, h1, h2, h3, h4, h5, h6, li, ul, ol {
+  font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
+  direction: rtl;
+  text-align: right;
+}
+pre, code {
+  direction: ltr;
+  text-align: left;
+}
+.markdown-body table,
+.markdown-preview-section table,
+table {
+  direction: rtl !important;
+  text-align: right !important;
+  width: 100%;
+  border-collapse: collapse;
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+}
+.markdown-body th,
+.markdown-body td,
+.markdown-preview-section th,
+.markdown-preview-section td,
+table thead th,
+table tbody td,
+table th,
+table td {
+  text-align: right !important;
+  direction: rtl;
+  vertical-align: top;
+  padding: 0.35em 0.5em;
+}
+table td code,
+table th code,
+.markdown-body table td code,
+.markdown-body table th code {
+  direction: ltr;
+  unicode-bidi: embed;
+  text-align: right !important;
+  display: inline-block;
+}
+.task-list-item input[type="checkbox"],
+input.task-list-item-checkbox {
+  margin: 0 0.5em 0 0 !important;
+}
+</style>

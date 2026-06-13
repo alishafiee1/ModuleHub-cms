@@ -18,7 +18,7 @@
 
 ## 2. فاز ۱ — صفحه اصلی و layout (home-layout + admin-frontend)
 
-- [x] 2.1 Port فایل‌های `docs/Demo designe/` به `public/` (index.html, style.css)
+- [x] 2.1 Port فایل‌های `docs/archive/demo-design/Demo designe/` به `public/` (index.html, style.css)
 - [x] 2.1.1 بازنویسی `script.js` و `dialog.js` — fetch از `/api/layout` و endpointهای admin
 - [x] 2.1.2 ماژول API client: `loadLayout()`, `createFolder()`, `startModule()`, `stopModule()`, ...
 - [x] 2.2 API `GET /api/layout` — خواندن `storage/site-layout.json`

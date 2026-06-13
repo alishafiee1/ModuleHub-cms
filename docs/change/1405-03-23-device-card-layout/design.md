@@ -2,7 +2,7 @@
 
 # طراحی — چیدمان کارت per-device (موبایل / تبلت / PC)
 
-> **مسیر:** `docs/change/device-card-layout/design.md`  
+> **مسیر:** `docs/change/1405-03-23-device-card-layout/design.md`  
 > **پیش‌نیاز:** [proposal.md](./proposal.md) · **رفتار کاربر:** [behavior.md](./behavior.md)
 
 ---
@@ -40,7 +40,7 @@
 
 - عرض‌های reference برای **مشتق‌سازی** و **سقف دسکتاپ** — نه قفل کردن گرید در viewport کوچک‌تر از reference.
 - **داخل هر breakpoint:** سلول‌های گرید **کل عرض قابل‌استفادهٔ بوم** را پر می‌کنند (`cellWidth = containerInner / 30`)؛ فقط دسکتاپ وقتی container از `1200px` عریض‌تر است به `1200px` محدود می‌شود.
-- `640px` با §۸.۴ فعلی `UI-behavior.md` هم‌راستا است؛ آستانهٔ تبلت/دسکتاپ `1024px` قرارداد جدید این change است.
+- `640px` با §۸.۴ فعلی `ui-behavior.md` هم‌راستا است؛ آستانهٔ تبلت/دسکتاپ `1024px` قرارداد جدید این change است.
 
 ---
 

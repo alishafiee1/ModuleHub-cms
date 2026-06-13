@@ -15,7 +15,7 @@ The CMS core SHALL log every HTTP request to `storage/logs/cms.log` using Winsto
 - **THEN** a log entry with method, path, and status code is written to `storage/logs/cms.log`
 
 ### Requirement: Server directory structure
-The CMS SHALL use the directory layout defined in `design plan.md` §3: `core/`, `public/`, `standalone-modules/`, `storage/`, `thumbnails/`, `scripts/`.
+The CMS SHALL use the directory layout defined in `design.md` §3: `core/`, `public/`, `standalone-modules/`, `storage/`, `thumbnails/`, `scripts/`.
 
 #### Scenario: Required directories exist on startup
 - **WHEN** the CMS starts

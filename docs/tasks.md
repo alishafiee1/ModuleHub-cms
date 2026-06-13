@@ -1,50 +1,4 @@
-<style>
-body, p, h1, h2, h3, h4, h5, h6, li, ul, ol {
-  font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
-  direction: rtl;
-  text-align: right;
-}
-pre, code {
-  direction: ltr;
-  text-align: left;
-}
-.markdown-body table,
-.markdown-preview-section table,
-table {
-  direction: rtl !important;
-  text-align: right !important;
-  width: 100%;
-  border-collapse: collapse;
-  margin-inline-start: 0;
-  margin-inline-end: auto;
-}
-.markdown-body th,
-.markdown-body td,
-.markdown-preview-section th,
-.markdown-preview-section td,
-table thead th,
-table tbody td,
-table th,
-table td {
-  text-align: right !important;
-  direction: rtl;
-  vertical-align: top;
-  padding: 0.35em 0.5em;
-}
-table td code,
-table th code,
-.markdown-body table td code,
-.markdown-body table th code {
-  direction: ltr;
-  unicode-bidi: embed;
-  text-align: right !important;
-  display: inline-block;
-}
-.task-list-item input[type="checkbox"],
-input.task-list-item-checkbox {
-  margin: 0 0.5em 0 0 !important;
-}
-</style>
+<div dir="rtl" style="text-align:right;">
 
 # چک‌لیست پیاده‌سازی و تست ModuleHub CMS
 
@@ -63,7 +17,7 @@ input.task-list-item-checkbox {
 | ۷ | versioning + log levels | ✅ 2026-05-29 |
 | ۷.۵ | تنظیمات سراسری `/admin/settings` (کارتی) | ✅ 2026-06-12 |
 | ۷.۶ | بوم cardGrid + ویرایش چیدمان + cardBackground | ✅ 2026-06-13 |
-| ۷.۷ | چیدمان per-device (موبایل / تبلت / PC) | ✅ 2026-06-13 — [change/device-card-layout](./change/device-card-layout/proposal.md) |
+| ۷.۷ | چیدمان per-device (موبایل / تبلت / PC) | ✅ 2026-06-13 — [change/1405-03-23-device-card-layout](./change/1405-03-23-device-card-layout/proposal.md) |
 | ۷.۸ | استاندارد به‌روزرسانی کد روی سرور | ✅ 2026-06-13 — [change/1405-03-23-server-code-update-standard](./change/1405-03-23-server-code-update-standard/proposal.md) |
 | ۸ | auth کامل (CSRF، Module Manager WAN، …) | ⏳ جزئی |
 | ۸+ | integration · … | ⏳ |
@@ -230,7 +184,7 @@ input.task-list-item-checkbox {
 
 ## فاز ۷.۷: چیدمان کارت per-device — ✅ 2026-06-13
 
-> پلن کامل: [`docs/change/device-card-layout/`](./change/device-card-layout/proposal.md) (proposal · design · tasks)
+> پلن کامل: [`docs/change/1405-03-23-device-card-layout/`](./change/1405-03-23-device-card-layout/proposal.md) (proposal · design · tasks)
 
 | # | وظیفه | جزئیات | خروجی | تست |
 |---|-------|--------|-------|-----|
@@ -238,7 +192,7 @@ input.task-list-item-checkbox {
 | 7.7.2 | derive layout | مشتق یک‌بار از desktop + ذخیره | بدون derive تکراری | unit derive-breakpoint-layout |
 | 7.7.3 | toolbar device buttons | PC / تبلت / موبایل در حالت ویرایش | `card-layout-editor.js` | UI manual |
 | 7.7.4 | fixed cell display | breakpoint از viewport؛ بدون resize روان کارت | `card-canvas-app.js` | E2E-DCL-01 |
-| 7.7.5 | UI-behavior | به‌روزرسانی §۱.۱ و §۸.۴ | `docs/UI-behavior.md` | بعد از پیاده‌سازی |
+| 7.7.5 | UI-behavior | به‌روزرسانی §۱.۱ و §۸.۴ | `docs/ui-behavior.md` | بعد از پیاده‌سازی |
 
 ---
 
@@ -260,11 +214,11 @@ input.task-list-item-checkbox {
 
 ## مستندات تحویل‌شده در انتهای فازها
 
-- [ ] `README.md` – نصب و راه‌اندازی سریع
-- [ ] `docs/ai-doc-guide.md` – قواعد نقش هر سند برای AI
-- [ ] `docs/system-settings.example.json` – نمونه تنظیمات سراسری
+- [x] `docs/how-to-use.md` – نصب و اجرای محلی
+- [x] `docs-for-ai/map.md` – قواعد نقش هر سند برای AI
+- [x] `docs/system-settings.example.json` – نمونه تنظیمات سراسری
 - [ ] `docs/admin-guide.md` – راهنمای تصویری برای ادمین
-- [ ] `docs/developer-guide.md` – ساخت ZIP ماژول (v0 — §۶ پس از کد به‌روز شود)
+- [x] `docs/developer-guide.md` – ساخت ZIP ماژول
 - [x] `docs/backup-restore.md` – روش پشتیبان‌گیری (UI + curl + CLI)
 - [ ] `docs/network-config.md` – نحوه مدیریت dual‑WAN
 - [ ] `CHANGELOG.md` – تاریخچه تغییرات هسته
@@ -277,3 +231,52 @@ input.task-list-item-checkbox {
 - هر تسک پس از انجام، در این چک‌لیست تیک بخورد.
 - در صورت بروز خطا در تست، تسک به مرحله قبل بازگردانده شود.
 - تمام تغییرات در مخزن Git با پیام استاندارد (`feat:`, `fix:`, `test:`) ثبت شود.
+
+</div>
+<style>
+body, p, h1, h2, h3, h4, h5, h6, li, ul, ol {
+  font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
+  direction: rtl;
+  text-align: right;
+}
+pre, code {
+  direction: ltr;
+  text-align: left;
+}
+.markdown-body table,
+.markdown-preview-section table,
+table {
+  direction: rtl !important;
+  text-align: right !important;
+  width: 100%;
+  border-collapse: collapse;
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+}
+.markdown-body th,
+.markdown-body td,
+.markdown-preview-section th,
+.markdown-preview-section td,
+table thead th,
+table tbody td,
+table th,
+table td {
+  text-align: right !important;
+  direction: rtl;
+  vertical-align: top;
+  padding: 0.35em 0.5em;
+}
+table td code,
+table th code,
+.markdown-body table td code,
+.markdown-body table th code {
+  direction: ltr;
+  unicode-bidi: embed;
+  text-align: right !important;
+  display: inline-block;
+}
+.task-list-item input[type="checkbox"],
+input.task-list-item-checkbox {
+  margin: 0 0.5em 0 0 !important;
+}
+</style>
