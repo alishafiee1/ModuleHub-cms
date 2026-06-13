@@ -64,7 +64,7 @@ input.task-list-item-checkbox {
 | ۷.۵ | تنظیمات سراسری `/admin/settings` (کارتی) | ✅ 2026-06-12 |
 | ۷.۶ | بوم cardGrid + ویرایش چیدمان + cardBackground | ✅ 2026-06-13 |
 | ۷.۷ | چیدمان per-device (موبایل / تبلت / PC) | ✅ 2026-06-13 — [change/device-card-layout](./change/device-card-layout/proposal.md) |
-| ۷.۸ | استاندارد به‌روزرسانی کد روی سرور | 🔄 باز — [change/server-code-update-standard](./change/server-code-update-standard/proposal.md) |
+| ۷.۸ | استاندارد به‌روزرسانی کد روی سرور | ✅ 2026-06-13 — [change/server-code-update-standard](./change/server-code-update-standard/proposal.md) |
 | ۸ | auth کامل (CSRF، Module Manager WAN، …) | ⏳ جزئی |
 | ۸+ | integration · … | ⏳ |
 

@@ -87,6 +87,7 @@ input.task-list-item-checkbox {
 | `setup-server-dirs.sh` | پوشه‌های `/var/...` رو یک‌بار می‌سازه |
 | `install-systemd.sh` | CMS رو سرویس systemd می‌کنه که با روشن شدن سرور بالا بیاد |
 | `deploy-on-server.sh` | بعد از هر آپدیت کد: pull، build، restart، چک سلامت |
+| `deploy-full.sh` | **استاندارد روزمره** — fetch در home، sync به opt، build، restart |
 | `install-to-opt.sh` | home → `/opt` + **`npm ci` در opt** |
 | `run-with-free-wan.sh` | هر دستور (git/npm) را موقت از `enp63s0` می‌فرستد و برمی‌گرداند |
 | `network-metric-toggler.py` | موتور پایین — معمولاً مستقیم صدا نزن |
@@ -152,19 +153,21 @@ bash scripts/install-systemd.sh   # ترمینال با sudo
 
 ---
 
-## `run-with-free-wan.sh` — git و npm از اینترنت آزاد
+## `run-with-free-wan.sh` — npm و docker (git معمولاً بدون آن)
 
-روی `ens4` گیت‌هاب و npm registry گیر می‌کند. این wrapper موقت route را از **`enp63s0`** می‌گذارد و **بعد از تمام دستور** برمی‌گرداند.
+از ۱۴۰۵/۰۳/۲۱ مسیر پیش‌فرض سرور روی **`enp63s0`** (اینترنت آزاد) است — **`git fetch`/`pull`** در `deploy-full` معمولاً بدون metric toggle انجام می‌شود.
+
+**npm registry** و **docker pull** ممکن است هنوز فیلتر باشند؛ این wrapper موقت metric را روی `packageInstallInterface` (پیش‌فرض `enp63s0`) تنظیم می‌کند و بعد restore می‌کند.
 
 ```bash
 cd ~/ModuleHub-cms
-bash scripts/run-with-free-wan.sh git pull origin main
 bash scripts/run-with-free-wan.sh npm ci
+bash scripts/run-with-free-wan.sh docker pull node:20-alpine
 ```
 
-NIC پیش‌فرض: `enp63s0` — یا `storage/system-settings.json` → `packageInstallInterface`
+NIC: `storage/system-settings.json` → `packageInstallInterface` — یا env `MODULEHUB_PACKAGE_INSTALL_INTERFACE`
 
-`deploy-on-server.sh` و `install-to-opt.sh` خودکار از همین wrapper استفاده می‌کنند.
+`deploy-on-server.sh` و `install-to-opt.sh` برای **npm** خودکار از همین wrapper استفاده می‌کنند. `deploy-full.sh` فقط با `--skip-wan-all` npm را هم بدون toggler می‌گذارد.
 
 ---
 

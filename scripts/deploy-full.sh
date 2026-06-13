@@ -13,6 +13,7 @@ source "${SCRIPT_DIR}/lib/sudo-exec.sh"
 DEPLOY_FLAG_YES=false
 DEPLOY_FLAG_FORCE_RESET=false
 DEPLOY_FLAG_SKIP_WAN=false
+DEPLOY_FLAG_SKIP_WAN_ALL=false
 DEPLOY_FLAG_DRY_RUN=false
 DEPLOY_FLAG_NO_RESTART=false
 DEPLOY_FLAG_FORCE_REBUILD=false
@@ -34,7 +35,8 @@ Options:
   --yes            Auto-confirm prompts
   --force-reset    Reset home clone to origin/main without asking (when local commits exist)
   --force-rebuild  Run install/build even when commit matches deployed marker
-  --skip-wan       Set MODULEHUB_SKIP_WAN=1 for git/npm
+  --skip-wan       Force MODULEHUB_SKIP_WAN=1 for git fetch/pull (npm still uses WAN toggler)
+  --skip-wan-all   Set MODULEHUB_SKIP_WAN=1 for git and npm (legacy — may break npm on filtered registry)
   --no-restart     Build only — skip systemd restart
   --dry-run        Print planned steps only
   -h, --help       Show this help
@@ -54,6 +56,7 @@ parse_args() {
       --force-reset) DEPLOY_FLAG_FORCE_RESET=true; shift ;;
       --force-rebuild) DEPLOY_FLAG_FORCE_REBUILD=true; shift ;;
       --skip-wan) DEPLOY_FLAG_SKIP_WAN=true; shift ;;
+      --skip-wan-all) DEPLOY_FLAG_SKIP_WAN=true; DEPLOY_FLAG_SKIP_WAN_ALL=true; shift ;;
       --no-restart) DEPLOY_FLAG_NO_RESTART=true; shift ;;
       --dry-run) DEPLOY_FLAG_DRY_RUN=true; shift ;;
       -h|--help) usage; exit 0 ;;
@@ -67,9 +70,20 @@ parse_args() {
   if [[ "${DEPLOY_FLAG_DRY_RUN}" == true ]]; then
     DEPLOY_DRY_RUN=true
   fi
-  if [[ "${DEPLOY_FLAG_SKIP_WAN}" == true ]]; then
+}
+
+enable_git_skip_wan() {
+  local home_clone="$1"
+  if [[ "${DEPLOY_FLAG_SKIP_WAN}" == true ]] || default_route_matches_package_interface "${home_clone}"; then
     export MODULEHUB_SKIP_WAN=1
   fi
+}
+
+restore_skip_wan_after_git() {
+  if [[ "${DEPLOY_FLAG_SKIP_WAN_ALL}" == true ]]; then
+    return 0
+  fi
+  unset MODULEHUB_SKIP_WAN
 }
 
 preflight_checks() {
@@ -216,7 +230,9 @@ run_git_sync() {
   branch="$(resolve_branch)"
 
   log_step "git fetch with WAN fallback"
+  enable_git_skip_wan "${home_clone}"
   git_fetch_with_wan_fallback "${home_clone}"
+  restore_skip_wan_after_git
 
   log_step "compare commits and plan deploy"
   compare_commits_and_plan "${home_clone}"
@@ -243,7 +259,11 @@ run_install_and_build() {
   if [[ "${DEPLOY_DRY_RUN}" == true ]]; then
     log_info "[dry-run] bash ${home_clone}/scripts/install-to-opt.sh"
   else
-    MODULEHUB_SOURCE="${home_clone}" MODULEHUB_APP_DIR="${opt_dir}" \
+    local install_env=()
+    if [[ "${DEPLOY_FLAG_SKIP_WAN_ALL}" == true ]]; then
+      install_env+=(MODULEHUB_SKIP_WAN=1)
+    fi
+    env "${install_env[@]}" MODULEHUB_SOURCE="${home_clone}" MODULEHUB_APP_DIR="${opt_dir}" \
       bash "${home_clone}/scripts/install-to-opt.sh"
   fi
 
@@ -254,7 +274,7 @@ run_install_and_build() {
   fi
 
   local deploy_args=(--skip-pull --skip-restart)
-  if [[ "${DEPLOY_FLAG_SKIP_WAN}" == true ]]; then
+  if [[ "${DEPLOY_FLAG_SKIP_WAN_ALL}" == true ]]; then
     deploy_args+=(--skip-wan)
   fi
 

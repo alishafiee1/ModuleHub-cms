@@ -26,14 +26,76 @@ pre, code {
 ## نصب اولیه
 
 ```bash
-git clone https://github.com/alishafiee1/ModuleHub-cms.git /opt/modulehub-cms
-cd /opt/modulehub-cms
+git clone git@github.com:alishafiee1/ModuleHub-cms.git ~/ModuleHub-cms
+cd ~/ModuleHub-cms
 cp .env.example .env
 # SESSION_SECRET و ADMIN_PASSWORD_HASH را پر کن
 npm ci && npm run build
 bash scripts/setup-server-dirs.sh
+bash scripts/install-to-opt.sh
 bash scripts/install-systemd.sh
 ```
+
+## ورود یک‌بار به مخزن (روی سرور)
+
+قبل از اولین `deploy-full`، remote باید بدون سؤال رمز کار کند.
+
+**روش پیشنهادی — SSH deploy key:**
+
+```bash
+ssh-keygen -t ed25519 -C "ash@ubu-modulehub-deploy" -f ~/.ssh/id_ed25519_github_deploy -N ""
+cat ~/.ssh/id_ed25519_github_deploy.pub
+# کلید را در GitHub → Repo → Settings → Deploy keys اضافه کن (read-only)
+
+cat >> ~/.ssh/config <<'EOF'
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_ed25519_github_deploy
+  IdentitiesOnly yes
+EOF
+chmod 600 ~/.ssh/config
+
+git -C ~/ModuleHub-cms remote set-url origin git@github.com:alishafiee1/ModuleHub-cms.git
+git -C ~/ModuleHub-cms fetch origin   # باید بدون prompt باشد
+```
+
+**جایگزین:** HTTPS + Personal Access Token در `git credential helper`.
+
+جزئیات خطاها: [`change/server-code-update-standard/design.md`](change/server-code-update-standard/design.md)
+
+## Deploy روزمره (بعد از هر push از ویندوز)
+
+```bash
+cd ~/ModuleHub-cms
+bash scripts/deploy-full.sh --yes
+bash scripts/run-checks.sh
+```
+
+| مرحله | کجا | توضیح |
+|--------|-----|--------|
+| توسعه | ویندوز | `commit` + `push` به `main` |
+| deploy | سرور home | `deploy-full.sh --yes` |
+| git | auto | اگر مسیر پیش‌فرض = `packageInstallInterface` → بدون metric toggle |
+| npm build | opt | هنوز از `run-with-free-wan` استفاده می‌کند — `--skip-wan-all` فقط برای legacy |
+
+**قانون:** روی سرور کد ننویس — فقط pull، build، restart.
+
+```bash
+curl -s http://127.0.0.1:4000/health
+```
+
+## dual-NIC (اختیاری)
+
+مسیر پیش‌فرض سرور روی اینترنت آزاد (`enp63s0`) است — **git** معمولاً بدون toggler کار می‌کند.
+
+**npm** / **docker** ممکن است هنوز به metric موقت یا `run-with-free-wan.sh` نیاز داشته باشند:
+
+```bash
+bash scripts/run-with-free-wan.sh npm ci
+```
+
+`--skip-wan-all` در `deploy-full` هر دو git و npm را بدون toggler می‌گذارد — روی registry فیلترشده ممکن است build بشکند.
 
 ## Nginx
 
@@ -46,10 +108,18 @@ sudo nginx -t && sudo systemctl reload nginx
 
 ## Deploy بعد از هر push
 
+**منسوخ برای روزمره** — از [`deploy-full.sh`](../scripts/deploy-full.sh) در home clone استفاده کن:
+
+```bash
+cd ~/ModuleHub-cms
+bash scripts/deploy-full.sh --yes
+```
+
+فقط برای build داخل `/opt` (بدون git):
+
 ```bash
 cd /opt/modulehub-cms
-bash scripts/deploy-full.sh
-# یا: bash scripts/deploy-on-server.sh
+bash scripts/deploy-on-server.sh
 curl -s http://127.0.0.1:4000/health
 ```
 
