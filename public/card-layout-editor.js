@@ -1,7 +1,29 @@
-// card-layout-editor.js — cart-view edit mode: drag/resize + background + PATCH cardGrid
+// card-layout-editor.js — card canvas edit mode: drag/resize + background + PATCH cardGrid
 // purpose --- Super Admin toolbar; enables CardCanvas edit mode and debounced save ---
 (function initCardLayoutEditor() {
   const SAVE_DEBOUNCE_MS = 500;
+
+  /** escapeAttr --- safe HTML attribute value --- */
+  function escapeAttr(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  /** sanitizeImageUrl --- allow relative paths and data URLs only --- */
+  function sanitizeImageUrl(url) {
+    if (!url || typeof url !== 'string') return '';
+    if (url.startsWith('/') || url.startsWith('data:image/')) return url;
+    return '';
+  }
+
+  /** escapeCssUrl --- escape single quotes inside CSS url() --- */
+  function escapeCssUrl(url) {
+    return url.replace(/'/g, "\\'");
+  }
 
   let editModeActive = false;
   let saveTimer = null;
@@ -71,6 +93,7 @@
     const currentColor = currentBg?.color || '#3b82f6';
     const currentBgOpacity = currentBg?.backgroundOpacity ?? 100;
     const currentOverlayOpacity = currentBg?.overlayOpacity ?? 45;
+    const previewImageUrl = sanitizeImageUrl(currentBg?.imageUrl || '');
 
     const htmlContent = `
       <div style="text-align:right; direction:rtl; font-size:0.9rem;">
@@ -91,8 +114,8 @@
         <div id="bgImageSection" style="display:${currentType === 'image' ? 'block' : 'none'}; margin-bottom:0.6rem;">
           <label style="font-weight:600; display:block; margin-bottom:0.3rem;">انتخاب عکس (max 2MB):</label>
           <input type="file" id="bgImageFile" accept="image/jpeg,image/png,image/webp" style="width:100%;">
-          <div id="bgImagePreview" style="margin-top:0.5rem; display:${currentBg?.imageUrl ? 'block' : 'none'};">
-            <img src="${currentBg?.imageUrl || ''}" style="max-height:100px; border-radius:8px; object-fit:cover; width:100%;">
+          <div id="bgImagePreview" style="margin-top:0.5rem; display:${previewImageUrl ? 'block' : 'none'};">
+            <img src="${escapeAttr(previewImageUrl)}" style="max-height:100px; border-radius:8px; object-fit:cover; width:100%;">
           </div>
         </div>
         <div id="bgOpacitySection" style="display:${currentType !== 'none' ? 'block' : 'none'};">
@@ -103,7 +126,7 @@
         </div>
       </div>`;
 
-    let pendingImageUrl = currentBg?.imageUrl || null;
+    let pendingImageUrl = previewImageUrl || null;
 
     const result = await Swal.fire({
       title: 'پس‌زمینه کارت',
@@ -202,8 +225,12 @@
         card.style.setProperty('--card-bg-color', newBg.color);
         card.style.removeProperty('--card-bg-image');
       } else if (newBg.type === 'image') {
+        const safeImageUrl = sanitizeImageUrl(newBg.imageUrl);
+        if (!safeImageUrl) {
+          return;
+        }
         card.classList.add('card--has-bg', 'card--bg-image');
-        card.style.setProperty('--card-bg-image', `url('${newBg.imageUrl}')`);
+        card.style.setProperty('--card-bg-image', `url('${escapeCssUrl(safeImageUrl)}')`);
         card.style.removeProperty('--card-bg-color');
       }
       if (!bgLayer) {
@@ -310,11 +337,11 @@
     const editBtn = document.getElementById('layoutEditToggleBtn');
 
     async function exitEditMode() {
-      await flushSave();
       editModeActive = false;
       mountedToolbar.classList.remove('is-editing');
       window.CardCanvas?.setEditMode(false);
       syncEditToggleLabel(editBtn);
+      await flushSave();
     }
 
     async function enterEditMode() {

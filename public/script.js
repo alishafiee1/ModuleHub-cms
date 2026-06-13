@@ -215,21 +215,6 @@
   }
 
   /**
-   * Returns localized status label and CSS class.
-   * @param {string} status - running | stopped | crashed
-   * @returns {{ label: string, cssClass: string }}
-   */
-  function getStatusDisplay(status) {
-    if (status === 'running') {
-      return { label: 'فعال', cssClass: 'status-running' };
-    }
-    if (status === 'crashed') {
-      return { label: 'خطا', cssClass: 'status-crashed' };
-    }
-    return { label: 'متوقف', cssClass: 'status-stopped' };
-  }
-
-  /**
    * Checks if user can manage a specific module.
    * @param {string} moduleId - Module id
    * @returns {boolean}
@@ -371,7 +356,8 @@
       return;
     }
 
-    const statusDisplay = getStatusDisplay(moduleMeta.status);
+    const statusDisplay = window.CardCanvas?.getStatusDisplay?.(moduleMeta.status)
+      ?? { label: 'متوقف', cssClass: 'status-stopped' };
     const action = await ModuleDialogs.showGearActionsDialog(moduleMeta, {
       isSuperAdmin: authStatus.isSuperAdmin,
       statusLabel: statusDisplay.label,
@@ -653,7 +639,6 @@
     window.CardCanvas.init({
       getModules: () => siteLayout?.modules || {},
       getAuthStatus: () => authStatus,
-      canManageModule,
       onNavigateBack: (folderId) => { void navigateToFolder(folderId); },
       onNavigateFolder: (nodeId) => { void navigateToFolder(nodeId); },
       onNavigateModule: (moduleId) => {
@@ -680,7 +665,18 @@
           void window.CardLayoutEditor.openBackgroundForCard(element);
         }
       },
-      onAddContent: () => { void openAddMenu(); },
+      onPlacementRejected: () => {
+        if (window.Swal) {
+          void Swal.fire({
+            toast: true,
+            position: 'top',
+            icon: 'warning',
+            title: 'جای خالی برای قرارگیری کارت وجود ندارد',
+            showConfirmButton: false,
+            timer: 2200,
+          });
+        }
+      },
     });
   }
 

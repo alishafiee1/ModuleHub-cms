@@ -22,7 +22,9 @@ curl http://127.0.0.1:4000/health
 
 **Phase 6:** Full backup/restore — API + UI in `/admin/settings` (backup card); per-module ZIP in ⚙. See `docs/backup-restore.md` and `docs/developer-guide.md` §9.1.
 
-**Phase 7.5:** Super Admin settings — `GET /admin/settings`, `GET /admin/settings/data`, `POST /admin/settings` — upload limits, port range, defaults, auth TTL (phase 8). Deploy: `bash scripts/deploy-full.sh` (prompts: logrotate, nginx, dev admin).
+**Phase 7.5:** Super Admin settings — card-based UI at `/admin/settings`. See `docs/developer-guide.md` §9.
+
+**Phase 7.6 (2026-06):** Home card canvas — `cardGrid` layout, drag/resize editor, folder navigation, floating background. See `docs/UI-behavior.md` and `public/js/card-canvas/`.
 
 ## Scripts
 

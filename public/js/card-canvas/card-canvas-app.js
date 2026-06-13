@@ -4,13 +4,13 @@
  */
 import { GRID_CONFIG } from './config.js';
 import {
-  applyGridBackground,
   computeGridMetrics,
   computeMinCanvasRowsForCards,
+  gridToPixels,
 } from './grid.js';
 import { SnapGhost, bindCardInteractions } from './interactions.js';
-import { isInteracting } from './layout-state.js';
-import { ModuleHubCardStore } from './modulehub-card-store.js';
+import { isInteracting, isResizingCanvas, setResizingCanvas } from './layout-state.js';
+import { ModuleHubCardStore, getStatusDisplay } from './modulehub-card-store.js';
 
 /** @type {import('./modulehub-card-store.js').ModuleHubCardStore | null} */
 let store = null;
@@ -23,6 +23,7 @@ let cardsWrapper = null;
 /** @type {HTMLElement | null} */
 let heightHandle = null;
 
+let canvasInitialized = false;
 let editMode = false;
 let prefersReducedMotion = false;
 let resizeFrame = 0;
@@ -34,7 +35,6 @@ let metrics = null;
 /** @type {{
  *   getModules: () => Record<string, object>,
  *   getAuthStatus: () => { isSuperAdmin: boolean, managedModuleIds: string[] },
- *   canManageModule: (moduleId: string) => boolean,
  *   onNavigateBack: (folderId: string) => void,
  *   onNavigateFolder: (nodeId: string) => void,
  *   onNavigateModule: (moduleId: string) => void,
@@ -42,24 +42,24 @@ let metrics = null;
  *   onCardSettled: () => void,
  *   onCanvasRowsSettled: () => void,
  *   onOpenBackground: (element: HTMLElement) => void,
- *   onAddContent: () => void,
+ *   onPlacementRejected?: () => void,
  * } | null} */
 let hooks = null;
 
 /** @type {{ showBack: boolean, parentFolderId: string, parentName: string } | null} */
 let backInfo = null;
 
-function getActiveGridRows() {
-  return activeGridRows;
+function getPlacementStartCol() {
+  return backInfo?.showBack ? GRID_CONFIG.backCardColSpan : 0;
 }
 
 function applyCanvasHeight() {
   if (!container) return;
-  const width = container.clientWidth;
-  const innerWidth = Math.max(width - GRID_CONFIG.containerPadding * 2, 1);
+  const rect = container.getBoundingClientRect();
+  const innerWidth = Math.max(rect.width - GRID_CONFIG.containerPadding * 2, 1);
   const cellWidth = innerWidth / GRID_CONFIG.maxColumns;
   const height = GRID_CONFIG.containerPadding * 2 + cellWidth * activeGridRows;
-  container.style.height = `${Math.max(height, 280)}px`;
+  container.style.height = `${Math.max(height, GRID_CONFIG.minCanvasHeightPx)}px`;
   container.dataset.gridRows = String(activeGridRows);
 }
 
@@ -99,6 +99,10 @@ function setActiveGridRows(rows, { skipMinCheck = false } = {}) {
   applyCanvasHeight();
 }
 
+function notifyPlacementRejected() {
+  hooks?.onPlacementRejected?.();
+}
+
 function bindCanvasHeightHandle() {
   if (!heightHandle || !container) return;
 
@@ -111,10 +115,11 @@ function bindCanvasHeightHandle() {
     const rowDelta = Math.round(deltaY / currentMetrics.cellHeight / GRID_CONFIG.canvasRowStep)
       * GRID_CONFIG.canvasRowStep;
     setActiveGridRows(startRows + rowDelta);
-    refreshLayout();
+    repositionCards(currentMetrics);
   };
 
   const finish = () => {
+    setResizingCanvas(false);
     heightHandle?.classList.remove('is-dragging');
     document.removeEventListener('pointermove', onMove);
     document.removeEventListener('pointerup', finish);
@@ -131,6 +136,7 @@ function bindCanvasHeightHandle() {
     startRows = activeGridRows;
     heightHandle.setPointerCapture(event.pointerId);
     heightHandle.classList.add('is-dragging');
+    setResizingCanvas(true);
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', finish);
     document.addEventListener('pointercancel', finish);
@@ -179,23 +185,32 @@ function bindCardClick(element) {
   }
 }
 
-function repositionCards() {
+/**
+ * repositionCards --- update pixel positions without rebuilding DOM ---
+ * @param {import('./grid.js').GridMetrics} [cachedMetrics]
+ */
+function repositionCards(cachedMetrics) {
   if (!store || !cardsWrapper) return;
-  const currentMetrics = getMetrics();
+  const currentMetrics = cachedMetrics ?? getMetrics();
   for (const card of store.cards) {
     const element = store.elements.get(card.id);
     if (element) {
       store.applyPixels(element, card, currentMetrics);
     }
   }
-  if (backInfo?.showBack && store) {
+  if (backInfo?.showBack) {
     const backEl = cardsWrapper.querySelector('.back-card');
     if (backEl) {
-      const box = store.createBackCardElement(backInfo, currentMetrics);
-      backEl.style.left = box.style.left;
-      backEl.style.top = box.style.top;
-      backEl.style.width = box.style.width;
-      backEl.style.height = box.style.height;
+      const box = gridToPixels({
+        col: 0,
+        row: 0,
+        colSpan: GRID_CONFIG.backCardColSpan,
+        rowSpan: GRID_CONFIG.backCardRowSpan,
+      }, currentMetrics);
+      backEl.style.left = `${box.left}px`;
+      backEl.style.top = `${box.top}px`;
+      backEl.style.width = `${box.width}px`;
+      backEl.style.height = `${box.height}px`;
     }
   }
 }
@@ -204,10 +219,9 @@ function refreshLayout({ forceRender = false } = {}) {
   if (!container || !cardsWrapper || !store || !ghost) return;
 
   metrics = getMetrics();
-  applyGridBackground(container, metrics);
 
-  if (isInteracting() && !forceRender) {
-    repositionCards();
+  if ((isInteracting() || isResizingCanvas()) && !forceRender) {
+    repositionCards(metrics);
     return;
   }
 
@@ -229,6 +243,8 @@ function refreshLayout({ forceRender = false } = {}) {
       () => editMode,
       () => hooks?.onCardSettled?.(),
       getReservedRects,
+      getPlacementStartCol,
+      notifyPlacementRejected,
     );
     bindCardClick(element);
   }, { prefersReducedMotion });
@@ -245,6 +261,8 @@ function refreshLayout({ forceRender = false } = {}) {
  * @param {object} options
  */
 function init(options) {
+  if (canvasInitialized) return;
+
   container = document.getElementById('cardCanvas');
   cardsWrapper = document.getElementById('cardsWrapper');
   const ghostLayer = document.getElementById('ghostLayer');
@@ -256,7 +274,12 @@ function init(options) {
   }
 
   hooks = options;
-  prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  prefersReducedMotion = motionQuery.matches;
+  motionQuery.addEventListener('change', (event) => {
+    prefersReducedMotion = event.matches;
+  });
+
   ghost = new SnapGhost(ghostLayer);
   store = new ModuleHubCardStore([]);
 
@@ -269,10 +292,7 @@ function init(options) {
   });
   resizeObserver.observe(container);
 
-  window.addEventListener('resize', () => {
-    cancelAnimationFrame(resizeFrame);
-    resizeFrame = requestAnimationFrame(() => refreshLayout());
-  });
+  canvasInitialized = true;
 }
 
 /**
@@ -288,7 +308,22 @@ function refresh(children, context = {}) {
   if (!store) return;
 
   const modules = hooks?.getModules() || {};
-  store.cards = ModuleHubCardStore.fromLayoutNodes(children || [], modules);
+  const reservedRects = context.showBackCard
+    ? [{
+      col: 0,
+      row: 0,
+      colSpan: GRID_CONFIG.backCardColSpan,
+      rowSpan: GRID_CONFIG.backCardRowSpan,
+    }]
+    : [];
+  const startCol = context.showBackCard ? GRID_CONFIG.backCardColSpan : 0;
+  const gridRows = Number(context.canvasGridRows) || GRID_CONFIG.minCanvasRows;
+
+  store.cards = ModuleHubCardStore.fromLayoutNodes(children || [], modules, {
+    startCol,
+    gridRows,
+    reservedRects,
+  });
   backInfo = context.showBackCard
     ? {
       showBack: true,
@@ -297,8 +332,7 @@ function refresh(children, context = {}) {
     }
     : null;
 
-  const requestedRows = Number(context.canvasGridRows) || GRID_CONFIG.minCanvasRows;
-  setActiveGridRows(requestedRows, { skipMinCheck: true });
+  setActiveGridRows(gridRows, { skipMinCheck: true });
   setActiveGridRows(activeGridRows);
 
   refreshLayout({ forceRender: true });
@@ -313,6 +347,9 @@ function setEditMode(active) {
   refreshLayout({ forceRender: true });
 }
 
+/**
+ * collectCardPayload --- PATCH entries; shape mirrors folder-card-patch-entry.ts ---
+ */
 function collectCardPayload() {
   if (!store) return [];
   return store.cards.map((card) => {
@@ -337,7 +374,7 @@ function collectCardPayload() {
           entry.cardBackground = parsed;
         }
       } catch {
-        // skip
+        // skip invalid JSON
       }
     }
     return entry;
@@ -353,8 +390,15 @@ function getCardElement(nodeId) {
 }
 
 function showEmptyState(message) {
-  if (!cardsWrapper) return;
-  cardsWrapper.innerHTML = `<div class="card-canvas-empty">${message}</div>`;
+  if (!cardsWrapper || !store) return;
+  store.cards = [];
+  store.elements.clear();
+  backInfo = null;
+  cardsWrapper.replaceChildren();
+  const empty = document.createElement('div');
+  empty.className = 'card-canvas-empty';
+  empty.textContent = message;
+  cardsWrapper.appendChild(empty);
 }
 
 function setNavigating(active) {
@@ -370,6 +414,7 @@ window.CardCanvas = {
   getCardElement,
   showEmptyState,
   setNavigating,
+  getStatusDisplay,
   getStore: () => store,
 };
 

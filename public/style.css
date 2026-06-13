@@ -420,44 +420,6 @@ body {
 body.dark .breadcrumb-item { color: #7ab3c8; }
 .breadcrumb-item:hover { text-decoration: underline; }
 
-.grid-cards {
-    padding: 2rem;
-    padding-top: calc(2rem + 12px);
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.8rem;
-    transition: opacity 0.12s ease, transform 0.12s ease;
-    position: relative;
-    z-index: 2;
-}
-
-@media (max-width: 1100px) {
-    .grid-cards { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 640px) {
-    .grid-cards { grid-template-columns: 1fr; }
-}
-
-/* card span sizes — applied from cardSpan field in site-layout */
-.card--span-1 { grid-column: span 1; }
-.card--span-2 { grid-column: span 2; }
-.card--span-4 { grid-column: span 4; }
-
-/* on tablet (2-col) clamp span-4 to full width */
-@media (max-width: 1100px) {
-    .card--span-2 { grid-column: span 2; }
-    .card--span-4 { grid-column: span 2; }
-}
-@media (max-width: 640px) {
-    .card--span-1, .card--span-2, .card--span-4 { grid-column: span 1; }
-}
-
-.grid-cards.grid-cards--navigating {
-    opacity: 0.92;
-    transform: scale(0.99);
-}
-
 @keyframes cardConnectIn {
     from {
         opacity: 0;
@@ -507,10 +469,6 @@ body.dark .breadcrumb-item { color: #7ab3c8; }
     }
     .card.card-enter {
         animation: none;
-    }
-    .grid-cards.grid-cards--navigating {
-        opacity: 1;
-        transform: none;
     }
     .bg-glow-1, .bg-glow-2 {
         animation: none;
@@ -602,10 +560,8 @@ body.dark .card--bg-image .card-bg-layer {
     filter: brightness(0.85);
 }
 
-/* min-height per span to give image cards breathing room */
+/* min-height for cards with custom background */
 .card--has-bg { min-height: 168px; }
-.card--has-bg.card--span-2 { min-height: 216px; }
-.card--has-bg.card--span-4 { min-height: 264px; }
 
 .card-content { padding: 1.4rem 1.2rem 1.2rem; }
 
@@ -798,181 +754,6 @@ body.dark .layout-edit-tool-btn--primary:hover:not(:disabled) {
     border-color: #5bb4e0;
 }
 
-/* cards become draggable targets in edit mode */
-.grid-cards.layout-edit-active {
-    /* 5 edit buttons × 28px + gaps — keeps column fully visible on short cards */
-    --card-edit-controls-height: 192px;
-}
-
-.grid-cards.layout-edit-active .card {
-    position: relative;
-    user-select: none;
-}
-
-.grid-cards.layout-edit-active .card:not(.add-card) {
-    min-height: max(288px, var(--card-edit-controls-height, 192px) + 6.6rem);
-}
-
-.grid-cards.layout-edit-active .add-card {
-    min-height: max(288px, var(--card-edit-controls-height, 192px) + 6.6rem);
-}
-
-/* hide gear while layout edit controls replace it */
-.grid-cards.layout-edit-active .card .gear-icon {
-    display: none;
-}
-
-/* vertical edit controls column — replaces gear icon position */
-.card-edit-controls {
-    display: none;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 6px;
-    width: 56px;
-    flex-shrink: 0;
-    z-index: 10;
-}
-
-.grid-cards.layout-edit-active .card:not(.add-card) .card-edit-controls {
-    display: flex;
-}
-
-/* keep card-icon row tall enough — edit controls float without clipping */
-.grid-cards.layout-edit-active .card .card-icon {
-    position: relative;
-    align-items: flex-start;
-    min-height: var(--card-edit-controls-height, 192px);
-}
-
-.grid-cards.layout-edit-active .card .card-edit-controls {
-    position: absolute;
-    inset-inline-end: 0;
-    top: 0;
-}
-
-/* shared button sizing inside edit column */
-.card-edit-controls .card-drag-handle,
-.card-edit-controls .card-bg-btn,
-.card-edit-controls .card-span-btn {
-    width: 100%;
-    box-sizing: border-box;
-    min-height: 28px;
-}
-
-/* drag handle — first item in edit column */
-.card-drag-handle {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    background: rgba(6, 182, 212, 0.12);
-    color: #0891b2;
-    cursor: grab;
-    font-size: 0.8rem;
-    opacity: 0.65;
-    transition: opacity 0.15s ease, background 0.15s ease;
-}
-
-body.dark .card-drag-handle {
-    background: rgba(91, 180, 224, 0.15);
-    color: #5bb4e0;
-}
-
-.grid-cards.layout-edit-active .card .card-drag-handle {
-    display: flex;
-}
-
-.card-drag-handle:hover {
-    opacity: 1;
-    background: rgba(6, 182, 212, 0.22);
-}
-
-/* background picker — second item in edit column */
-.card-bg-btn {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    background: rgba(6, 182, 212, 0.12);
-    color: #0891b2;
-    border: none;
-    cursor: pointer;
-    font-size: 0.78rem;
-    opacity: 0.65;
-    transition: opacity 0.15s ease, background 0.15s ease;
-}
-
-body.dark .card-bg-btn {
-    background: rgba(91, 180, 224, 0.15);
-    color: #5bb4e0;
-}
-
-.grid-cards.layout-edit-active .card .card-bg-btn {
-    display: flex;
-}
-
-.card-bg-btn:hover {
-    opacity: 1;
-    background: rgba(6, 182, 212, 0.25);
-}
-
-/* span selector — vertical stack below palette */
-.card-span-selector {
-    display: none;
-    flex-direction: column;
-    gap: 4px;
-    width: 100%;
-}
-
-.grid-cards.layout-edit-active .card:not(.add-card) .card-span-selector {
-    display: flex;
-}
-
-.card-span-btn {
-    padding: 4px 6px;
-    border-radius: 6px;
-    border: 1px solid rgba(6, 182, 212, 0.35);
-    background: rgba(255, 255, 255, 0.75);
-    color: #475569;
-    font-size: 0.68rem;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: inherit;
-    backdrop-filter: blur(4px);
-    transition: all 0.15s ease;
-}
-
-body.dark .card-span-btn {
-    background: rgba(30, 41, 59, 0.85);
-    color: #94a3b8;
-    border-color: rgba(91, 180, 224, 0.3);
-}
-
-.card-span-btn:hover,
-.card-span-btn.is-active {
-    background: rgba(6, 182, 212, 0.18);
-    border-color: #06b6d4;
-    color: #0891b2;
-}
-
-body.dark .card-span-btn:hover,
-body.dark .card-span-btn.is-active {
-    background: rgba(91, 180, 224, 0.2);
-    color: #5bb4e0;
-}
-
-/* ghost/drag-over visual */
-.card.sortable-ghost {
-    opacity: 0.4;
-    background: rgba(6, 182, 212, 0.08) !important;
-    border: 2px dashed #06b6d4 !important;
-}
-
-.card.sortable-drag {
-    opacity: 0.9;
-    box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.25) !important;
-}
-
 /* saving indicator */
 .layout-edit-saving {
     font-size: 0.78rem;
@@ -986,7 +767,6 @@ body.dark .card-span-btn.is-active {
 }
 
 @media (max-width: 700px) {
-    .grid-cards { padding: 1rem; gap: 1rem; }
     .header { flex-direction: column; align-items: flex-start; gap: 12px; }
     .hero-text h2 { font-size: 1.5rem; }
 }

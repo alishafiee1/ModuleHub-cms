@@ -22,4 +22,14 @@ describe('buildFolderCardPatchEntry', () => {
     const entry = buildFolderCardPatchEntry('node-1', sampleGrid, 'null', true);
     expect(entry).toEqual({ nodeId: 'node-1', cardGrid: sampleGrid, cardBackground: null });
   });
+
+  it('parses image URL with ampersand in query string', () => {
+    const bg = {
+      type: 'image' as const,
+      imageUrl: '/card-backgrounds/a.webp?token=1&size=2',
+      backgroundOpacity: 100,
+    };
+    const entry = buildFolderCardPatchEntry('node-1', sampleGrid, JSON.stringify(bg), false);
+    expect(entry.cardBackground?.imageUrl).toBe('/card-backgrounds/a.webp?token=1&size=2');
+  });
 });

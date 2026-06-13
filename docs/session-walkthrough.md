@@ -57,6 +57,12 @@ input.task-list-item-checkbox {
 
 ## آخرین جلسات
 
+### 2026-06-13 — /sync-docs (۲۴ ساعت card canvas + home UI)
+- **درخواست:** `/sync-docs` — تغییرات ۲۴ ساعت اخیر از گیت
+- **کد (۱۳ کامیت):** cardGrid canvas · folderCanvas/grid-slot · cardBackground · folder nav · floating icons · theme.js · admin logout/password · settings cards · backup UI
+- **داک بروز:** `UI-behavior.md` · `design plan.md` §۱۱.۵ · `developer-guide.md` §۹.۳ · `tasks.md` فاز ۷.۶ و ۸ جزئی · `docs-for-ai/readme.md`
+- **پایه diff:** `b56d239` → `f824828` (+ uncommitted canvas tweaks)
+
 ### 2026-05-29 — فاز ۷.۵ settings + deploy 334f9ac + logrotate
 - **درخواست:** opsx apply فاز ۷.۵ · `/sync-docs` · deploy روی سرور · «logrotate یعنی چی؟»
 - **نتیجه:** `system-settings/` + `/admin/settings` · ۱۰۲ unit test · deploy-full موفق (`334f9ac`) · logrotate نصب (`/etc/logrotate.d/modulehub-cms`)

@@ -50,7 +50,7 @@ input.task-list-item-checkbox {
 
 > **پایان هر فاز:** unit test + `npm run lint` + JSDoc توابع public — [`code-rolls.md`](code-rolls.md)  
 > **TypeScript:** همهٔ `core/src/` — type برای IO ماژول‌ها، بدون `any`.  
-> **وضعیت (2026-05-29):** فاز **۰–۷** ✅ · فاز **۷.۵** ✅ (کد) — تست دستی 9.9 ⏳ — جزئیات unit: [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
+> **وضعیت (2026-06-13):** فاز **۰–۷.۵** ✅ · فاز **۸** ⏳ جزئی (login، logout، change-password، منوی Super Admin — 2026-06-12) · **Home UI** ✅ (card canvas، folder nav، ظاهر، theme.js — 2026-06-12)
 
 | فاز | موضوع | وضعیت |
 |-----|--------|--------|
@@ -59,10 +59,12 @@ input.task-list-item-checkbox {
 | ۳ | runtime Start/Stop + `/modules/` | ✅ |
 | ۴ | کش پکیج | ✅ 2026-05-28 |
 | ۵ | ⚙ مدیریت ماژول (gear) | ✅ 2026-05-28 |
-| ۶ | backup کامل | ✅ 2026-05-29 |
+| ۶ | backup کامل + UI settings | ✅ 2026-06-12 |
 | ۷ | versioning + log levels | ✅ 2026-05-29 |
-| ۷.۵ | تنظیمات سراسری `/admin/settings` | ✅ کد 2026-05-29 · تست دستی ⏳ |
-| ۸+ | auth · integration · … | ⏳ |
+| ۷.۵ | تنظیمات سراسری `/admin/settings` (کارتی) | ✅ 2026-06-12 |
+| ۷.۶ | بوم cardGrid + ویرایش چیدمان + cardBackground | ✅ 2026-06-13 |
+| ۸ | auth کامل (CSRF، Module Manager WAN، …) | ⏳ جزئی |
+| ۸+ | integration · … | ⏳ |
 
 ## فاز ۰: آماده‌سازی زیرساخت (۱ روز) — ✅
 
@@ -190,21 +192,37 @@ input.task-list-item-checkbox {
 
 ---
 
-## فاز ۸: احراز هویت — Session + Module Manager (۳ روز)
+## فاز ۸: احراز هویت — Session + Module Manager (۳ روز) — ⏳ جزئی 2026-06-12
 
-| # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |
-|---|-------|--------|------------------|----------|
-| 8.1 | Super Admin login | `GET/POST /admin/login` — bcrypt verify، express-session | session cookie پس از login موفق | login از اینترنت → redirect به `/` |
-| 8.2 | Auth middleware | محافظت `/admin/*` — Super Admin یا Module Manager scoped | بدون session → 401/redirect login | `curl /admin/settings` بدون cookie → 401 |
-| 8.3 | Rate limit login | `loginRateLimitPerMinute` از system-settings | ۶ تلاش در ۱ دقیقه → 429 | اسکریپت brute-force تست |
-| 8.4 | CSRF token | token در فرم‌های POST admin | POST بدون token → 403 | upload بدون token رد شود |
-| 8.5 | Logout | `POST /admin/logout` | session invalidate | بعد logout دسترسی admin قطع |
-| 8.6 | Seed Super Admin | `ADMIN_PASSWORD_HASH` env یا `storage/admin-users.json` | اولین login کار کند | login با رمز seed |
-| 8.7 | Module Manager auth | `POST /admin/module/:id/auth` — verify `managementPasswordHash` | session scoped به moduleId | login با رمز ماژول → start/stop همان ماژول |
-| 8.8 | Module Manager limits | Module Manager نتواند delete/settings/add | delete → 403 | تلاش delete با session ماژول |
-| 8.9 | Lockout رمز ماژول | پس از `modulePasswordMaxAttempts` → lockout | ۶ تلاش اشتباه → ۱۵ دقیقه block | brute-force رمز ماژول |
-| 8.10 | UI login + gear flow | صفحه login، SweetAlert رمز ⚙، مخفی + بدون Super Admin | UX کامل | سناریوی Module Manager از WAN |
-| 8.11 | Set module password | Super Admin در edit ماژول — set/reset hash | hash در site-layout.json | jq `.modules["id"].managementPasswordHash` |
+| # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست | وضعیت |
+|---|-------|--------|------------------|----------|--------|
+| 8.1 | Super Admin login | `GET/POST /admin/login` — bcrypt verify، express-session | session cookie پس از login موفق | login از اینترنت → redirect به `/` | ✅ |
+| 8.2 | Auth middleware | محافظت `/admin/*` — Super Admin یا Module Manager scoped | بدون session → 401/redirect login | `curl /admin/settings` بدون cookie → 401 | ⏳ |
+| 8.3 | Rate limit login | `loginRateLimitPerMinute` از system-settings | ۶ تلاش در ۱ دقیقه → 429 | اسکریپت brute-force تست | ⏳ |
+| 8.4 | CSRF token | token در فرم‌های POST admin | POST بدون token → 403 | upload بدون token رد شود | ⏳ |
+| 8.5 | Logout | `POST /admin/logout` | session invalidate | بعد logout دسترسی admin قطع | ✅ 2026-06-12 |
+| 8.5b | Change password | `POST /admin/change-password` + UI در منو/settings | hash در admin-users.json | تغییر رمز → redirect login | ✅ 2026-06-12 |
+| 8.6 | Seed Super Admin | `ADMIN_PASSWORD_HASH` env یا `storage/admin-users.json` | اولین login کار کند | login با رمز seed | ✅ |
+| 8.7 | Module Manager auth | `POST /admin/module/:id/auth` — verify `managementPasswordHash` | session scoped به moduleId | login با رمز ماژول → start/stop همان ماژول | ⏳ |
+| 8.8 | Module Manager limits | Module Manager نتواند delete/settings/add | delete → 403 | تلاش delete با session ماژول | ⏳ |
+| 8.9 | Lockout رمز ماژول | پس از `modulePasswordMaxAttempts` → lockout | ۶ تلاش اشتباه → ۱۵ دقیقه block | brute-force رمز ماژول | ⏳ |
+| 8.10 | UI login + gear flow | صفحه login، SweetAlert رمز ⚙، منوی Super Admin | UX کامل | سناریوی Module Manager از WAN | ⏳ جزئی |
+| 8.11 | Set module password | Super Admin در edit ماژول — set/reset hash | hash در site-layout.json | jq `.modules["id"].managementPasswordHash` | ⏳ |
+
+---
+
+## فاز ۷.۶: بوم کارت و چیدمان (Card Canvas) — ✅ 2026-06-13
+
+| # | وظیفه | جزئیات | خروجی | تست |
+|---|-------|--------|-------|-----|
+| 7.6.1 | migrate cardSpan → cardGrid | `migrate-card-grid.ts` on read | JSON با `cardGrid` | unit migrate-card-grid |
+| 7.6.2 | embedded canvas | `public/js/card-canvas/` drag/resize/snap | کارت روی گرید ۳۰×N | UI manual |
+| 7.6.3 | PATCH folder cards | `PATCH /admin/folder/:id/cards` debounce 500ms | layout ذخیره | unit folder-cards-update |
+| 7.6.4 | cardBackground | upload + inline style + editor dialog | `storage/card-backgrounds/` | unit + UI |
+| 7.6.5 | folderCanvas rows | دستگیره ارتفاع بوم، `grid-slot.ts` | `folderCanvas.gridRows` | unit grid-slot |
+| 7.6.6 | folder navigation | history.pushState، back-card، breadcrumb | `/?folder=` | UI manual |
+| 7.6.7 | home appearance | floating Lucide icons + settings card | `system-settings.json` | UI + unit schema |
+| 7.6.8 | shared theme | `public/theme.js` — home + admin | لایت/دارک یکپارچه | visual |
 
 ---
 

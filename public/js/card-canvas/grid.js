@@ -1,6 +1,6 @@
 /**
  * محاسبات گرید و اسنپ
- * Grid metrics, snapping, overlap resolution, and background sync.
+ * Grid metrics, snapping, overlap resolution.
  */
 import { GRID_CONFIG } from './config.js';
 
@@ -93,7 +93,7 @@ export function snapMove(box, colSpan, rowSpan, metrics) {
 }
 
 /**
- * snapResize --- snap resize with fixed top-right corner ---
+ * snapResize --- snap resize with fixed right and top edges ---
  */
 export function snapResize(box, fixedRightCol, fixedTopRow, metrics) {
   const gap = GRID_CONFIG.cardGap;
@@ -142,38 +142,17 @@ export function rectsOverlap(a, b) {
 }
 
 /**
- * resolveSnapWithoutOverlap --- nudge snapped position away from obstacles ---
- * @param {{ col: number, row: number, colSpan: number, rowSpan: number }} candidate
- * @param {string} movingId
- * @param {Array<{ id: string, col: number, row: number, colSpan: number, rowSpan: number }>} cards
- * @param {Array<{ col: number, row: number, colSpan: number, rowSpan: number }>} [reservedRects]
- */
-export function resolveSnapWithoutOverlap(candidate, movingId, cards, reservedRects = [], metrics = null) {
-  const obstacles = [
-    ...reservedRects,
-    ...cards.filter((c) => c.id !== movingId).map((c) => c),
-  ];
-
-  const collides = (rect) => obstacles.some((o) => rectsOverlap(rect, o));
-  if (!collides(candidate)) {
-    return candidate;
-  }
-
-  const rows = metrics?.rows ?? GRID_CONFIG.minCanvasRows;
-  const slot = findEmptySlot(
-    cards.filter((c) => c.id !== movingId),
-    { columns: GRID_CONFIG.maxColumns, rows },
-    candidate.colSpan,
-    candidate.rowSpan,
-    reservedRects,
-  );
-  return slot ?? candidate;
-}
-
-/**
  * findEmptySlot --- first free rectangle for new card ---
+ * @param {number} [startCol] - Column offset (back-card zone in subfolders)
  */
-export function findEmptySlot(cards, metrics, colSpan = GRID_CONFIG.minColumnSpan, rowSpan = GRID_CONFIG.minRowSpan, reservedRects = []) {
+export function findEmptySlot(
+  cards,
+  metrics,
+  colSpan = GRID_CONFIG.minColumnSpan,
+  rowSpan = GRID_CONFIG.minRowSpan,
+  reservedRects = [],
+  startCol = 0,
+) {
   const { columns, rows } = metrics;
   const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
 
@@ -191,7 +170,7 @@ export function findEmptySlot(cards, metrics, colSpan = GRID_CONFIG.minColumnSpa
   cards.forEach(mark);
 
   for (let row = 0; row <= rows - rowSpan; row += 1) {
-    for (let col = 0; col <= columns - colSpan; col += 1) {
+    for (let col = startCol; col <= columns - colSpan; col += 1) {
       let fits = true;
       for (let deltaRow = 0; deltaRow < rowSpan && fits; deltaRow += 1) {
         for (let deltaCol = 0; deltaCol < colSpan && fits; deltaCol += 1) {
@@ -209,6 +188,49 @@ export function findEmptySlot(cards, metrics, colSpan = GRID_CONFIG.minColumnSpa
 }
 
 /**
+ * resolveSnapWithoutOverlap --- nudge snapped position away from obstacles ---
+ * @returns {{ position: { col: number, row: number, colSpan: number, rowSpan: number }, rejected: boolean }}
+ */
+export function resolveSnapWithoutOverlap(
+  candidate,
+  movingId,
+  cards,
+  reservedRects = [],
+  metrics = null,
+  fallback = null,
+  startCol = 0,
+) {
+  const obstacles = [
+    ...reservedRects,
+    ...cards.filter((c) => c.id !== movingId),
+  ];
+
+  const collides = (rect) => obstacles.some((o) => rectsOverlap(rect, o));
+  if (!collides(candidate)) {
+    return { position: candidate, rejected: false };
+  }
+
+  const rows = metrics?.rows ?? GRID_CONFIG.minCanvasRows;
+  const slot = findEmptySlot(
+    cards.filter((c) => c.id !== movingId),
+    { columns: GRID_CONFIG.maxColumns, rows },
+    candidate.colSpan,
+    candidate.rowSpan,
+    reservedRects,
+    startCol,
+  );
+  if (slot) {
+    return { position: slot, rejected: false };
+  }
+
+  const movingCard = cards.find((c) => c.id === movingId);
+  const revert = fallback ?? (movingCard
+    ? { col: movingCard.col, row: movingCard.row, colSpan: movingCard.colSpan, rowSpan: movingCard.rowSpan }
+    : candidate);
+  return { position: revert, rejected: true };
+}
+
+/**
  * minPixelSize --- minimum card size in pixels ---
  */
 export function minPixelSize(metrics) {
@@ -217,11 +239,4 @@ export function minPixelSize(metrics) {
     width: GRID_CONFIG.minColumnSpan * metrics.cellWidth - gap,
     height: GRID_CONFIG.minRowSpan * metrics.cellHeight - gap,
   };
-}
-
-/**
- * applyGridBackground --- no-op; checkerboard grid lines are not shown ---
- */
-export function applyGridBackground() {
-  // Grid snapping still uses metrics; visual lines intentionally disabled.
 }

@@ -133,16 +133,21 @@ flowchart TB
 ├── public/                   # فایل‌های استاتیک فرانت‌اند (HTML, CSS, JS)
 │   ├── index.html
 │   ├── style.css
-│   ├── dashboard.js
-│   └── dialog.js
+│   ├── script.js             # صفحه اصلی + یکپارچه‌سازی card-canvas
+│   ├── theme.js              # تم لایت/دارک مشترک (home + admin)
+│   ├── card-layout-editor.js # دیالوگ پس‌زمینه کارت
+│   ├── home-floating-background.js
+│   ├── js/card-canvas/       # بوم گرید ۳۰×N (drag/resize/snap)
+│   └── admin/                # login، settings (کارت‌محور)، backup dialog
 ├── standalone-modules/       # پوشه هر ماژول نصب شده (محتوای ZIP استخراج شده)
 │   └── <module-id>/
 │       ├── module.json       # تنظیمات محلی ماژول (نسخه، وضعیت، منابع)
 │       └── ... (فایل‌های پروژه)
 ├── storage/
-│   ├── site-layout.json      # درخت پوشه‌ها + تنظیمات ماژول‌ها (+ managementPasswordHash)
-│   ├── system-settings.json  # تنظیمات سراسری + auth (session TTL, rate limit)
+│   ├── site-layout.json      # درخت پوشه‌ها + cardGrid/cardBackground + ماژول‌ها
+│   ├── system-settings.json  # تنظیمات سراسری + auth + ظاهر صفحه اصلی
 │   ├── admin-users.json      # hash رمز Super Admin (یا env: ADMIN_PASSWORD_HASH)
+│   ├── card-backgrounds/     # تصاویر پس‌زمینه کارت (آپلود ادمین)
 │   ├── logs/                 # لاگ هسته CMS (cms.log)
 │   └── backups/              # فایل‌های پشتیبان (ZIP)
 ├── thumbnails/               # تصاویر کارت ماژول‌ها
@@ -414,6 +419,8 @@ request → session parser
 | **مدت Session Module Manager (ساعت)** | ۴ | `moduleManagerSessionTtlHours` |
 | **حداکثر تلاش رمز ماژول** | ۵ | قبل از lockout |
 | **مدت lockout رمز ماژول (دقیقه)** | ۱۵ | `modulePasswordLockoutMinutes` |
+| **پس‌زمینه صفحه اصلی** | `none` | `none` \| `floating-icons` — canvas Lucide |
+| **دسته آیکون صفحه اصلی** | `mixed` | `nature` \| `technology` \| `tools` \| `vehicles` \| `mixed` |
 
 **رادیو باکس رابط شبکه** (فقط ≥۲ NIC فعال): لیست از `ip -o link show up` — انتخاب رابط برای عملیات نصب. CMS با `network-metric-toggler` موقتاً metric را عوض و **restore** می‌کند. مسیر دائمی Ubuntu از پنل وب عوض **نمی‌شود** (ریسک خراب شدن default route سیستم).
 
@@ -437,6 +444,32 @@ request → session parser
 **محتوای ZIP کامل:** `backup-manifest.json` · `site-layout.json` · `system-settings.json` · `standalone-modules/` · `thumbnails/` (لاگ‌ها داخل ZIP نیستند).
 
 **restore:** ماژول‌های `running` قبل از overwrite متوقف می‌شوند · سپس extract و جایگزینی · در صورت نیاز `systemctl restart modulehub-cms`.
+
+---
+
+## ۱۱.۵ بوم کارت (Card Canvas) — ✅ 2026-06-12
+
+صفحه اصلی از **بوم گرید ۳۰ ستونه** با موقعیت absolute کارت‌ها استفاده می‌کند (نه CSS grid ساده با `cardSpan`).
+
+| مفهوم | محل | توضیح |
+|--------|-----|-------|
+| `cardGrid` | `LayoutTreeNode` | `{ col, row, colSpan, rowSpan }` — حداقل ۳×۳ |
+| `cardSpan` (legacy) | migrate on read | `1→7`, `2→15`, `4→30` colSpan — `migrate-card-grid.ts` |
+| `folderCanvas.gridRows` | node پوشه | ارتفاع بوم — پیش‌فرض ۹، حداکثر ۶۰، گام UI: ۳ |
+| `cardBackground` | هر node | `none` \| `color` \| `image` + opacity |
+| slot خالی | `grid-slot.ts` | جلوگیری از overlap هنگام settle drag/resize |
+
+**فرانت:** `public/js/card-canvas/` — `config.js` باید با `core/src/modules/home-layout/grid-config.ts` همگام بماند.
+
+**API (Super Admin):**
+
+| متد | مسیر | کار |
+|-----|------|-----|
+| PATCH | `/admin/folder/:folderId/cards` | `{ cards: [{ nodeId, cardGrid?, cardBackground? }], canvasGridRows? }` |
+| POST | `/admin/card-background/upload` | multipart — jpeg/png/webp ≤۲MB → `storage/card-backgrounds/` |
+| GET | `/card-backgrounds/<file>` | سرو عمومی تصویر پس‌زمینه |
+
+**UI ویرایش:** نوار ابزار بالای بوم — drag/resize، دستگیره ارتفاع بوم، پالت پس‌زمینه — debounce ۵۰۰ms → PATCH. جزئیات رفتار: `docs/UI-behavior.md` §۱.۱.
 
 ---
 

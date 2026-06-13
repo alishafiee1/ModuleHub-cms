@@ -11,6 +11,12 @@ describe('findEmptyCardSlot', () => {
     const slot = findEmptyCardSlot(occupied, 9, 0, 7, 3);
     expect(slot).toEqual({ col: 7, row: 0, colSpan: 7, rowSpan: 3 });
   });
+
+  it('starts search after back-card column in subfolders', () => {
+    const backCard = { col: 0, row: 0, colSpan: 7, rowSpan: 3 };
+    const slot = findEmptyCardSlot([backCard], 9, 7, 3, 3);
+    expect(slot).toEqual({ col: 7, row: 0, colSpan: 3, rowSpan: 3 });
+  });
 });
 
 describe('assignCardGridForNewChild', () => {

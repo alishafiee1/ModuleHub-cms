@@ -1,4 +1,7 @@
-/** Logical grid dimensions for the card canvas (matches cart view template) */
+/**
+ * Logical grid dimensions for the card canvas.
+ * Keep in sync with public/js/card-canvas/config.js (GRID_CONFIG, LEGACY_SPAN_TO_COL_SPAN).
+ */
 export const GRID_MAX_COLUMNS = 30;
 /** Default visible canvas rows per folder */
 export const GRID_MIN_CANVAS_ROWS = 9;

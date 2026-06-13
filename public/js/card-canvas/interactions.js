@@ -2,7 +2,6 @@
  * تعاملات درگ و تغییر سایز کارت — فقط در حالت ویرایش
  * Pointer drag/resize with snap ghost; active when edit mode is on.
  */
-import { GRID_CONFIG } from './config.js';
 import {
   gridToPixels,
   minPixelSize,
@@ -53,12 +52,48 @@ export class SnapGhost {
  * @param {() => boolean} isEditMode
  * @param {() => void} onSettled
  * @param {() => Array<{ col: number, row: number, colSpan: number, rowSpan: number }>} getReservedRects
+ * @param {() => number} getStartCol
+ * @param {() => void} [onPlacementRejected]
  */
-export function bindCardInteractions(element, card, store, getMetrics, ghost, isEditMode, onSettled, getReservedRects) {
+export function bindCardInteractions(
+  element,
+  card,
+  store,
+  getMetrics,
+  ghost,
+  isEditMode,
+  onSettled,
+  getReservedRects,
+  getStartCol,
+  onPlacementRejected,
+) {
   const resizeHandle = element.querySelector('.resize-handle');
-  bindMove(element, card.id, store, getMetrics, ghost, isEditMode, onSettled, getReservedRects);
+  bindMove(
+    element,
+    card.id,
+    store,
+    getMetrics,
+    ghost,
+    isEditMode,
+    onSettled,
+    getReservedRects,
+    getStartCol,
+    onPlacementRejected,
+  );
   if (resizeHandle) {
-    bindResize(element, resizeHandle, card.id, store, getMetrics, ghost, isEditMode, onSettled, getReservedRects);
+    bindResize(
+      element,
+      resizeHandle,
+      card.id,
+      store,
+      getMetrics,
+      ghost,
+      isEditMode,
+      onSettled,
+      getReservedRects,
+      getStartCol,
+      onPlacementRejected,
+    );
   }
 }
 
@@ -104,7 +139,18 @@ function settleCard(element, store, cardId, metrics, grid, onSettled) {
   }
 }
 
-function bindMove(element, cardId, store, getMetrics, ghost, isEditMode, onSettled, getReservedRects) {
+function bindMove(
+  element,
+  cardId,
+  store,
+  getMetrics,
+  ghost,
+  isEditMode,
+  onSettled,
+  getReservedRects,
+  getStartCol,
+  onPlacementRejected,
+) {
   element.addEventListener('pointerdown', (event) => {
     if (!isEditMode()) return;
     if (event.button !== 0) return;
@@ -120,12 +166,18 @@ function bindMove(element, cardId, store, getMetrics, ghost, isEditMode, onSettl
     const startX = event.clientX;
     const startY = event.clientY;
     const startBox = readBox(element);
+    const originalGrid = {
+      col: card.col,
+      row: card.row,
+      colSpan: card.colSpan,
+      rowSpan: card.rowSpan,
+    };
+    const gestureMetrics = getMetrics();
 
     element.setPointerCapture(event.pointerId);
     element.classList.add('is-dragging');
 
     const onMove = (moveEvent) => {
-      const currentMetrics = getMetrics();
       const liveBox = {
         left: startBox.left + (moveEvent.clientX - startX),
         top: startBox.top + (moveEvent.clientY - startY),
@@ -133,8 +185,8 @@ function bindMove(element, cardId, store, getMetrics, ghost, isEditMode, onSettl
         height: startBox.height,
       };
       applyRawBox(element, liveBox);
-      const snapped = snapMove(liveBox, card.colSpan, card.rowSpan, currentMetrics);
-      ghost.show(gridToPixels(snapped, currentMetrics));
+      const snapped = snapMove(liveBox, card.colSpan, card.rowSpan, gestureMetrics);
+      ghost.show(gridToPixels(snapped, gestureMetrics));
       element.classList.add('snap-preview');
     };
 
@@ -158,15 +210,20 @@ function bindMove(element, cardId, store, getMetrics, ghost, isEditMode, onSettl
         width: startBox.width,
         height: startBox.height,
       };
-      let snapped = snapMove(finalBox, freshCard.colSpan, freshCard.rowSpan, currentMetrics);
-      snapped = resolveSnapWithoutOverlap(
+      const snapped = snapMove(finalBox, freshCard.colSpan, freshCard.rowSpan, currentMetrics);
+      const { position, rejected } = resolveSnapWithoutOverlap(
         snapped,
         cardId,
         store.cards,
         getReservedRects(),
         currentMetrics,
+        originalGrid,
+        getStartCol(),
       );
-      settleCard(element, store, cardId, currentMetrics, snapped, onSettled);
+      if (rejected) {
+        onPlacementRejected?.();
+      }
+      settleCard(element, store, cardId, currentMetrics, position, onSettled);
       setInteracting(false);
     };
 
@@ -176,7 +233,19 @@ function bindMove(element, cardId, store, getMetrics, ghost, isEditMode, onSettl
   });
 }
 
-function bindResize(element, handle, cardId, store, getMetrics, ghost, isEditMode, onSettled, getReservedRects) {
+function bindResize(
+  element,
+  handle,
+  cardId,
+  store,
+  getMetrics,
+  ghost,
+  isEditMode,
+  onSettled,
+  getReservedRects,
+  getStartCol,
+  onPlacementRejected,
+) {
   handle.addEventListener('pointerdown', (event) => {
     if (!isEditMode()) return;
     if (event.button !== 0) return;
@@ -197,6 +266,13 @@ function bindResize(element, handle, cardId, store, getMetrics, ghost, isEditMod
     const fixedTopPx = startBox.top;
     const fixedRightCol = card.col + card.colSpan;
     const fixedTopRow = card.row;
+    const originalGrid = {
+      col: card.col,
+      row: card.row,
+      colSpan: card.colSpan,
+      rowSpan: card.rowSpan,
+    };
+    const gestureMetrics = metrics;
 
     handle.setPointerCapture(event.pointerId);
     element.classList.add('is-resizing');
@@ -208,11 +284,10 @@ function bindResize(element, handle, cardId, store, getMetrics, ghost, isEditMod
     };
 
     const onMove = (moveEvent) => {
-      const currentMetrics = getMetrics();
       const liveBox = buildLiveBox(moveEvent);
       applyRawBox(element, liveBox);
-      const snapped = snapResize(liveBox, fixedRightCol, fixedTopRow, currentMetrics);
-      ghost.show(gridToPixels(snapped, currentMetrics));
+      const snapped = snapResize(liveBox, fixedRightCol, fixedTopRow, gestureMetrics);
+      ghost.show(gridToPixels(snapped, gestureMetrics));
       element.classList.add('snap-preview');
     };
 
@@ -226,15 +301,20 @@ function bindResize(element, handle, cardId, store, getMetrics, ghost, isEditMod
 
       const currentMetrics = getMetrics();
       const liveBox = buildLiveBox(endEvent);
-      let snapped = snapResize(liveBox, fixedRightCol, fixedTopRow, currentMetrics);
-      snapped = resolveSnapWithoutOverlap(
+      const snapped = snapResize(liveBox, fixedRightCol, fixedTopRow, currentMetrics);
+      const { position, rejected } = resolveSnapWithoutOverlap(
         snapped,
         cardId,
         store.cards,
         getReservedRects(),
         currentMetrics,
+        originalGrid,
+        getStartCol(),
       );
-      settleCard(element, store, cardId, currentMetrics, snapped, onSettled);
+      if (rejected) {
+        onPlacementRejected?.();
+      }
+      settleCard(element, store, cardId, currentMetrics, position, onSettled);
       setInteracting(false);
     };
 
@@ -243,5 +323,3 @@ function bindResize(element, handle, cardId, store, getMetrics, ghost, isEditMod
     handle.addEventListener('pointercancel', finish);
   });
 }
-
-export { GRID_CONFIG };

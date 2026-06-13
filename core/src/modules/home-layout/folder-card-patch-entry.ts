@@ -8,6 +8,7 @@ export interface FolderCardPatchEntry {
 
 /**
  * purpose --- builds one PATCH /admin/folder/:id/cards entry from card DOM state ---
+ * Client mirror: public/js/card-canvas/card-canvas-app.js collectCardPayload().
  * Omits cardBackground unless set or explicitly cleared (avoids wiping on reorder-only saves).
  * @param nodeId - Layout tree node id
  * @param cardGrid - Current grid position from data attributes

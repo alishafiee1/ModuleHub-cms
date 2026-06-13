@@ -12,7 +12,7 @@ table td code, table th code { direction: ltr; unicode-bidi: embed; text-align: 
 
 # راهنمای توسعه‌دهنده — ModuleHub CMS
 
-> **وضعیت:** هسته در `core/` — فاز ۰–۷.۵ (layout + wizard + runtime + package-cache + backup-restore + settings).  
+> **وضعیت:** هسته در `core/` — فاز ۰–۷.۶ (layout + wizard + runtime + package-cache + backup-restore + settings + card canvas).  
 > ماژول بعد از wizard با `status: stopped` ثبت می‌شود؛ از ⚙ **Start** سپس `/modules/<id>/` باز می‌شود.  
 > deploy و توسعه: [`deploy-guide.md`](deploy-guide.md) · چک‌لیست: [`openspec/.../tasks.md`](../openspec/changes/modulehub-cms-v1/tasks.md)
 
@@ -223,8 +223,38 @@ npx serve . -l 8080
 | GET | `/admin/settings` | صفحه تنظیمات سراسری (HTML) |
 | GET | `/admin/settings/data` | JSON تنظیمات + لیست NIC |
 | POST | `/admin/settings` | ذخیره partial settings (validation) |
+| PATCH | `/admin/folder/:folderId/cards` | به‌روزرسانی `cardGrid` / `cardBackground` / `canvasGridRows` |
+| POST | `/admin/card-background/upload` | آپلود تصویر پس‌زمینه کارت (≤۲MB) |
+| POST | `/admin/logout` | خروج Super Admin / Module Manager |
+| POST | `/admin/change-password` | تغییر رمز Super Admin |
 
 تا فاز ۸: `MODULEHUB_DEV_SUPER_ADMIN=1` در `.env` برای تست admin — [`deploy-guide.md`](deploy-guide.md)
+
+### ۹.۳ بوم کارت (cardGrid)
+
+**فرانت:** `public/js/card-canvas/` — `card-canvas-app.js` orchestrator · `modulehub-card-store.js` state · `grid.js` metrics · `interactions.js` drag/resize · `layout-state.js` · `config.js` (همگام با `grid-config.ts`).
+
+**Schema (`LayoutTreeNode`):**
+
+| فیلد | توضیح |
+|------|--------|
+| `cardGrid` | `{ col, row, colSpan, rowSpan }` — منبع حقیقت چیدمان |
+| `cardSpan` | legacy — migrate به `cardGrid` هنگام خواندن |
+| `folderCanvas.gridRows` | ارتفاع بوم پوشه (۹–۶۰) |
+| `cardBackground` | `{ type, color?, imageUrl?, backgroundOpacity?, overlayOpacity? }` |
+
+**PATCH body نمونه:**
+
+```json
+{
+  "cards": [{ "nodeId": "abc", "cardGrid": { "col": 0, "row": 3, "colSpan": 7, "rowSpan": 3 } }],
+  "canvasGridRows": 12
+}
+```
+
+**بک‌اند:** `core/src/modules/home-layout/` — `folder-cards-update.ts` · `grid-slot.ts` · `migrate-card-grid.ts` · `card-background-upload.ts`
+
+**UI ویرایش:** `public/card-layout-editor.js` (دیالوگ پس‌زمینه) · debounce ۵۰۰ms در `script.js`.
 
 ### ۹.۱ بکاپ و restore کامل
 
