@@ -6,6 +6,9 @@ data/
 .env.*.local
 *.log
 coverage/
+test-results/
+playwright-report/
+playwright/.cache/
 
 # Runtime storage (seed templates live in docs/)
 storage/logs/*

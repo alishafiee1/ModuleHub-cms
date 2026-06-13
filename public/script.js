@@ -45,9 +45,12 @@
   }
 
   /**
-   * purpose --- active layout breakpoint from viewport (mirrors card-canvas config) ---
+   * purpose --- viewport breakpoint (mirrors card-canvas config.js) ---
    */
   function resolveViewportBreakpoint() {
+    if (window.CardCanvas?.resolveViewportBreakpoint) {
+      return window.CardCanvas.resolveViewportBreakpoint();
+    }
     const width = window.innerWidth;
     if (width >= 1024) return 'desktop';
     if (width >= 641) return 'tablet';
@@ -691,6 +694,12 @@
         canvasGridRowsTablet,
         canvasGridRowsMobile,
       });
+      if (folderId === currentFolderId && siteLayout?.tree) {
+        const folderNode = findNodeById(siteLayout.tree, folderId);
+        if (folderNode?.children) {
+          window.CardCanvas?.updateLayoutChildren?.(folderNode.children);
+        }
+      }
     }
   });
 

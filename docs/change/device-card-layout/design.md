@@ -34,11 +34,12 @@
 
 | کلید | برچسب UI | عرض طراحی (reference) | فعال وقتی viewport |
 |------|----------|----------------------|-------------------|
-| `desktop` | PC | عرض کامل کانتینر (فعلی) | `≥ 1024px` |
-| `tablet` | تبلت | `768px` | `641px – 1023px` |
-| `mobile` | موبایل | `390px` | `≤ 640px` |
+| `desktop` | PC | **`1200px`** (سقف گرید؛ shell تا `1280px`) | `≥ 1024px` |
+| `tablet` | تبلت | `768px` (reference مشتق‌سازی) | `641px – 1023px` |
+| `mobile` | موبایل | `390px` (reference مشتق‌سازی) | `≤ 640px` |
 
-- عرض‌های reference فقط برای **محاسبهٔ سلول گرید در حالت ویرایش و نمایش** — نه media query جدا برای هر کارت.
+- عرض‌های reference برای **مشتق‌سازی** و **سقف دسکتاپ** — نه قفل کردن گرید در viewport کوچک‌تر از reference.
+- **داخل هر breakpoint:** سلول‌های گرید **کل عرض قابل‌استفادهٔ بوم** را پر می‌کنند (`cellWidth = containerInner / 30`)؛ فقط دسکتاپ وقتی container از `1200px` عریض‌تر است به `1200px` محدود می‌شود.
 - `640px` با §۸.۴ فعلی `UI-behavior.md` هم‌راستا است؛ آستانهٔ تبلت/دسکتاپ `1024px` قرارداد جدید این change است.
 
 ---
@@ -153,7 +154,7 @@ canvasGridRowsMobile?: number;
 
 1. `matchMedia` یا `ResizeObserver` روی `window` — تعیین `activeBreakpoint`.
 2. `ModuleHubCardStore` / `resolveNodeGrid(node, breakpoint)` — فیلد مناسب یا fallback مشتق.
-3. **سلول ثابت:** `cellWidth = designWidth[breakpoint] / maxColumns` — **نه** `containerWidth / maxColumns` وقتی viewport بزرگ‌تر از design width است (دسکتاپ: تمام عرض).
+3. **سلول پرکننده بوم:** `innerWidth = resolveGridInnerWidth(containerInner, breakpoint)` — تبلت/موبایل همیشه `containerInner`؛ دسکتاپ `min(containerInner, 1200px)`؛ `cellWidth = innerWidth / maxColumns`.
 4. تغییر breakpoint → re-render یک‌باره (مثل navigation) — بدون transition اندازهٔ کارت.
 
 ---

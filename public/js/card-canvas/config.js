@@ -73,6 +73,19 @@ export function resolveDesignWidth(breakpoint, _containerInnerWidth) {
 }
 
 /**
+ * resolveGridInnerWidth --- grid cell area width: fill canvas; desktop capped at design width ---
+ * @param {number} containerInner - Usable width inside cards wrapper (px)
+ * @param {'desktop'|'tablet'|'mobile'} breakpoint
+ */
+export function resolveGridInnerWidth(containerInner, breakpoint) {
+  const maxDesign = resolveDesignWidth(breakpoint);
+  if (breakpoint === 'desktop') {
+    return Math.min(containerInner, maxDesign);
+  }
+  return containerInner;
+}
+
+/**
  * resolveShellOuterWidth --- total outer width of card canvas shell (grid + padding) ---
  * @param {'desktop'|'tablet'|'mobile'} breakpoint
  * @param {number} [viewportWidth]

@@ -45,3 +45,19 @@ export const DEVICE_DESIGN_WIDTH: Readonly<Record<'desktop' | 'tablet' | 'mobile
 
 /** Max outer width for header + card column (px) */
 export const APP_CONTENT_SHELL_MAX_WIDTH = 1280;
+
+export type LayoutBreakpointKey = 'desktop' | 'tablet' | 'mobile';
+
+/**
+ * purpose --- grid cell area width: fill canvas; desktop capped at design width ---
+ */
+export function resolveGridInnerWidth(
+  containerInner: number,
+  breakpoint: LayoutBreakpointKey,
+): number {
+  const maxDesign = DEVICE_DESIGN_WIDTH[breakpoint];
+  if (breakpoint === 'desktop') {
+    return Math.min(containerInner, maxDesign);
+  }
+  return containerInner;
+}

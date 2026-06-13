@@ -34,6 +34,7 @@ curl http://127.0.0.1:4000/health
 | `npm run build` | Compile TypeScript → `dist/` |
 | `npm start` | Production server |
 | `npm test` | Jest unit tests |
+| `npm run test:e2e` | Playwright E2E (device-card-layout; uses port `4010` + system Chrome) |
 | `npm run lint` | ESLint |
 
 ## Server deploy

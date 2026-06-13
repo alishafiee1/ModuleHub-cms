@@ -6,11 +6,12 @@
 .card-canvas {
   position: relative;
   z-index: 2;
-  width: min(100%, var(--app-shell-width, 1280px));
-  max-width: 100%;
+  --card-canvas-h-pad: 2rem;
+  width: 100%;
+  max-width: min(100%, var(--app-shell-width, 1280px));
   min-height: var(--card-canvas-min-height, 280px);
   margin: 0 auto;
-  padding: 0 2rem 2rem;
+  padding: 0 var(--card-canvas-h-pad) 2rem;
   box-sizing: border-box;
   /* Grid uses physical LTR coords (col 0 = far left); ltr prevents RTL overflow from
      clipping col 0 area (visual right in Persian UI) on sub-1288px viewports */
@@ -29,6 +30,7 @@
 .card-canvas--edit-mode {
   touch-action: none;
   border-color: rgba(6, 182, 212, 0.45);
+  overflow: visible;
 }
 
 .card-canvas--device-desktop,
@@ -286,7 +288,8 @@ body.dark .resize-handle:focus-visible {
 
 @media (max-width: 640px) {
   .card-canvas {
-    padding: 0 1rem 1.5rem;
+    --card-canvas-h-pad: 1rem;
+    padding: 0 var(--card-canvas-h-pad) 1.5rem;
     --card-canvas-min-height: 220px;
   }
 }

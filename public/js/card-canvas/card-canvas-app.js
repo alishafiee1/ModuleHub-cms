@@ -2,7 +2,7 @@
  * موتور گرید کارت ModuleHub — bootstrap و API سراسری
  * Card canvas engine — init, refresh, edit mode, ResizeObserver.
  */
-import { GRID_CONFIG, resolveBreakpoint, resolveDesignWidth, resolveShellOuterWidth } from './config.js';
+import { GRID_CONFIG, resolveBreakpoint, resolveDesignWidth, resolveGridInnerWidth, resolveShellOuterWidth } from './config.js';
 import {
   computeGridMetrics,
   computeMinCanvasRowsForCards,
@@ -66,12 +66,25 @@ function getEffectiveBreakpoint() {
   return editMode ? activeEditDevice : activeBreakpoint;
 }
 
-function getContainerInnerWidth() {
-  if (!container) {
+function getGridAreaElement() {
+  return cardsWrapper ?? container;
+}
+
+function getGridAreaInnerWidth() {
+  const el = getGridAreaElement();
+  if (!el) {
     return 1;
   }
-  const rect = container.getBoundingClientRect();
+  const rect = el.getBoundingClientRect();
   return Math.max(rect.width - GRID_CONFIG.containerPadding * 2, 1);
+}
+
+function getGridInnerWidth() {
+  return resolveGridInnerWidth(getGridAreaInnerWidth(), getEffectiveBreakpoint());
+}
+
+function getContainerInnerWidth() {
+  return getGridAreaInnerWidth();
 }
 
 function lockDesignWidthForBreakpoint(breakpoint) {
@@ -106,7 +119,7 @@ function applyDeviceCanvasClasses() {
 
 function applyCanvasHeight() {
   if (!container) return;
-  const innerWidth = lockedDesignWidth ?? getContainerInnerWidth();
+  const innerWidth = getGridInnerWidth();
   const cellWidth = innerWidth / GRID_CONFIG.maxColumns;
   const height = GRID_CONFIG.containerPadding * 2 + cellWidth * activeGridRows;
   container.style.height = `${Math.max(height, GRID_CONFIG.minCanvasHeightPx)}px`;
@@ -118,8 +131,12 @@ function getMetrics() {
     throw new Error('Card canvas not mounted');
   }
   applyCanvasHeight();
-  metrics = computeGridMetrics(container, activeGridRows, {
-    designWidth: lockedDesignWidth ?? undefined,
+  const gridEl = getGridAreaElement();
+  if (!gridEl) {
+    throw new Error('Card canvas grid area missing');
+  }
+  metrics = computeGridMetrics(gridEl, activeGridRows, {
+    innerWidth: getGridInnerWidth(),
   });
   return metrics;
 }
@@ -349,6 +366,9 @@ function init(options) {
   window.addEventListener('resize', () => {
     if (editMode) {
       applyAppShellWidth();
+      if (store && cardsWrapper) {
+        repositionCards(getMetrics());
+      }
       return;
     }
     syncViewportBreakpoint();
@@ -490,6 +510,10 @@ function getEffectiveBreakpointPublic() {
   return getEffectiveBreakpoint();
 }
 
+function resolveViewportBreakpointPublic() {
+  return resolveBreakpoint(window.innerWidth);
+}
+
 const GRID_PATCH_FIELD = {
   desktop: 'cardGrid',
   tablet: 'cardGridTablet',
@@ -564,6 +588,10 @@ function setNavigating(active) {
   container?.classList.toggle('card-canvas--navigating', active);
 }
 
+function updateLayoutChildren(children) {
+  lastRefreshChildren = children;
+}
+
 window.CardCanvas = {
   init,
   refresh,
@@ -571,6 +599,7 @@ window.CardCanvas = {
   setActiveEditDevice,
   getActiveEditDevice,
   getEffectiveBreakpoint: getEffectiveBreakpointPublic,
+  resolveViewportBreakpoint: resolveViewportBreakpointPublic,
   syncViewportBreakpoint,
   collectCardPayload,
   collectCanvasGridRows,
@@ -579,6 +608,8 @@ window.CardCanvas = {
   setNavigating,
   getStatusDisplay,
   getStore: () => store,
+  updateLayoutChildren,
+  getGridInnerWidth: () => getGridInnerWidth(),
 };
 
 window.dispatchEvent(new Event('modulehub:card-canvas-ready'));

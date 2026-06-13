@@ -7,16 +7,16 @@ import { GRID_CONFIG } from './config.js';
 /** @typedef {{ cellWidth: number, cellHeight: number, columns: number, rows: number, width: number, height: number }} GridMetrics */
 
 /**
- * computeGridMetrics --- pixel cell size from design width and row count ---
- * @param {HTMLElement} container
+ * computeGridMetrics --- pixel cell size from container/wrapper width and row count ---
+ * @param {HTMLElement} container - Usually #cardsWrapper or #cardCanvas
  * @param {number} [gridRows]
- * @param {{ designWidth?: number }} [options]
+ * @param {{ innerWidth?: number }} [options] - Explicit grid width; defaults to container minus pad
  * @returns {GridMetrics}
  */
 export function computeGridMetrics(container, gridRows = GRID_CONFIG.minCanvasRows, options = {}) {
   const rect = container.getBoundingClientRect();
   const containerInner = Math.max(rect.width - GRID_CONFIG.containerPadding * 2, 1);
-  const innerWidth = options.designWidth ?? containerInner;
+  const innerWidth = options.innerWidth ?? containerInner;
   const cellWidth = innerWidth / GRID_CONFIG.maxColumns;
   const cellHeight = cellWidth;
   const rows = Math.max(GRID_CONFIG.minCanvasRows, gridRows);
@@ -29,6 +29,14 @@ export function computeGridMetrics(container, gridRows = GRID_CONFIG.minCanvasRo
     width: innerWidth,
     height: cellHeight * rows,
   };
+}
+
+/**
+ * cardGridRightEdge --- rightmost pixel edge of a grid rect (for bounds tests) ---
+ */
+export function cardGridRightEdge(card, metrics) {
+  const box = gridToPixels(card, metrics);
+  return box.left + box.width;
 }
 
 /**

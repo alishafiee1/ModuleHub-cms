@@ -57,6 +57,12 @@ input.task-list-item-checkbox {
 
 ## آخرین جلسات
 
+### 2026-06-13 — device-card-layout audit + QA
+- **درخواست:** پلن بازبینی DCL — رفع رگرسیون بوم کامل، Playwright، sync-docs
+- **کد:** `resolveGridInnerWidth` — گرید داخل breakpoint کل container را پر می‌کند؛ دسکتاپ سقف ۱۲۰۰px · `overflow: visible` در edit · تست unit + E2E
+- **تست:** `npm test` → ۱۹۴ PASS · `npm run test:e2e` → ۵ PASS (پورت ۴۰۱۰، Chrome سیستم)
+- **داک:** `design.md` §۳/§۷ · `tasks.md` ۵.۵ ✅ · `card-canvas-checklist.md` موارد گوشه بوم
+
 ### 2026-06-13 — /sync-docs (۲۴ ساعت card canvas + home UI)
 - **درخواست:** `/sync-docs` — تغییرات ۲۴ ساعت اخیر از گیت
 - **کد (۱۳ کامیت):** cardGrid canvas · folderCanvas/grid-slot · cardBackground · folder nav · floating icons · theme.js · admin logout/password · settings cards · backup UI
