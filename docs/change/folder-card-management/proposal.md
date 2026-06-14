@@ -3,6 +3,7 @@
 # پروپزال — کارت پوشه را مثل کارت ماژول مدیریت کنیم
 
 > پوشهٔ change: `docs/change/folder-card-management/`  
+> **OpenSpec (پیاده‌سازی):** [`openspec/changes/folder-card-management/`](../../../openspec/changes/folder-card-management/proposal.md)  
 > جزئیات فنی و API در [design.md](./design.md) است — اینجا فقط می‌گوییم **چرا** و **چی** می‌خواهیم.  
 > **رفتار UI:** [behavior.md](./behavior.md) · **جدا:** کد پویا و realtime → [card-live-customization](../card-live-customization/proposal.md)
 
