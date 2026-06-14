@@ -21,6 +21,7 @@
 | ۷.۸ | استاندارد به‌روزرسانی کد روی سرور | ✅ 2026-06-13 — [change/1405-03-23-server-code-update-standard](./change/1405-03-23-server-code-update-standard/proposal.md) |
 | ۷.۹ | مدیریت کارت پوشه (⚙، توضیح، جابجایی، حذف) | ✅ 2026-06-14 — [change/1405-03-24-folder-card-management](./change/1405-03-24-folder-card-management/proposal.md) |
 | ۷.۱۰ | تکمیل دیزاین کارت (روش یکپارچه — جایگزین پلن معلق static-template) | ⏳ — [change/card-live-customization](./change/card-live-customization/proposal.md) |
+| ۷.۱۱ | استاندارد card-view و راهنمای ساخت ماژول (→ skill) | ⏳ — [change/card-view](./change/card-view/proposal.md) |
 | ۸ | auth کامل (CSRF، Module Manager WAN، …) | ⏳ جزئی |
 | ۸.۱ | ورود با ایمیل، نقش‌ها، بازیابی رمز، مدیریت کاربر | ⏳ — [change/admin-access-roles](./change/admin-access-roles/proposal.md) |
 | ۸+ | integration · … | ⏳ |

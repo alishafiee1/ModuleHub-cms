@@ -72,6 +72,8 @@ my-app.zip
 
 **حد حجم:** پیش‌فرض ۲۰۰ MB (`system-settings.example.json`).
 
+**کارت روی صفحهٔ اصلی:** فایل `card.html` (یا `card/index.html`) — راهنمای کامل: [`change/card-view/module-card-guide.md`](change/card-view/module-card-guide.md).
+
 ---
 
 ## ۲.۱ وابستگی‌ها — کی دانلود می‌شوند؟
