@@ -266,16 +266,35 @@ run_build_in_home() {
   (
     cd "${home_clone}"
     export PATH="$(dirname "${RESOLVED_NODE_BIN}"):${PATH}"
-    if [[ -d node_modules && -f package-lock.json ]]; then
-      if ! npm ci 2>/dev/null; then
-        log_warn "home npm ci failed — using existing node_modules"
+    local npm_ci_ok=false
+    if [[ -f package-lock.json ]]; then
+      if npm ci 2>/dev/null; then
+        npm_ci_ok=true
+      else
+        local mirror_registry="${MODULEHUB_NPM_REGISTRY:-https://registry.npmmirror.com}"
+        if npm ci --registry "${mirror_registry}" 2>/dev/null; then
+          npm_ci_ok=true
+          log_warn "home npm ci OK via mirror: ${mirror_registry}"
+        fi
       fi
-    elif [[ -f package-lock.json ]]; then
-      npm ci
-    else
+    elif [[ -f package.json ]]; then
       npm install
+      npm_ci_ok=true
+    fi
+    if [[ "${npm_ci_ok}" != true ]]; then
+      if [[ -d node_modules ]]; then
+        log_warn "home npm ci failed — using existing node_modules"
+      else
+        log_error "home npm ci failed and node_modules missing"
+        exit 1
+      fi
     fi
   )
+
+  if [[ -f "${home_clone}/scripts/lib/ensure-build-deps.sh" ]]; then
+    log_step "ensure build tools (tsc)"
+    MODULEHUB_APP_DIR="${home_clone}" bash "${home_clone}/scripts/lib/ensure-build-deps.sh"
+  fi
 
   if [[ -x "${home_clone}/scripts/restore-linux-native-deps.sh" ]]; then
     log_step "restore Linux native modules in home"
