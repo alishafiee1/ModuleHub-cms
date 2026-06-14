@@ -418,8 +418,8 @@
     return [
       {
         id: 'help',
-        label: 'توضیح کارت',
-        hint: 'همون متنی که زیر عنوان کارت می‌نویسی — اینجا کاملش رو ببین',
+        label: 'راهنما',
+        hint: 'چطور با پوشه کار کنی — حذف، جابجایی و ...',
         icon: 'fa-circle-question',
         show: true,
       },
@@ -457,10 +457,7 @@
   async function executeFolderGearAction(folderId, folderNode, action) {
     try {
       if (action === 'help') {
-        await ModuleDialogs.showCardDescriptionHelpDialog({
-          title: folderNode.name,
-          descriptionMarkdown: folderNode.cardDescription || '',
-        });
+        await ModuleDialogs.showFolderAdminHelpDialog();
         return;
       }
 
@@ -624,15 +621,6 @@
    */
   async function handleGearAction(moduleId, moduleMeta, action, cardElement) {
     try {
-      if (action === 'help') {
-        const layoutNode = findNodeById(siteLayout.tree, cardElement?.dataset?.id || '');
-        const description = layoutNode?.cardDescription || moduleMeta.changelog || '';
-        await ModuleDialogs.showCardDescriptionHelpDialog({
-          title: moduleMeta.name,
-          descriptionMarkdown: description,
-        });
-        return;
-      }
       if (action === 'start') {
         await ModuleHubApi.startModule(moduleId);
         await refreshFromServer();

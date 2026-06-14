@@ -1,0 +1,60 @@
+/* card-description-editor.css — large card description field in edit dialogs */
+
+.swal-card-desc-editor-dialog.swal2-popup {
+    padding: 1.15rem 1rem 1rem !important;
+}
+
+.swal-card-desc-editor-dialog .swal2-title {
+    margin-bottom: 0.45rem !important;
+    font-size: 1.15rem !important;
+}
+
+.swal-card-desc-editor-dialog .swal2-html-container {
+    margin: 0.25rem 0 0.5rem !important;
+    padding: 0 !important;
+}
+
+.swal-card-desc-editor-dialog .swal2-actions {
+    margin-top: 0.65rem !important;
+}
+
+.swal-dialog-body--card-desc {
+    text-align: right;
+}
+
+.swal-dialog-body--card-desc .form-group--compact {
+    margin-bottom: 0.65rem;
+}
+
+.swal-dialog-body--card-desc .form-group--card-desc {
+    margin-bottom: 0;
+}
+
+.swal-dialog-body--card-desc .form-field-hint {
+    margin-bottom: 0.35rem;
+}
+
+.swal-dialog-body--card-desc .swal2-input {
+    margin-bottom: 0.35rem !important;
+}
+
+.card-desc-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.swal2-textarea--card-desc {
+    min-height: min(42vh, 280px) !important;
+    height: min(42vh, 280px) !important;
+    max-height: 50vh !important;
+    margin: 0 !important;
+    resize: vertical !important;
+    font-family: 'Kalameh', 'Inter', 'Segoe UI', monospace !important;
+    font-size: 0.88rem !important;
+    line-height: 1.55 !important;
+}
+
+.card-desc-editor .card-desc-field-meta {
+    margin-top: 0.15rem;
+}

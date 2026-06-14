@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import {
   dragCardForTreeTransfer,
+  dragCardForTreeTransferAndCancel,
   enterLayoutEditMode,
   exitLayoutEditMode,
   openHomeAsSuperAdmin,
@@ -64,13 +65,58 @@ test.describe('E2E-FCM folder card management', () => {
     await expect(folderCard.locator('.card-desc strong')).toContainText('پررنگ', { timeout: 10_000 });
   });
 
-  test('E2E-FCM-05: gear help shows full card description', async ({ page }) => {
+  test('E2E-FCM-07: markdown headers render as separate block lines', async ({ page }) => {
+    await openHomeAsSuperAdmin(page);
+    const folderCard = page.locator('[data-id="folder-a"]');
+    await folderCard.locator('.gear-icon').click();
+    await page.locator('.gear-float-btn[data-action="edit-meta"]').click({ force: true });
+    await page.locator('#folder-edit-desc').fill('# عنوان اصلی\n\n## زیرعنوان');
+    await page.getByRole('button', { name: 'ذخیره' }).click();
+    await page.waitForResponse(
+      (resp) => resp.url().includes('/admin/folder/folder-a') && resp.request().method() === 'PATCH',
+    );
+    await expect(folderCard.locator('.card-desc h1')).toContainText('عنوان اصلی', { timeout: 10_000 });
+    await expect(folderCard.locator('.card-desc h2')).toContainText('زیرعنوان');
+  });
+
+  test('E2E-FCM-05: gear help shows folder admin guide', async ({ page }) => {
     await openHomeAsSuperAdmin(page);
     const folderCard = page.locator('[data-id="folder-a"]');
     await folderCard.locator('.gear-icon').click();
     await page.locator('.gear-float-btn[data-action="help"]').click({ force: true });
-    await expect(page.locator('.swal2-popup .card-description-help')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('.swal2-popup .folder-admin-help')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('.folder-help-section__title', { hasText: 'جابجایی' })).toBeVisible();
     await page.getByRole('button', { name: 'بستن' }).click();
+  });
+
+  test('E2E-FCM-06: over 4000 characters shows validation on save', async ({ page }) => {
+    await openHomeAsSuperAdmin(page);
+    const folderCard = page.locator('[data-id="folder-a"]');
+    await folderCard.locator('.gear-icon').click();
+    await page.locator('.gear-float-btn[data-action="edit-meta"]').click({ force: true });
+    const overLimit = 'x'.repeat(4001);
+    await page.locator('#folder-edit-desc').fill(overLimit);
+    await expect(page.locator('#folder-edit-desc-warn')).toBeVisible();
+    await page.getByRole('button', { name: 'ذخیره' }).click();
+    await expect(page.locator('.swal2-validation-message')).toContainText('۴۰۰۰');
+  });
+
+  test('E2E-FCM-02c: cancel tree transfer restores card on grid', async ({ page }) => {
+    await openHomeAsSuperAdmin(page);
+    await enterLayoutEditMode(page);
+
+    const folderC = page.locator('[data-id="folder-c"]');
+    const folderA = page.locator('[data-id="folder-a"]');
+    const originalCol = await folderC.getAttribute('data-col');
+    const originalRow = await folderC.getAttribute('data-row');
+    expect(originalCol).toBeTruthy();
+    expect(originalRow).toBeTruthy();
+
+    await dragCardForTreeTransferAndCancel(page, folderC, folderA);
+
+    await expect(page.locator('[data-id="folder-c"]')).toHaveCount(1);
+    await expect(folderC).toHaveAttribute('data-col', originalCol!);
+    await expect(folderC).toHaveAttribute('data-row', originalRow!);
   });
 
   test('E2E-FCM-02: move folder via edit-mode drag transfer', async ({ page }) => {

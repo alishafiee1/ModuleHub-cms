@@ -90,22 +90,17 @@ function isLayoutTreeReparentPatch(resp: import('@playwright/test').Response, no
 }
 
 /**
- * Drags a card onto another card, dwells for tree transfer, releases, and confirms.
+ * Performs dwell drag from source handle onto target center (no confirm).
  */
-export async function dragCardForTreeTransfer(
+async function performTreeTransferDrag(
   page: Page,
   source: Locator,
   target: Locator,
-  dwellMs = 2100,
+  dwellMs: number,
 ): Promise<void> {
-  const sourceId = await source.getAttribute('data-id');
-  expect(sourceId).toBeTruthy();
-
-  const srcBox = await source.boundingBox();
-  const tgtBox = await target.boundingBox();
-  expect(srcBox).not.toBeNull();
-  expect(tgtBox).not.toBeNull();
   const { x: startX, y: startY } = await getCardDragHandleCenter(source);
+  const tgtBox = await target.boundingBox();
+  expect(tgtBox).not.toBeNull();
   const endX = tgtBox!.x + tgtBox!.width / 2;
   const endY = tgtBox!.y + tgtBox!.height / 2;
 
@@ -124,20 +119,54 @@ export async function dragCardForTreeTransfer(
   await page.waitForTimeout(dwellMs);
   await page.mouse.up();
 
-  const confirmBtn = page.locator('.transfer-confirm-btn');
-  await expect(confirmBtn).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('.transfer-confirm-btn')).toBeVisible({ timeout: 10_000 });
+}
+
+/**
+ * Drags a card onto another card, dwells for tree transfer, releases, and confirms.
+ */
+export async function dragCardForTreeTransfer(
+  page: Page,
+  source: Locator,
+  target: Locator,
+  dwellMs = 100,
+): Promise<void> {
+  const sourceId = await source.getAttribute('data-id');
+  expect(sourceId).toBeTruthy();
+
+  await performTreeTransferDrag(page, source, target, dwellMs);
 
   const transferPatch = page.waitForResponse(
     (resp) => isLayoutTreeReparentPatch(resp, sourceId!),
     { timeout: 20_000 },
   );
 
-  await confirmBtn.click({ force: true });
+  await page.locator('.transfer-confirm-btn').click({ force: true });
   await transferPatch;
   await page.waitForResponse(
     (resp) => resp.url().includes('/api/layout') && resp.request().method() === 'GET',
     { timeout: 20_000 },
   );
+  await page.waitForTimeout(LAYOUT_SAVE_DEBOUNCE_MS);
+}
+
+/**
+ * Drags for tree transfer then cancels via backdrop click (card should restore grid).
+ */
+export async function dragCardForTreeTransferAndCancel(
+  page: Page,
+  source: Locator,
+  target: Locator,
+  dwellMs = 600,
+): Promise<void> {
+  await performTreeTransferDrag(page, source, target, dwellMs);
+  const canvasBox = await page.locator('#cardCanvas').boundingBox();
+  expect(canvasBox).not.toBeNull();
+  await page.mouse.click(
+    canvasBox!.x + canvasBox!.width / 2,
+    canvasBox!.y + Math.min(120, canvasBox!.height / 2),
+  );
+  await expect(page.locator('.transfer-confirm-btn')).toHaveCount(0);
   await page.waitForTimeout(LAYOUT_SAVE_DEBOUNCE_MS);
 }
 

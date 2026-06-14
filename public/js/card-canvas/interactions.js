@@ -12,6 +12,7 @@ import {
 } from './grid.js';
 import { setInteracting } from './layout-state.js';
 import { CardTransferController } from './card-transfer.js';
+import { syncCardDragHandleMetrics } from './drag-handle-metrics.js';
 
 /** @type {CardTransferController|null} */
 let transferController = null;
@@ -141,6 +142,7 @@ function applyRawBox(element, box) {
   element.style.top = `${box.top}px`;
   element.style.width = `${box.width}px`;
   element.style.height = `${box.height}px`;
+  syncCardDragHandleMetrics(element, box.width);
 }
 
 function settleCard(element, store, cardId, metrics, grid, onSettled) {
@@ -166,6 +168,20 @@ function settleCard(element, store, cardId, metrics, grid, onSettled) {
   if (onSettled) {
     onSettled();
   }
+}
+
+/** Minimum pointer movement before a gesture counts as drag (suppresses synthetic click). */
+const DRAG_CLICK_THRESHOLD_PX = 4;
+
+/**
+ * suppressNextClick --- block one synthetic click after pointer drag ---
+ * @param {HTMLElement} target
+ */
+function suppressNextClick(target) {
+  target.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+  }, { capture: true, once: true });
 }
 
 function bindMove(
@@ -207,6 +223,7 @@ function bindMove(
       rowSpan: card.rowSpan,
     };
     const gestureMetrics = getMetrics();
+    let didDrag = false;
 
     if (transfer && (card.nodeType === 'folder' || card.nodeType === 'module')) {
       transfer.beginDrag(element);
@@ -216,6 +233,12 @@ function bindMove(
     element.classList.add('is-dragging');
 
     const onMove = (moveEvent) => {
+      if (
+        Math.abs(moveEvent.clientX - startX) > DRAG_CLICK_THRESHOLD_PX
+        || Math.abs(moveEvent.clientY - startY) > DRAG_CLICK_THRESHOLD_PX
+      ) {
+        didDrag = true;
+      }
       const liveBox = {
         left: startBox.left + (moveEvent.clientX - startX),
         top: startBox.top + (moveEvent.clientY - startY),
@@ -237,11 +260,17 @@ function bindMove(
     };
 
     const restoreOriginalPosition = () => {
+      element.classList.remove('is-transfer-ready', 'is-dragging', 'snap-preview');
+      element.style.removeProperty('transform');
       applyRawBox(element, startBox);
       const freshCard = store.find(cardId);
       if (freshCard) {
         store.applyPixels(element, freshCard, getMetrics());
+        element.dataset.col = String(freshCard.col);
+        element.dataset.row = String(freshCard.row);
       }
+      element.classList.add('is-settling');
+      window.setTimeout(() => element.classList.remove('is-settling'), 350);
     };
 
     const finish = (endEvent) => {
@@ -251,6 +280,10 @@ function bindMove(
       element.removeEventListener('pointercancel', finish);
       element.classList.remove('is-dragging', 'snap-preview');
       ghost.hide();
+
+      if (didDrag) {
+        suppressNextClick(element);
+      }
 
       if (transfer?.endDrag(endEvent.clientX, endEvent.clientY, restoreOriginalPosition)) {
         return;

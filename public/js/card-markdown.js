@@ -1,13 +1,19 @@
 /**
  * card-markdown.js — safe Markdown rendering for card descriptions
- * purpose --- preview on card (inline-friendly) and full view in gear help dialog ---
+ * purpose --- full GFM blocks on scrollable card area via marked + DOMPurify ---
  */
 (function initCardMarkdown() {
-  const PREVIEW_ALLOWED_TAGS = ['strong', 'em', 'b', 'i', 'code', 'a', 'br', 'span'];
-  const FULL_ALLOWED_TAGS = [
+  const CARD_DESCRIPTION_ALLOWED_TAGS = [
     'p', 'br', 'strong', 'em', 'b', 'i', 'code', 'pre', 'a',
     'ul', 'ol', 'li', 'blockquote', 'span',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr',
+    'table', 'thead', 'tbody', 'tr', 'th', 'td',
   ];
+
+  const CARD_DESCRIPTION_ALLOWED_ATTR = ['href', 'title', 'target', 'rel'];
+
+  let markdownInitFailed = false;
+  let markdownReady = false;
 
   /**
    * escapeHtml --- plain-text fallback when marked/DOMPurify unavailable ---
@@ -21,60 +27,105 @@
       .replace(/'/g, '&#39;');
   }
 
+  function getMarkedLib() {
+    const lib = window.marked;
+    if (!lib) {
+      return null;
+    }
+    if (typeof lib.parse === 'function') {
+      return lib;
+    }
+    if (lib.marked && typeof lib.marked.parse === 'function') {
+      return lib.marked;
+    }
+    return null;
+  }
+
+  function getDOMPurify() {
+    return window.DOMPurify;
+  }
+
+  /**
+   * canUseMarkdown --- true when vendored marked.parse and DOMPurify are available ---
+   */
   function canUseMarkdown() {
-    return typeof window.marked !== 'undefined' && typeof window.DOMPurify !== 'undefined';
+    const markedLib = getMarkedLib();
+    const purify = getDOMPurify();
+    return Boolean(markedLib && typeof markedLib.parse === 'function' && purify);
+  }
+
+  function ensureMarkdownReady() {
+    if (markdownReady) {
+      return true;
+    }
+    if (!canUseMarkdown()) {
+      if (!markdownInitFailed) {
+        markdownInitFailed = true;
+        console.warn('[CardMarkdown] marked or DOMPurify not loaded — card descriptions render as plain text');
+      }
+      return false;
+    }
+    const markedLib = getMarkedLib();
+    if (typeof markedLib.use === 'function') {
+      markedLib.use({ gfm: true, breaks: true });
+    }
+    markdownReady = true;
+    return true;
   }
 
   /**
    * parseMarkdown --- marked + DOMPurify with tag allowlist ---
    * @param {string} text
-   * @param {string[]} allowedTags
    */
-  function parseMarkdown(text, allowedTags) {
-    if (!canUseMarkdown() || !text) {
+  function parseMarkdown(text) {
+    if (!text || !ensureMarkdownReady()) {
       return null;
     }
-    const rawHtml = window.marked.parse(text, { breaks: true, gfm: true });
-    return window.DOMPurify.sanitize(rawHtml, {
-      ALLOWED_TAGS: allowedTags,
-      ALLOWED_ATTR: ['href', 'title', 'target', 'rel'],
+    const markedLib = getMarkedLib();
+    const purify = getDOMPurify();
+    const rawHtml = markedLib.parse(text, { async: false, breaks: true, gfm: true });
+    if (typeof rawHtml !== 'string') {
+      return null;
+    }
+    return purify.sanitize(rawHtml, {
+      ALLOWED_TAGS: CARD_DESCRIPTION_ALLOWED_TAGS,
+      ALLOWED_ATTR: CARD_DESCRIPTION_ALLOWED_ATTR,
     });
   }
 
   /**
-   * renderCardDescriptionPreview --- inline-friendly HTML for 2-line card subtitle ---
+   * renderPlainTextFallback --- preserve newlines when markdown libs missing ---
+   * @param {string} text
+   */
+  function renderPlainTextFallback(text) {
+    return escapeHtml(text).replace(/\n/g, '<br>');
+  }
+
+  /**
+   * renderCardDescriptionPreview --- HTML for scrollable card description area ---
    * @param {string} text
    */
   function renderCardDescriptionPreview(text) {
     if (!text) {
       return '';
     }
-    const sanitized = parseMarkdown(text, PREVIEW_ALLOWED_TAGS);
+    const sanitized = parseMarkdown(text);
     if (!sanitized) {
-      return escapeHtml(text);
+      return renderPlainTextFallback(text);
     }
-    return sanitized
-      .replace(/<\/?p>/gi, '')
-      .replace(/<br\s*\/?>/gi, '<br>')
-      .trim();
+    return sanitized.trim();
   }
 
   /**
-   * renderCardDescriptionFull --- block markdown for help dialog ---
+   * renderCardDescriptionFull --- same block markdown as card preview ---
    * @param {string} text
    */
   function renderCardDescriptionFull(text) {
-    if (!text) {
-      return '';
-    }
-    const sanitized = parseMarkdown(text, FULL_ALLOWED_TAGS);
-    if (!sanitized) {
-      return `<p>${escapeHtml(text).replace(/\n/g, '<br>')}</p>`;
-    }
-    return sanitized;
+    return renderCardDescriptionPreview(text);
   }
 
   window.CardMarkdown = {
+    canUseMarkdown,
     renderCardDescriptionPreview,
     renderCardDescriptionFull,
   };

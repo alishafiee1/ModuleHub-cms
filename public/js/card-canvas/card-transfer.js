@@ -3,8 +3,9 @@
  * Dwell on target folder/back-card, shrink source, confirm with green tick.
  */
 
-export const TRANSFER_DWELL_MS = 2000;
-export const TRANSFER_DWELL_MS_REDUCED = 500;
+export const TRANSFER_DWELL_MS = 500;
+export const TRANSFER_DWELL_MS_REDUCED = 125;
+export const TRANSFER_TARGET_PULSE_MS = 1000;
 
 /**
  * CardTransferController --- manages dwell, visuals, and confirm button ---
@@ -129,7 +130,6 @@ export class CardTransferController {
     this.dwellTarget = target.element;
     this.targetParentId = target.parentId;
     this.dwellTarget.classList.add('is-transfer-target');
-    this.triggerTargetPulse(this.dwellTarget);
 
     this.dwellTimer = window.setTimeout(() => {
       this.transferReady = true;
@@ -169,6 +169,49 @@ export class CardTransferController {
     this.resetDwellTimers();
     this.resetDwellTarget();
     this.sourceElement?.classList.remove('is-transfer-ready');
+  }
+
+  /**
+   * teardownConfirmUi --- remove tick button and backdrop only ---
+   */
+  teardownConfirmUi() {
+    if (this.confirmButton) {
+      this.confirmButton.remove();
+      this.confirmButton = null;
+    }
+    if (this.confirmBackdrop) {
+      this.confirmBackdrop.remove();
+      this.confirmBackdrop = null;
+    }
+  }
+
+  /**
+   * cancelPendingTransfer --- restore or clear pending card state ---
+   * @param {boolean} restore
+   */
+  cancelPendingTransfer(restore) {
+    if (this.pendingSourceElement) {
+      this.pendingSourceElement.classList.remove('is-transfer-ready');
+      if (restore && this.onCancelRestore) {
+        this.onCancelRestore();
+      }
+      this.pendingSourceElement = null;
+    } else if (restore && this.onCancelRestore) {
+      this.onCancelRestore();
+    }
+    this.onCancelRestore = null;
+  }
+
+  /**
+   * completePendingTransfer --- confirm path: drop UI without grid restore ---
+   */
+  completePendingTransfer() {
+    this.teardownConfirmUi();
+    if (this.pendingSourceElement) {
+      this.pendingSourceElement.classList.remove('is-transfer-ready');
+      this.pendingSourceElement = null;
+    }
+    this.onCancelRestore = null;
   }
 
   /**
@@ -215,7 +258,7 @@ export class CardTransferController {
    * showConfirmButton --- green tick at release point ---
    */
   showConfirmButton(clientX, clientY, payload) {
-    this.dismissConfirm(false);
+    this.teardownConfirmUi();
 
     const backdrop = document.createElement('div');
     backdrop.className = 'transfer-confirm-backdrop';
@@ -231,7 +274,7 @@ export class CardTransferController {
     button.style.top = `${Math.round(clientY - 22)}px`;
     button.addEventListener('click', (event) => {
       event.stopPropagation();
-      this.dismissConfirm(false);
+      this.completePendingTransfer();
       this.onConfirm(payload);
     });
 
@@ -251,24 +294,8 @@ export class CardTransferController {
    * @param {boolean} restore
    */
   dismissConfirm(restore) {
-    if (this.confirmButton) {
-      this.confirmButton.remove();
-      this.confirmButton = null;
-    }
-    if (this.confirmBackdrop) {
-      this.confirmBackdrop.remove();
-      this.confirmBackdrop = null;
-    }
-    if (this.pendingSourceElement) {
-      this.pendingSourceElement.classList.remove('is-transfer-ready');
-      if (restore && this.onCancelRestore) {
-        this.onCancelRestore();
-      }
-      this.pendingSourceElement = null;
-    } else if (restore && this.onCancelRestore) {
-      this.onCancelRestore();
-    }
-    this.onCancelRestore = null;
+    this.teardownConfirmUi();
+    this.cancelPendingTransfer(restore);
     this.onDismiss?.();
   }
 

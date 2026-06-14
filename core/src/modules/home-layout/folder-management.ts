@@ -32,7 +32,7 @@ export interface DeleteFolderResult {
   deletedModules?: string[];
 }
 
-const MAX_CARD_DESCRIPTION_LENGTH = 200;
+export const MAX_CARD_DESCRIPTION_LENGTH = 4000;
 
 /**
  * normalizeCardDescription --- trim and cap subtitle length ---

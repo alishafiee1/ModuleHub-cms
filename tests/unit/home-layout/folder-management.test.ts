@@ -2,6 +2,7 @@ import type { SiteLayoutDocument } from '../../../core/src/modules/home-layout/t
 import {
   deleteVirtualFolder,
   isDescendantOf,
+  normalizeCardDescription,
   patchVirtualFolder,
 } from '../../../core/src/modules/home-layout/folder-management';
 import { findNodeById } from '../../../core/src/modules/home-layout/layout-tree';
@@ -93,5 +94,12 @@ describe('folder-management', () => {
     const layout = makeLayoutWithFolder();
     expect(isDescendantOf(layout.tree, 'folder-a', 'folder-b')).toBe(true);
     expect(isDescendantOf(layout.tree, 'folder-c', 'folder-b')).toBe(false);
+  });
+
+  it('normalizeCardDescription caps at 4000 characters', () => {
+    const longText = 'ا'.repeat(4001);
+    const normalized = normalizeCardDescription(longText);
+    expect(normalized).toHaveLength(4000);
+    expect(normalized).toBe('ا'.repeat(4000));
   });
 });

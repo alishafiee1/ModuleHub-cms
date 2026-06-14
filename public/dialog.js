@@ -6,6 +6,99 @@ const ModuleDialogs = (function createModuleDialogs() {
     'fas fa-store', 'fas fa-graduation-cap', 'fas fa-tachometer-alt', 'fas fa-database',
   ];
 
+  function getCardDescriptionConfig() {
+    return window.CardDescriptionConfig || { maxLength: 4000, warnNearLength: 3800 };
+  }
+
+  const CARD_DESC_EDITOR_DIALOG_WIDTH = 'min(92vw, 720px)';
+  const CARD_DESC_EDITOR_DIALOG_CLASS = { popup: 'swal-card-desc-editor-dialog' };
+
+  /**
+   * buildCardDescriptionEditorHtml --- large textarea + counter ---
+   * @param {string} textareaId
+   * @param {string} value
+   * @param {{ label: string, hint?: string, placeholder?: string }} options
+   */
+  function buildCardDescriptionEditorHtml(textareaId, value, options) {
+    const { label, hint = '', placeholder = '' } = options;
+    return `
+      <div class="form-group form-group--card-desc">
+        <label class="form-label" for="${textareaId}">${label}</label>
+        ${hint ? `<p class="form-field-hint">${hint}</p>` : ''}
+        <div class="card-desc-editor">
+          <textarea id="${textareaId}" class="swal2-textarea swal2-textarea--card-desc" placeholder="${escapeHtml(placeholder)}">${escapeHtml(value || '')}</textarea>
+          ${buildCardDescriptionFieldFooter(textareaId)}
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * buildCardDescriptionFieldFooter --- counter + warning slot under textarea ---
+   * @param {string} textareaId
+   */
+  function buildCardDescriptionFieldFooter(textareaId) {
+    const { maxLength } = getCardDescriptionConfig();
+    return `
+      <div class="card-desc-field-meta" data-for="${textareaId}">
+        <span class="card-desc-counter" id="${textareaId}-counter">۰ / ${maxLength.toLocaleString('fa-IR')}</span>
+        <p class="card-desc-limit-warn" id="${textareaId}-warn" hidden></p>
+      </div>`;
+  }
+
+  /**
+   * bindCardDescriptionField --- live counter and near/over warnings ---
+   * @param {string} textareaId
+   */
+  function bindCardDescriptionField(textareaId) {
+    const config = getCardDescriptionConfig();
+    const textarea = document.getElementById(textareaId);
+    const counter = document.getElementById(`${textareaId}-counter`);
+    const warn = document.getElementById(`${textareaId}-warn`);
+    if (!textarea || !counter || !warn) {
+      return;
+    }
+
+    const update = () => {
+      const length = textarea.value.length;
+      const maxLength = config.maxLength;
+      counter.textContent = `${length.toLocaleString('fa-IR')} / ${maxLength.toLocaleString('fa-IR')}`;
+      counter.classList.remove('is-warn', 'is-over');
+      warn.hidden = true;
+      if (length > maxLength) {
+        counter.classList.add('is-over');
+        warn.hidden = false;
+        warn.className = 'card-desc-limit-warn card-desc-limit-warn--over';
+        warn.textContent = 'از ۴۰۰۰ کاراکتر گذشتی — اضافه‌اش ذخیره نمی‌شه';
+      } else if (length >= config.warnNearLength) {
+        counter.classList.add('is-warn');
+        warn.hidden = false;
+        warn.className = 'card-desc-limit-warn card-desc-limit-warn--near';
+        warn.textContent = 'نزدیک سقف ۴۰۰۰ کاراکتری';
+      }
+    };
+
+    textarea.addEventListener('input', update);
+    update();
+  }
+
+  /**
+   * readCardDescriptionField --- trim, cap length, validation message when over max ---
+   * @param {string} textareaId
+   */
+  function readCardDescriptionField(textareaId) {
+    const config = getCardDescriptionConfig();
+    const raw = document.getElementById(textareaId)?.value ?? '';
+    if (raw.length > config.maxLength) {
+      Swal.showValidationMessage('از ۴۰۰۰ کاراکتر گذشتی — فقط ۴۰۰۰ کاراکتر اول ذخیره می‌شه');
+    }
+    const trimmed = raw.trim();
+    if (!trimmed) {
+      return '';
+    }
+    return trimmed.slice(0, config.maxLength);
+  }
+
   /**
    * Wizard step 1 — Docker, port, permissions, static vs process.
    * @returns {Promise<object|undefined>}
@@ -201,18 +294,15 @@ const ModuleDialogs = (function createModuleDialogs() {
   }
 
   /**
-   * Card description help — full markdown view from gear menu.
-   * @param {{ title: string, descriptionMarkdown?: string }} options
+   * Folder admin help — static guide from gear menu (not card description text).
    */
-  async function showCardDescriptionHelpDialog({ title, descriptionMarkdown = '' }) {
-    const trimmed = String(descriptionMarkdown || '').trim();
-    const bodyHtml = trimmed
-      ? `<div class="card-description-help">${window.CardMarkdown?.renderCardDescriptionFull(trimmed) || escapeHtml(trimmed).replace(/\n/g, '<br>')}</div>`
-      : '<p class="card-description-help card-description-help--empty">هنوز توضیحی ننوشتی — از «اسم و توضیح» می‌تونی اضافه کنی.</p>';
+  async function showFolderAdminHelpDialog() {
+    const bodyHtml = window.FolderAdminHelp?.buildFolderAdminHelpHtml?.()
+      || '<p class="folder-admin-help folder-admin-help--empty">راهنما در دسترس نیست.</p>';
 
     await Swal.fire({
-      title: `توضیح · ${escapeHtml(title)}`,
-      html: bodyHtml,
+      title: 'راهنمای کار با پوشه',
+      html: `<div class="folder-admin-help">${bodyHtml}</div>`,
       confirmButtonText: 'بستن',
       width: '32rem',
     });
@@ -234,7 +324,6 @@ const ModuleDialogs = (function createModuleDialogs() {
       { id: 'stop', label: 'Stop', icon: 'fa-stop', show: isRunning },
       { id: 'restart', label: 'Restart', icon: 'fa-redo', show: true },
       { id: 'logs', label: 'مشاهده لاگ', icon: 'fa-file-alt', show: true },
-      { id: 'help', label: 'توضیح کارت', icon: 'fa-circle-question', show: true },
       { id: 'edit', label: 'ویرایش تنظیمات', icon: 'fa-edit', show: true },
       { id: 'backup', label: 'پشتیبان ZIP', icon: 'fa-download', show: true },
       { id: 'github', label: 'GitHub Sync', icon: 'fa-github', show: isSuperAdmin && hasGitRepo },
@@ -308,26 +397,29 @@ const ModuleDialogs = (function createModuleDialogs() {
     const { value: result } = await Swal.fire({
       title: `ویرایش · ${escapeHtml(folderNode.name)}`,
       html: `
-        <div class="swal-dialog-body">
-          <div class="form-group">
+        <div class="swal-dialog-body swal-dialog-body--card-desc">
+          <div class="form-group form-group--compact">
             <label class="form-label" for="folder-edit-name">نام پوشه</label>
             <p class="form-field-hint">همونیه که بزرگ بالای کارت دیده می‌شه.</p>
             <input id="folder-edit-name" class="swal2-input" value="${escapeHtml(folderNode.name)}">
           </div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label" for="folder-edit-desc">توضیح کارت (زیر عنوان)</label>
-            <p class="form-field-hint">خط زیر عنوان — می‌تونی چند خط بنویسی. مارک‌داون هم جوابه: <strong>پررنگ</strong>، <code>کد</code>، لینک.</p>
-            <textarea id="folder-edit-desc" class="swal2-textarea swal2-textarea--compact" placeholder="مثلاً: پروژه‌های تمام‌شده یا یه توضیح کوتاه">${escapeHtml(folderNode.cardDescription || '')}</textarea>
-          </div>
+          ${buildCardDescriptionEditorHtml('folder-edit-desc', folderNode.cardDescription || '', {
+            label: 'توضیح کارت (زیر عنوان)',
+            hint: 'خط زیر عنوان — می‌تونی چند خط بنویسی. مارک‌داون هم جوابه: <strong>پررنگ</strong>، <code>کد</code>، لینک.',
+            placeholder: 'مثلاً: پروژه‌های تمام‌شده یا یه توضیح کوتاه',
+          })}
         </div>
       `,
+      width: CARD_DESC_EDITOR_DIALOG_WIDTH,
+      customClass: CARD_DESC_EDITOR_DIALOG_CLASS,
       focusConfirm: false,
       confirmButtonText: 'ذخیره',
       cancelButtonText: 'انصراف',
       showCancelButton: true,
+      didOpen: () => bindCardDescriptionField('folder-edit-desc'),
       preConfirm: () => ({
         name: document.getElementById('folder-edit-name').value,
-        cardDescription: document.getElementById('folder-edit-desc').value,
+        cardDescription: readCardDescriptionField('folder-edit-desc'),
       }),
     });
     return result;
@@ -508,21 +600,23 @@ const ModuleDialogs = (function createModuleDialogs() {
 
     const { value: result } = await Swal.fire({
       title: `ویرایش · ${escapeHtml(moduleMeta.name)}`,
+      width: CARD_DESC_EDITOR_DIALOG_WIDTH,
+      customClass: CARD_DESC_EDITOR_DIALOG_CLASS,
       html: `
-        <div style="text-align:right;">
-          <div class="form-group">
+        <div class="swal-dialog-body swal-dialog-body--card-desc">
+          <div class="form-group form-group--compact">
             <label class="form-label" for="edit-name">نام</label>
             <input id="edit-name" class="swal2-input" value="${escapeHtml(moduleMeta.name)}">
           </div>
-          <div class="form-group">
+          <div class="form-group form-group--compact">
             <label class="form-label" for="edit-version">نسخه</label>
             <input id="edit-version" class="swal2-input" value="${escapeHtml(moduleMeta.version)}">
           </div>
-          <div class="form-group">
-            <label class="form-label" for="edit-card-desc">توضیح کارت (زیر عنوان)</label>
-            <p class="form-field-hint">همین متن روی کارت دیده می‌شه — می‌تونی چند خط و مارک‌داون بنویسی.</p>
-            <textarea id="edit-card-desc" class="swal2-textarea" style="height: 64px;" placeholder="روی کارت دیده می‌شود">${escapeHtml(extras.cardDescription || '')}</textarea>
-          </div>
+          ${buildCardDescriptionEditorHtml('edit-card-desc', extras.cardDescription || '', {
+            label: 'توضیح کارت (زیر عنوان)',
+            hint: 'همین متن روی کارت دیده می‌شه — می‌تونی چند خط و مارک‌داون بنویسی.',
+            placeholder: 'روی کارت دیده می‌شود',
+          })}
           <div class="form-group">
             <label class="form-label" for="edit-changelog">یادداشت نسخه (changelog)</label>
             <p class="form-field-hint">فقط برای خودت و تاریخچهٔ نسخه — روی کارت نیست مگر توضیح کارت خالی باشه.</p>
@@ -547,7 +641,7 @@ const ModuleDialogs = (function createModuleDialogs() {
         const payload = {
           name: document.getElementById('edit-name').value,
           version: document.getElementById('edit-version').value,
-          cardDescription: document.getElementById('edit-card-desc').value,
+          cardDescription: readCardDescriptionField('edit-card-desc'),
           changelog: document.getElementById('edit-changelog').value,
           resources: {
             cpu_limit: parseFloat(document.getElementById('edit-cpu').value),
@@ -573,6 +667,7 @@ const ModuleDialogs = (function createModuleDialogs() {
         return payload;
       },
       didOpen: () => {
+        bindCardDescriptionField('edit-card-desc');
         const cpuSlider = document.getElementById('edit-cpu');
         const ramSlider = document.getElementById('edit-ram');
         cpuSlider.addEventListener('input', () => {
@@ -750,7 +845,7 @@ const ModuleDialogs = (function createModuleDialogs() {
     showCacheInfoDialog,
     showAuthRequiredDialog,
     showGearActionsDialog,
-    showCardDescriptionHelpDialog,
+    showFolderAdminHelpDialog,
     showFolderGearActionsDialog,
     showFolderEditMetaDialog,
     showFolderMovePickerDialog,

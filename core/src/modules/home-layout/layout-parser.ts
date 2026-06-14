@@ -1,4 +1,5 @@
 import { GRID_MAX_CANVAS_ROWS, GRID_MIN_CANVAS_ROWS } from './grid-config';
+import { MAX_CARD_DESCRIPTION_LENGTH } from './folder-management';
 import type {
   CardBackground,
   CardBackgroundType,
@@ -266,7 +267,7 @@ function parseTreeNode(raw: unknown, modules: Record<string, ModuleEntry>): Layo
   if (typeof raw.cardDescription === 'string') {
     const trimmed = raw.cardDescription.trim();
     if (trimmed) {
-      node.cardDescription = trimmed.slice(0, 200);
+      node.cardDescription = trimmed.slice(0, MAX_CARD_DESCRIPTION_LENGTH);
     }
   }
 

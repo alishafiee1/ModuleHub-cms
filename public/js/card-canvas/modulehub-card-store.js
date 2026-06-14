@@ -4,6 +4,7 @@
  */
 import { GRID_CONFIG, LEGACY_SPAN_TO_COL_SPAN } from './config.js';
 import { findEmptySlot, gridToPixels, normalizeCardGrid } from './grid.js';
+import { syncCardDragHandleMetrics } from './drag-handle-metrics.js';
 
 /** @typedef {{ id: string, col: number, row: number, colSpan: number, rowSpan: number, nodeType: string, moduleId?: string, displayName: string, cardBackground?: object|null, layoutNode: object, moduleMeta?: object|null }} CanvasCard */
 
@@ -373,6 +374,7 @@ export class ModuleHubCardStore {
       </div>
       ${resizeHtml}`;
 
+    syncCardDragHandleMetrics(root, box.width);
     return root;
   }
 
@@ -385,6 +387,7 @@ export class ModuleHubCardStore {
     element.style.top = `${box.top}px`;
     element.style.width = `${box.width}px`;
     element.style.height = `${box.height}px`;
+    syncCardDragHandleMetrics(element, box.width);
   }
 }
 

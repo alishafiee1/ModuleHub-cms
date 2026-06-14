@@ -637,12 +637,35 @@ body.dark .card--bg-image .card-bg-layer {
 }
 
 .card-desc--markdown {
-    white-space: pre-line;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.card-desc--markdown p,
+.card-desc--markdown h1,
+.card-desc--markdown h2,
+.card-desc--markdown h3,
+.card-desc--markdown h4,
+.card-desc--markdown h5,
+.card-desc--markdown h6,
+.card-desc--markdown blockquote,
+.card-desc--markdown ul,
+.card-desc--markdown ol,
+.card-desc--markdown pre,
+.card-desc--markdown hr,
+.card-desc--markdown table {
+    display: block;
 }
 
 .card-desc--markdown p {
-    display: inline;
-    margin: 0;
+    margin: 0 0 0.35em;
+}
+
+.card-desc--markdown h1,
+.card-desc--markdown h2,
+.card-desc--markdown h3 {
+    font-weight: 700;
+    margin: 0.5em 0 0.25em;
 }
 
 .card-desc--markdown a {
@@ -688,7 +711,77 @@ body.dark .card--bg-image .card-bg-layer {
 
 .card-description-help--empty {
     color: var(--text-desc);
-    font-style: normal;
+}
+
+.folder-admin-help {
+    text-align: right;
+    direction: rtl;
+    max-height: 20rem;
+    overflow-y: auto;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.folder-help-section {
+    margin-bottom: 1rem;
+}
+
+.folder-help-section:last-child {
+    margin-bottom: 0;
+}
+
+.folder-help-section__title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0 0 0.35rem;
+    color: var(--text-primary);
+}
+
+.folder-help-section__body {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-desc);
+    line-height: 1.65;
+}
+
+.folder-admin-help--empty {
+    color: var(--text-desc);
+}
+
+.card-desc-field-meta {
+    margin-top: 0.35rem;
+}
+
+.card-desc-counter {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-desc);
+    text-align: left;
+    direction: ltr;
+}
+
+.card-desc-counter.is-warn {
+    color: #ca8a04;
+}
+
+.card-desc-counter.is-over {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.card-desc-limit-warn {
+    margin: 0.25rem 0 0;
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+.card-desc-limit-warn--near {
+    color: #ca8a04;
+}
+
+.card-desc-limit-warn--over {
+    color: #dc2626;
+    font-weight: 600;
 }
 
 .status-badge {
