@@ -64,6 +64,8 @@ const e2eBaseUrl = `http://127.0.0.1:${e2ePort}`;
 
 export default defineConfig({
   testDir: 'tests/e2e',
+  /** Uses MODULEHUB_DEV_SUPER_ADMIN=0 — run via playwright.module-manager.config.ts */
+  testIgnore: '**/module-manager-flow.spec.ts',
   fullyParallel: false,
   workers: 1,
   forbidOnly: Boolean(process.env.CI),

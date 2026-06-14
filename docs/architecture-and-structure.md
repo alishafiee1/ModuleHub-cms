@@ -98,7 +98,7 @@ ZIP کامل از layout + modules + settings — API و CLI.
 
 ## تست
 
-Unit testها کنار هر ماژول در `tests/unit/` هستن. E2E با Playwright در `tests/e2e/` — پورت جدا `4010` تا با dev تداخل نکنه.
+Unit testها کنار هر ماژول در `tests/unit/` هستن. E2E با Playwright در `tests/e2e/` — پورت جدا `4010` تا با dev تداخل نکنه. راهنمای ساده: [`tests/README.md`](../tests/README.md).
 
 </div>
 

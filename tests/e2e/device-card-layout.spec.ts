@@ -80,21 +80,36 @@ test.describe('device-card-layout', () => {
     expect(metrics.rightCornerRight).toBeLessThanOrEqual(metrics.maxRight + 1);
   });
 
-  test('E2E-DCL-05: desktop shell caps grid at 1200px on wide viewport', async ({ page }) => {
+  test('E2E-DCL-05: desktop shell caps width and grid fills canvas on wide viewport', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await openHomeAsSuperAdmin(page);
 
     const metrics = await page.evaluate(() => {
       const inner = window.CardCanvas.getGridInnerWidth();
+      const wrapper = document.querySelector('#cardsWrapper');
+      const wrapperWidth = wrapper?.getBoundingClientRect().width ?? 0;
       const shell = document.querySelector('.demo-container');
       const shellWidth = shell?.getBoundingClientRect().width ?? 0;
-      return { inner, shellWidth };
+      const pad = 12;
+      const gap = 10;
+      const columns = 30;
+      const cellWidth = inner / columns;
+      const rightCornerRight = pad + 27 * cellWidth + gap / 2 + 3 * cellWidth - gap;
+      return {
+        inner,
+        shellWidth,
+        wrapperWidth,
+        rightCornerRight,
+        maxRight: inner + pad,
+      };
     });
 
-    expect(metrics.inner).toBeLessThanOrEqual(1200);
-    expect(metrics.inner).toBeGreaterThan(1100);
     expect(metrics.shellWidth).toBeGreaterThan(1200);
     expect(metrics.shellWidth).toBeLessThanOrEqual(1296);
+    expect(metrics.inner).toBeGreaterThan(1100);
+    // Grid fills measured wrapper — no dead zone on the right
+    expect(metrics.inner).toBeCloseTo(metrics.wrapperWidth - 24, 0);
+    expect(metrics.rightCornerRight).toBeLessThanOrEqual(metrics.maxRight + 1);
   });
 
   test('save-persist: drag then exit edit survives reload', async ({ page }) => {

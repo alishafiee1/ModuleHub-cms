@@ -29,6 +29,7 @@
 | Static / Backend / Docker | [module-hosting-guide.md](module-hosting-guide.md) |
 | پشتیبان و بازیابی | [backup-restore.md](backup-restore.md) |
 | اسکریپت‌های سرور | [server-scripts.md](server-scripts.md) |
+| تست (Jest + Playwright) | [../tests/README.md](../tests/README.md) |
 
 ---
 

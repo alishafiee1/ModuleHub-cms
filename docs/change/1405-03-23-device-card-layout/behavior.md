@@ -119,7 +119,7 @@
 | JSON فقط desktop | بعد از load، tablet/mobile در JSON هست |
 | پایان ویرایش | بدون Ctrl+F5 درست نمایش داده شود |
 
-تست خودکار: `npm test` · `npm run test:e2e` · چک‌لیست دستی: `tests/smoke/card-canvas-checklist.md`
+تست خودکار: `npm test` · `npm run test:e2e` · چک‌لیست دستی: `tests/smoke/card-canvas-checklist.md` · راهنمای Playwright: [`tests/README.md`](../../tests/README.md)
 
 ---
 

@@ -78,7 +78,8 @@ npm run dev
 | `npm start` | اجرای production از `dist/` |
 | `npm test` | تست واحد Jest |
 | `npm run lint` | ESLint |
-| `npm run test:e2e` | Playwright (پورت `4010`) |
+| `npm run test:e2e` | تست UI با Playwright (پورت `4010`) — [جزئیات](../tests/README.md) |
+| `npm run test:e2e:ui` | همون Playwright با پنل بصری |
 | `bash scripts/run-checks.sh` | lint + unit یکجا |
 
 ---
