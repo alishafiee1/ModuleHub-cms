@@ -409,7 +409,7 @@ request → session parser
 |--------|-----|-------|
 | `cardGrid` | `LayoutTreeNode` | `{ col, row, colSpan, rowSpan }` — حداقل ۳×۳ |
 | `cardSpan` (legacy) | migrate on read | `1→7`, `2→15`, `4→30` colSpan — `migrate-card-grid.ts` |
-| `folderCanvas.gridRows` | node پوشه | ارتفاع بوم — پیش‌فرض ۹، حداکثر ۶۰، گام UI: ۳ |
+| `folderCanvas.gridRows` | node پوشه | ارتفاع بوم — پیش‌فرض ۹، حداکثر **۱۸۰**، گام UI: ۳ |
 | `cardBackground` | هر node | `none` \| `color` \| `image` + opacity |
 | slot خالی | `grid-slot.ts` | جلوگیری از overlap هنگام settle drag/resize |
 

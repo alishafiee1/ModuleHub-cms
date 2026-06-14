@@ -244,7 +244,7 @@ npx serve . -l 8080
 | `cardGridTablet` | چیدمان تبلت — اختیاری؛ derive از desktop در اولین read |
 | `cardGridMobile` | چیدمان موبایل — اختیاری؛ derive از tablet/desktop |
 | `cardSpan` | legacy — migrate به `cardGrid` هنگام خواندن |
-| `folderCanvas.gridRows` | ارتفاع بوم PC (۹–۶۰) |
+| `folderCanvas.gridRows` | ارتفاع بوم PC (۹–۱۸۰) |
 | `folderCanvas.gridRowsTablet` / `gridRowsMobile` | ارتفاع بوم per-device |
 | `cardBackground` | `{ type, color?, imageUrl?, backgroundOpacity?, overlayOpacity? }` |
 

@@ -59,6 +59,7 @@ let metrics = null;
  *   onCanvasRowsSettled: () => void,
  *   onOpenBackground: (element: HTMLElement) => void,
  *   onPlacementRejected?: () => void,
+ *   onCanvasRowsAtMax?: () => void,
  * } | null} */
 let hooks = null;
 
@@ -195,11 +196,18 @@ function buildTransferOptions() {
   };
 }
 
+function notifyCanvasRowsAtMax() {
+  hooks?.onCanvasRowsAtMax?.();
+}
+
 function adjustCanvasRowsByStep(rowDelta) {
   if (!rowDelta) return;
   const previousRows = activeGridRows;
   setActiveGridRows(activeGridRows + rowDelta);
   if (activeGridRows === previousRows) {
+    if (rowDelta > 0 && activeGridRows >= GRID_CONFIG.maxCanvasRows) {
+      notifyCanvasRowsAtMax();
+    }
     return;
   }
   repositionCards(getMetrics());

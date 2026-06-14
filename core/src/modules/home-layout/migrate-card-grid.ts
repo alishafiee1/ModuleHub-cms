@@ -6,7 +6,7 @@ import {
   GRID_MIN_CANVAS_ROWS,
   LEGACY_SPAN_TO_COL_SPAN,
 } from './grid-config';
-import { findEmptyCardSlot } from './grid-slot';
+import { findCardSlotGrowingCanvas } from './grid-slot';
 import type { CardGridPosition, CardSpan, LayoutTreeNode, SiteLayoutDocument } from './types';
 
 /**
@@ -105,8 +105,13 @@ function migrateFolderChildren(children: LayoutTreeNode[], parentId: string | nu
 
     const colSpan = legacySpanToColSpan(child.cardSpan);
     const rowSpan = GRID_DEFAULT_ROW_SPAN;
-    const slot = findEmptyCardSlot(occupied, GRID_MIN_CANVAS_ROWS, startCol, colSpan, rowSpan);
-    const cardGrid: CardGridPosition = slot ?? { col: startCol, row: 0, colSpan, rowSpan };
+    const { slot: cardGrid } = findCardSlotGrowingCanvas(
+      occupied,
+      GRID_MIN_CANVAS_ROWS,
+      startCol,
+      colSpan,
+      rowSpan,
+    );
     updated.cardGrid = cardGrid;
     occupied.push(cardGrid);
     changed = true;

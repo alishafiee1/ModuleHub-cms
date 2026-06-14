@@ -1,6 +1,7 @@
 import type { Request, Response, Router } from 'express';
 import { Router as createRouter } from 'express';
 import { requireSuperAdminOnlyMiddleware } from '../admin-auth';
+import { sendLayoutMutationError } from './layout-api-errors';
 import { moveLayoutNode, type MoveLayoutNodeInput } from './layout-node-move';
 import { readSiteLayout, writeSiteLayout } from './layout-store';
 
@@ -34,9 +35,7 @@ export async function patchLayoutNodeHandler(request: Request, response: Respons
     await writeSiteLayout(layout);
     response.status(200).json({ node });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Failed to move layout node';
-    const status = message.includes('not found') ? 404 : 400;
-    response.status(status).json({ error: message });
+    sendLayoutMutationError(response, error, 'Failed to move layout node');
   }
 }
 

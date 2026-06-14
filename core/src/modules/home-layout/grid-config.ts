@@ -5,15 +5,19 @@
 export const GRID_MAX_COLUMNS = 30;
 /** Default visible canvas rows per folder */
 export const GRID_MIN_CANVAS_ROWS = 9;
-/** Maximum canvas rows a folder can expand to (practical unlimited) */
-export const GRID_MAX_CANVAS_ROWS = 9999;
+/** Maximum canvas rows a folder can expand to */
+export const GRID_MAX_CANVAS_ROWS = 180;
 /** Row step when dragging canvas height handle */
 export const GRID_CANVAS_ROW_STEP = 3;
 /** @deprecated Use GRID_MIN_CANVAS_ROWS — kept for validation fallbacks */
 export const GRID_MAX_ROWS = GRID_MIN_CANVAS_ROWS;
+/** Minimum card size during drag/resize */
 export const GRID_MIN_COLUMN_SPAN = 3;
 export const GRID_MIN_ROW_SPAN = 3;
 export const GRID_DEFAULT_ROW_SPAN = 3;
+/** Default size when creating a new folder or module card */
+export const NEW_CHILD_CARD_COL_SPAN = 5;
+export const NEW_CHILD_CARD_ROW_SPAN = 5;
 
 /** Maps legacy cardSpan (1|2|4) to colSpan on a 30-column grid */
 export const LEGACY_SPAN_TO_COL_SPAN: Readonly<Record<number, number>> = {

@@ -101,6 +101,63 @@ export function buildCardBackgroundAttrs(bg) {
 }
 
 /**
+ * resolveLegacyGridSlot --- find a non-overlapping slot with virtual canvas growth ---
+ */
+function resolveLegacyGridSlot({
+  placedCards,
+  gridRows,
+  startCol,
+  colSpan,
+  rowSpan,
+  reservedRects,
+}) {
+  let rows = gridRows;
+  let slot = findEmptySlot(
+    placedCards,
+    { columns: GRID_CONFIG.maxColumns, rows },
+    colSpan,
+    rowSpan,
+    reservedRects,
+    startCol,
+  );
+
+  while (!slot && rows < GRID_CONFIG.maxCanvasRows) {
+    rows += GRID_CONFIG.canvasRowStep;
+    slot = findEmptySlot(
+      placedCards,
+      { columns: GRID_CONFIG.maxColumns, rows },
+      colSpan,
+      rowSpan,
+      reservedRects,
+      startCol,
+    );
+  }
+
+  if (!slot) {
+    slot = findEmptySlot(
+      placedCards,
+      { columns: GRID_CONFIG.maxColumns, rows: GRID_CONFIG.maxCanvasRows },
+      colSpan,
+      rowSpan,
+      reservedRects,
+      startCol,
+    );
+  }
+
+  if (slot) {
+    return slot;
+  }
+
+  const fallbackRow = Math.max(0, GRID_CONFIG.maxCanvasRows - GRID_CONFIG.minRowSpan);
+  return {
+    col: startCol,
+    row: fallbackRow,
+    colSpan: Math.min(colSpan, GRID_CONFIG.minColumnSpan),
+    rowSpan: GRID_CONFIG.minRowSpan,
+  };
+}
+
+/**
  * resolveNodeGrid --- cardGrid from layout node for a device breakpoint ---
  * @param {object} node
  * @param {object} options
@@ -133,25 +190,20 @@ export function resolveNodeGrid(node, {
     });
   }
 
-  const colSpan = LEGACY_SPAN_TO_COL_SPAN[node.cardSpan] ?? GRID_CONFIG.minColumnSpan;
-  const slot = findEmptySlot(
-    placedCards,
-    { columns: GRID_CONFIG.maxColumns, rows: gridRows },
-    colSpan,
-    GRID_CONFIG.minRowSpan,
-    reservedRects,
-    startCol,
-  );
-  if (slot) {
-    return slot;
-  }
+  const hasLegacySpan = node.cardSpan !== undefined && node.cardSpan !== null;
+  const colSpan = hasLegacySpan
+    ? (LEGACY_SPAN_TO_COL_SPAN[node.cardSpan] ?? GRID_CONFIG.minColumnSpan)
+    : GRID_CONFIG.newChildColSpan;
+  const rowSpan = hasLegacySpan ? GRID_CONFIG.minRowSpan : GRID_CONFIG.newChildRowSpan;
 
-  return {
-    col: startCol,
-    row: 0,
+  return resolveLegacyGridSlot({
+    placedCards,
+    gridRows,
+    startCol,
     colSpan,
-    rowSpan: GRID_CONFIG.minRowSpan,
-  };
+    rowSpan,
+    reservedRects,
+  });
 }
 
 /**

@@ -280,10 +280,39 @@
     return authStatus.managedModuleIds.includes(moduleId);
   }
 
+  const CANVAS_FULL_TOAST_TITLE = 'ارتفاع بوم به حداکثر (۱۸۰ ردیف) رسیده — امکان افزودن کارت جدید نیست';
+
+  function showCanvasFullToast() {
+    if (!window.Swal) {
+      return;
+    }
+    void Swal.fire({
+      toast: true,
+      position: 'top',
+      icon: 'warning',
+      title: CANVAS_FULL_TOAST_TITLE,
+      showConfirmButton: false,
+      timer: 3200,
+    });
+  }
+
+  function isCanvasFullError(error) {
+    return error?.code === 'CANVAS_FULL' || error?.status === 409;
+  }
+
+  function showLayoutMutationError(error) {
+    if (isCanvasFullError(error)) {
+      showCanvasFullToast();
+      return;
+    }
+    void Swal.fire({ icon: 'error', title: 'خطا', text: error.message });
+  }
+
   /**
    * Reloads layout and auth state from backend.
+   * @param {{ force?: boolean }} [options] - force re-render cards even in layout edit mode
    */
-  async function refreshFromServer() {
+  async function refreshFromServer(options = {}) {
     authStatus = await ModuleHubApi.loadAuthStatus();
     siteLayout = await ModuleHubApi.loadLayout();
     if (siteLayout.appearance) {
@@ -304,7 +333,7 @@
     }
     updateAdminLoginLink();
     currentFolderId = resolveValidFolderId(currentFolderId);
-    renderAll();
+    renderAll(options);
   }
 
   function updateDevModeBanner() {
@@ -569,7 +598,7 @@
           return;
         }
         await ModuleHubApi.patchFolder(folderId, payload);
-        await refreshFromServer();
+        await refreshFromServer({ force: true });
         Swal.fire({ icon: 'success', title: 'پوشه به‌روز شد', timer: 1200, showConfirmButton: false });
         return;
       }
@@ -584,7 +613,7 @@
           return;
         }
         await ModuleHubApi.patchFolder(folderId, { parentId: targetId });
-        await refreshFromServer();
+        await refreshFromServer({ force: true });
         Swal.fire({ icon: 'success', title: 'پوشه جابجا شد', timer: 1200, showConfirmButton: false });
         return;
       }
@@ -613,7 +642,7 @@
           const url = currentFolderId === ROOT_ID ? '/' : `/?folder=${encodeURIComponent(currentFolderId)}`;
           window.history.replaceState({ folder: currentFolderId }, '', url);
         }
-        await refreshFromServer();
+        await refreshFromServer({ force: true });
         Swal.fire({ icon: 'success', title: 'پوشه حذف شد', timer: 1200, showConfirmButton: false });
       }
     } catch (error) {
@@ -675,7 +704,7 @@
           return;
         }
         await ModuleHubApi.moveLayoutNode(layoutNodeId, { parentId: targetId });
-        await refreshFromServer();
+        await refreshFromServer({ force: true });
         Swal.fire({ icon: 'success', title: 'ماژول جابجا شد', timer: 1200, showConfirmButton: false });
         return;
       }
@@ -886,7 +915,7 @@
           return;
         }
         await ModuleHubApi.deleteModule(moduleId);
-        await refreshFromServer();
+        await refreshFromServer({ force: true });
         Swal.fire({ icon: 'success', title: 'ماژول حذف شد', timer: 1500, showConfirmButton: false });
       }
     } catch (error) {
@@ -942,10 +971,10 @@
     }
     try {
       await ModuleHubApi.createFolder(currentFolderId, name);
-      await refreshFromServer();
+      await refreshFromServer({ force: true });
       Swal.fire({ icon: 'success', title: 'پوشه ایجاد شد', timer: 1200, showConfirmButton: false });
     } catch (error) {
-      Swal.fire({ icon: 'error', title: 'خطا', text: error.message });
+      showLayoutMutationError(error);
     }
   }
 
@@ -998,17 +1027,17 @@
           thumbnail: '',
         });
 
-        await refreshFromServer();
+        await refreshFromServer({ force: true });
         Swal.fire({ icon: 'success', title: 'ماژول ثبت شد', text: 'وضعیت: متوقف — از ⚙ استارت کنید', timer: 2500 });
       } catch (error) {
-        Swal.fire({ icon: 'error', title: 'خطا', text: error.message });
+        showLayoutMutationError(error);
       }
     };
   }
 
-  function renderAll() {
+  function renderAll(options = {}) {
     renderBreadcrumb();
-    renderCards();
+    renderCards(options);
   }
 
   function initDarkMode() {
@@ -1097,8 +1126,7 @@
         const url = currentFolderId === ROOT_ID ? '/' : `/?folder=${encodeURIComponent(currentFolderId)}`;
         window.history.replaceState({ folder: currentFolderId }, '', url);
       }
-      await refreshFromServer();
-      renderCards({ force: true });
+      await refreshFromServer({ force: true });
       Swal.fire({ icon: 'success', title: 'انتقال انجام شد', timer: 1200, showConfirmButton: false });
     } catch (error) {
       Swal.fire({ icon: 'error', title: 'خطا در انتقال', text: error.message });
@@ -1149,6 +1177,9 @@
             timer: 2200,
           });
         }
+      },
+      onCanvasRowsAtMax: () => {
+        showCanvasFullToast();
       },
       onLayoutTransfer: (payload) => handleLayoutTransfer(payload),
     });

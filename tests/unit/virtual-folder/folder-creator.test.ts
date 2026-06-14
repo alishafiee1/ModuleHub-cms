@@ -15,6 +15,8 @@ describe('folder-creator', () => {
 
     expect(result.node.type).toBe('folder');
     expect(result.node.name).toBe('پوشه تست');
+    expect(result.node.cardGrid?.colSpan).toBe(5);
+    expect(result.node.cardGrid?.rowSpan).toBe(5);
     const parent = result.layout.tree.children?.find((child) => child.id === result.folderId);
     expect(parent).toBeDefined();
 

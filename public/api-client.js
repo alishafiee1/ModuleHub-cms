@@ -65,9 +65,10 @@ const ModuleHubApi = (function createModuleHubApi() {
 
     if (!response.ok) {
       const errorBody = await response.json().catch(() => ({}));
-      const message = errorBody.error || `Request failed (${response.status})`;
+      const message = errorBody.message || errorBody.error || `Request failed (${response.status})`;
       const requestError = new Error(message);
       requestError.status = response.status;
+      requestError.code = typeof errorBody.error === 'string' ? errorBody.error : undefined;
       if (typeof errorBody.retryAfterSeconds === 'number') {
         requestError.retryAfterSeconds = errorBody.retryAfterSeconds;
       }

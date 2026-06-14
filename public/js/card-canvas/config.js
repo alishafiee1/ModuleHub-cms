@@ -7,12 +7,15 @@ export const GRID_CONFIG = {
   maxColumns: 30,
   /** Default and minimum visible canvas rows */
   minCanvasRows: 9,
-  /** Maximum expandable canvas rows (practical unlimited for admin editing) */
-  maxCanvasRows: 9999,
+  /** Maximum expandable canvas rows — keep in sync with GRID_MAX_CANVAS_ROWS */
+  maxCanvasRows: 180,
   /** Row increment when dragging the bottom height handle */
   canvasRowStep: 3,
   minColumnSpan: 3,
   minRowSpan: 3,
+  /** Default size for new folder/module cards — keep in sync with NEW_CHILD_CARD_* */
+  newChildColSpan: 5,
+  newChildRowSpan: 5,
   maxColumnSpan: 30,
   maxRowSpan: 9999,
   cardGap: 10,

@@ -6,6 +6,7 @@ import multer from 'multer';
 import path from 'path';
 import { PATHS } from '../../config/paths';
 import { requireSuperAdminMiddleware } from '../admin-auth';
+import { sendLayoutMutationError } from '../home-layout/layout-api-errors';
 import { readSiteLayout, writeSiteLayout } from '../home-layout/layout-store';
 import type { ModuleResources } from '../home-layout/types';
 import { getCmsLogger } from '../logger';
@@ -141,8 +142,7 @@ export async function postWizardSaveHandler(request: Request, response: Response
       entry: result.entry,
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Wizard save failed';
-    response.status(400).json({ error: message });
+    sendLayoutMutationError(response, error, 'Wizard save failed');
   }
 }
 
@@ -165,8 +165,7 @@ export async function postFolderHandler(request: Request, response: Response): P
       node: result.node,
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Failed to create folder';
-    response.status(400).json({ error: message });
+    sendLayoutMutationError(response, error, 'Failed to create folder');
   }
 }
 
