@@ -99,7 +99,6 @@ export function createApp(): Application {
 export async function startServer(): Promise<http.Server> {
   await ensureRequiredDirectories();
   if (isDevSuperAdminEnabled()) {
-    // eslint-disable-next-line no-console -- security warning at bootstrap
     console.warn(
       'WARNING: MODULEHUB_DEV_SUPER_ADMIN=1 is active — all admin routes bypass real login. Disable before production go-live (phase 8).',
     );

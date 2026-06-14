@@ -26,6 +26,7 @@ describe('readSiteLayoutWithMeta cache', () => {
   it('reads site-layout.json from disk only once when mtime is unchanged', async () => {
     const layoutStore = await import('../../../core/src/modules/home-layout/layout-store');
     layoutStore.clearSiteLayoutCacheForTests();
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- spy fs-extra module used by layout-store after resetModules
     const readFileSpy = jest.spyOn(require('fs-extra'), 'readFile');
 
     await layoutStore.readSiteLayout();

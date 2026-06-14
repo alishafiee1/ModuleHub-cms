@@ -8,4 +8,16 @@ module.exports = {
   clearMocks: true,
   collectCoverageFrom: ['core/src/**/*.ts'],
   coverageDirectory: 'coverage',
+  transform: {
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        tsconfig: {
+          types: ['jest', 'node'],
+          esModuleInterop: true,
+          resolveJsonModule: true,
+        },
+      },
+    ],
+  },
 };
