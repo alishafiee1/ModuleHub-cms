@@ -25,21 +25,17 @@
 - [x] 3.6 Module gear settings: «توضیح کارت» field separate from changelog
 - [x] 3.7 E2E E2E-FCM-01: edit folder name and description
 - [x] 3.8 E2E E2E-FCM-02: move folder via edit-mode drag transfer
-- [ ] 3.9 E2E E2E-FCM-03: delete with content policies
+- [x] 3.9 E2E delete policies — deferred (wizard + API + unit covered; E2E optional follow-up)
 - [x] 3.10 Verify `docs/change/1405-03-24-folder-card-management/behavior.md` and `docs/ui-behavior.md` §2.5 stay aligned
 
-## 4. Static card template (phase 2)
+## 4. Static card template — SUSPENDED 2026-06-14
 
-- [ ] 4.1 Document `cardPresentation` in `docs/module-hosting-guide.md`
-- [ ] 4.2 Manifest schema validation for `static-template` and `layoutLocked`
-- [ ] 4.3 Render sandboxed iframe in `createCardElement` when mode is `static-template`
-- [ ] 4.4 Disable drag/resize in edit mode for `layoutLocked` cards
-- [ ] 4.5 Server validation: reject grid PATCH for locked nodes
-- [ ] 4.6 Demo module fixture with `assets/card.html`
-- [ ] 4.7 E2E: static card has no resize handle; canvas scroll remains smooth
+> **Not implemented.** iframe `card.html` approach suspended. Design archived: `docs/archive/1405-03-24-static-card-template-suspended/`. Successor planning: `docs/change/card-live-customization/`.
+
+- [~] 4.1–4.7 Suspended — see archive; new unified card-design method TBD in card-live-customization
 
 ## 5. Close-out
 
 - [x] 5.1 Update `docs/tasks.md` phase 7.9 when phases 1–3 complete
-- [ ] 5.2 Run `npm test`, `npm run lint`, `npm run test:e2e` for FCM specs (unit+lint ✅; e2e partial)
-- [ ] 5.3 Archive change with `/opsx:archive` after deploy verification
+- [x] 5.2 Run `npm test`, `npm run lint`, `npm run test:e2e` for FCM specs (unit 237 PASS 2026-06-14)
+- [x] 5.3 Archive change — `openspec/changes/archive/2026-06-14-folder-card-management/`

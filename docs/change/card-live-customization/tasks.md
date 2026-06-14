@@ -8,17 +8,15 @@
 
 ---
 
-## فاز ۰ — قالب استاتیک کارت (منتقل از folder-card-management)
+## فاز ۰ — تکمیل دیزاین کارت (جایگزین پلن معلق static-template)
 
-> طراحی: [1405-03-24-folder-card-management/design.md](../1405-03-24-folder-card-management/design.md) §۷
+> پلن iframe + `card.html` از folder-card-management **معلق** است — [archive](../../archive/1405-03-24-static-card-template-suspended/proposal.md).  
+> این فاز **روش جدید** را طراحی و پیاده می‌کند (نه کپی مستقیم ۴.۱–۴.۷ قدیم).
 
-- [ ] ۰.۱ `docs/module-hosting-guide.md` — بخش `cardPresentation` و `assets/card.html` استاتیک
-- [ ] ۰.۲ manifest schema: `mode: static-template`، `layoutLocked: true`
-- [ ] ۰.۳ رندر iframe بدون script در `createCardElement`
-- [ ] ۰.۴ edit mode: غیرفعال کردن drag/resize وقتی `layoutLocked`
-- [ ] ۰.۵ validation سرور: رد کردن تغییر `cardGridW/H` برای node قفل‌شده
-- [ ] ۰.۶ نمونهٔ ماژول demo با `assets/card.html` استاتیک
-- [ ] ۰.۷ تست E2E: کارت template — بدون دستگیره resize
+- [ ] ۰.۱ پروپوزال/behavior روش واحد دیزاین کارت (ثابت + live در یک مدل)
+- [ ] ۰.۲ `cardPresentation` در schema — بازنگری نسبت به پلن معلق
+- [ ] ۰.۳ نمونهٔ ماژول demo
+- [ ] ۰.۴ E2E smoke کارت سفارشی
 
 ---
 

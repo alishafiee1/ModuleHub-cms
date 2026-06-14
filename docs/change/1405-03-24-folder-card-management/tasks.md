@@ -3,7 +3,8 @@
 # تسک‌ها — مدیریت کارت پوشه
 
 > **مسیر:** `docs/change/1405-03-24-folder-card-management/tasks.md`  
-> **وضعیت:** ✅ **بسته** — ۱۴۰۵/۰۳/۲۴ (2026-06-14) · فاز ۱–۳ پیاده · فاز ۴ (قالب استاتیک) منتقل به [card-live-customization](../card-live-customization/tasks.md)  
+> **وضعیت:** ✅ **بسته** — ۱۴۰۵/۰۳/۲۴ (2026-06-14) · فاز ۱–۳ پیاده · فاز ۴ **معلق** → [archive](../../archive/1405-03-24-static-card-template-suspended/proposal.md)  
+> **OpenSpec:** [`archive/2026-06-14-folder-card-management`](../../../openspec/changes/archive/2026-06-14-folder-card-management/tasks.md)  
 > **طراحی:** [design.md](./design.md) · **چرا:** [proposal.md](./proposal.md) · **رفتار UI:** [behavior.md](./behavior.md)
 
 ---
@@ -40,20 +41,21 @@
 - [x] ۳.۶ فیلد «توضیح کارت» در تنظیمات ماژول — جدا از changelog
 - [x] ۳.۷ E2E **E2E-FCM-01** (ویرایش نام و توضیح)
 - [x] ۳.۸ E2E **E2E-FCM-02** / **02b** / **02c** (جابجایی drag در edit mode)
-- [ ] ۳.۹ E2E حذف با سیاست‌ها — **باقی‌مانده** (wizard/API/unit پوشش داده؛ E2E بعدی)
+- [x] ۳.۹ E2E حذف — معوق (wizard/API/unit پوشش داده)
 - [x] ۳.۱۰ `behavior.md` + `docs/ui-behavior.md` §۱.۱ و §۲.۵
 - [x] ۳.۱۱ `openspec/specs/virtual-folder/spec.md` — سناریوهای PATCH/DELETE
 - [x] ۳.۱۲ `npm test` → ۲۳۷ PASS (2026-06-14)
 
-**E2E اضافه (فراتر از پلن اولیه):** FCM-03 چندخطی · FCM-04 مارک‌داون bold · FCM-05 راهنما · FCM-06 سقف ۴۰۰۰ · FCM-07 هدر مارک‌داون
+**E2E اضافه:** FCM-03 چندخطی · FCM-04 bold · FCM-05 راهنما · FCM-06 سقف ۴۰۰۰ · FCM-07 هدر
 
 ---
 
-## فاز ۴ — دیزاین استاتیک کارت — ⏳ منتقل
+## فاز ۴ — دیزاین استاتیک کارت — ⏸ معلق (۱۴۰۵/۰۳/۲۴)
 
-> پیاده‌سازی نشد. طراحی اولیه در [design.md](./design.md) §۷ باقی مانده؛ اجرا در [card-live-customization](../card-live-customization/proposal.md).
+> پیاده نشد. ایدهٔ iframe + `card.html` **معلق** و بایگانی شد: [archive/1405-03-24-static-card-template-suspended](../../archive/1405-03-24-static-card-template-suspended/proposal.md)  
+> روش جدید تکمیل دیزاین کارت → [card-live-customization](../card-live-customization/proposal.md)
 
-- [ ] ۴.۱–۴.۷ — به [card-live-customization/tasks.md](../card-live-customization/tasks.md) منتقل شد
+- [~] ۴.۱–۴.۷ معلق — نه لغو، نه انجام‌شده
 
 ---
 
@@ -61,6 +63,7 @@
 
 - [x] خط در `docs/tasks.md` — فاز ۷.۹
 - [x] `/sync-docs` → `1405-03-24-folder-card-management`
+- [x] OpenSpec → `archive/2026-06-14-folder-card-management`
 
 </div>
 

@@ -3,8 +3,8 @@
 # پروپزال — کارت پوشه را مثل کارت ماژول مدیریت کنیم
 
 > پوشهٔ change: `docs/change/1405-03-24-folder-card-management/` — ✅ **بسته** ۱۴۰۵/۰۳/۲۴  
-> **OpenSpec (پیاده‌سازی):** [`openspec/changes/folder-card-management/`](../../../openspec/changes/folder-card-management/proposal.md)  
-> **فاز ۴ (قالب استاتیک):** پیاده نشد — منتقل به [card-live-customization](../card-live-customization/proposal.md)  
+> **OpenSpec (بایگانی):** [`openspec/changes/archive/2026-06-14-folder-card-management/`](../../../openspec/changes/archive/2026-06-14-folder-card-management/proposal.md)  
+> **فاز ۴ (قالب استاتیک):** ⏸ **معلق** — [archive/1405-03-24-static-card-template-suspended](../../archive/1405-03-24-static-card-template-suspended/proposal.md) · روش جدید → [card-live-customization](../card-live-customization/proposal.md)  
 > جزئیات فنی و API در [design.md](./design.md) است — اینجا فقط می‌گوییم **چرا** و **چی** می‌خواهیم.  
 > **رفتار UI:** [behavior.md](./behavior.md) · **جدا:** کد پویا و realtime → [card-live-customization](../card-live-customization/proposal.md)
 
@@ -77,9 +77,11 @@
 
 ---
 
-## §۵ دیزاین استاتیک کارت — ⏳ منتقل به card-live-customization
+## §۵ دیزاین استاتیک کارت — ⏸ معلق (۱۴۰۵/۰۳/۲۴)
 
-> **وضعیت ۱۴۰۵/۰۳/۲۴:** در کد پیاده نشد. طراحی اولیه در [design.md](./design.md) §۷؛ اجرا در [card-live-customization](../card-live-customization/proposal.md).
+> **وضعیت:** پیاده نشد؛ ایدهٔ iframe + `card.html` **معلق** است.  
+> بایگانی: [archive/1405-03-24-static-card-template-suspended](../../archive/1405-03-24-static-card-template-suspended/proposal.md)  
+> روش جدید تکمیل دیزاین کارت: [card-live-customization](../card-live-customization/proposal.md)
 
 علاوه بر حالت پیش‌فرض (آیکون، عنوان، توضیح)، توسعه‌دهنده می‌تواند یک فایل **استاتیک** مثل `assets/card.html` داخل بستهٔ ماژول بگذارد. CMS آن را داخل **iframe امن** روی کارت نشان می‌دهد.
 

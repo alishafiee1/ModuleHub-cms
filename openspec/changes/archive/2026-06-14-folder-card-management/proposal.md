@@ -1,8 +1,11 @@
 ## Why
 
-Virtual folders on the home canvas can only be opened — Super Admin cannot rename, move, delete, or add a subtitle from the UI. Module cards already have gear (⚙) management and optional descriptions; folder cards feel incomplete and force manual `site-layout.json` edits. This change closes that gap and adds optional **static** HTML card templates (layout-locked on the grid). Live/dynamic card UI is out of scope — see `card-live-customization`.
+Virtual folders on the home canvas can only be opened — Super Admin cannot rename, move, delete, or add a subtitle from the UI. Module cards already have gear (⚙) management and optional descriptions; folder cards feel incomplete and force manual `site-layout.json` edits. This change closes that gap (phases 1–3 shipped 2026-06-14).
 
-**Human docs:** `docs/change/1405-03-24-folder-card-management/` (proposal, design, behavior, tasks) — closed 2026-06-14
+**Phase 4 (static HTML card template via iframe) — SUSPENDED 2026-06-14.** Not implemented. Design archived: `docs/archive/1405-03-24-static-card-template-suspended/`. Successor planning: `card-live-customization` (unified card design method).
+
+**Archived:** `openspec/changes/archive/2026-06-14-folder-card-management/`  
+**Human docs:** `docs/change/1405-03-24-folder-card-management/` — closed 2026-06-14
 
 ## What Changes
 

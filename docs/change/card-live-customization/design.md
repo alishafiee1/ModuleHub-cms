@@ -45,7 +45,7 @@
 | mode | رفتار |
 |------|--------|
 | `default` | آیکون + عنوان + توضیح |
-| `static-template` | iframe بدون script — طراحی اولیه در [1405-03-24-folder-card-management](../1405-03-24-folder-card-management/design.md) §۷ |
+| `static-template` | ⏸ معلق — [archive](../../archive/1405-03-24-static-card-template-suspended/proposal.md)؛ جایگزین در فاز ۰ این change |
 | `live` | iframe با script + polling از CMS |
 
 ---

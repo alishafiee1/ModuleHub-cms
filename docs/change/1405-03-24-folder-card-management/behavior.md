@@ -147,9 +147,10 @@
 
 ---
 
-## دیزاین استاتیک کارت — ⏳ منتقل
+## دیزاین استاتیک کارت — ⏸ معلق
 
-> **وضعیت ۱۴۰۵/۰۳/۲۴:** پیاده نشد. جزئیات طراحی در [design.md](./design.md) §۷؛ اجرا در [card-live-customization](../card-live-customization/proposal.md).
+> **۱۴۰۵/۰۳/۲۴:** پیاده نشد. رفتار غیرفنی ایدهٔ اولیه: [archive/1405-03-24-static-card-template-suspended/behavior.md](../../archive/1405-03-24-static-card-template-suspended/behavior.md)  
+> روش جدید: [card-live-customization](../card-live-customization/proposal.md)
 
 ### بازدیدکننده / ادمین (حالت نمایش)
 

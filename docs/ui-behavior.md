@@ -160,7 +160,7 @@
 
 ## ۲.۵ دیالوگ چرخ‌دنده (مدیریت پوشه)
 
-> جزئیات کامل، wizard حذف: [`behavior.md`](../change/1405-03-24-folder-card-management/behavior.md) · قالب استاتیک → [card-live-customization](../change/card-live-customization/proposal.md)
+> جزئیات کامل، wizard حذف: [`behavior.md`](../change/1405-03-24-folder-card-management/behavior.md) · تکمیل دیزاین کارت (روش جدید) → [card-live-customization](../change/card-live-customization/proposal.md) · پلن معلق iframe → [archive](../archive/1405-03-24-static-card-template-suspended/proposal.md)
 
 ### ۲.۵.۱ نحوه باز شدن
 - کلیک روی ⚙ در کارت **پوشه** — فقط **Super Admin** (Module Manager به پوشه دسترسی ندارد).
