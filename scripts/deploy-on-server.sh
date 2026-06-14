@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# purpose --- Deploy ModuleHub CMS on server after git pull: deps, build, systemd, health ---
+# purpose --- Legacy opt-only deploy: build/restart in MODULEHUB_APP_DIR (prefer deploy-full.sh) ---
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/resolve-node.sh
+source "${SCRIPT_DIR}/lib/resolve-node.sh"
 APP_DIR="${MODULEHUB_APP_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
 SERVICE_NAME="${MODULEHUB_SERVICE:-modulehub-cms}"
 SERVICE_FILE="${APP_DIR}/config/systemd/${SERVICE_NAME}.service"
@@ -114,12 +116,22 @@ if [[ ! -f .env ]]; then
 fi
 
 if [[ "$SKIP_BUILD" != true ]]; then
-  if [[ -f package-lock.json ]]; then
+  ensure_node_ready
+  export PATH="$(dirname "${RESOLVED_NODE_BIN}"):${PATH}"
+  if [[ -d node_modules && -f package-lock.json ]]; then
+    log "npm ci (best effort)..."
+    if ! run npm ci 2>/dev/null; then
+      log "WARN: npm ci failed — using existing node_modules"
+    fi
+  elif [[ -f package-lock.json ]]; then
     log "npm ci (incl. dev — for tsc build)..."
     run npm ci
   else
     log "WARN: package-lock.json missing — using npm install"
     run npm install
+  fi
+  if [[ -x "${SCRIPT_DIR}/restore-linux-native-deps.sh" ]]; then
+    MODULEHUB_APP_DIR="${APP_DIR}" bash "${SCRIPT_DIR}/restore-linux-native-deps.sh"
   fi
   if grep -q '"build"' package.json; then
     log "npm run build..."

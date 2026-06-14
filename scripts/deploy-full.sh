@@ -3,12 +3,32 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# CRLF from Windows/scp breaks `set -o pipefail` in sourced libs — strip before source
+strip_crlf_early() {
+  local shell_script=""
+  shopt -s nullglob
+  for shell_script in "${SCRIPT_DIR}"/*.sh "${SCRIPT_DIR}"/lib/*.sh; do
+    if [[ -f "${shell_script}" ]]; then
+      sed -i 's/\r$//' "${shell_script}" 2>/dev/null || true
+    fi
+  done
+  shopt -u nullglob
+}
+strip_crlf_early
+
 # shellcheck source=lib/deploy-common.sh
 source "${SCRIPT_DIR}/lib/deploy-common.sh"
 # shellcheck source=lib/git-fetch.sh
 source "${SCRIPT_DIR}/lib/git-fetch.sh"
 # shellcheck source=lib/sudo-exec.sh
 source "${SCRIPT_DIR}/lib/sudo-exec.sh"
+# shellcheck source=lib/resolve-node.sh
+source "${SCRIPT_DIR}/lib/resolve-node.sh"
+# shellcheck source=lib/sync-app-to-opt.sh
+source "${SCRIPT_DIR}/lib/sync-app-to-opt.sh"
+# shellcheck source=lib/sync-runtime-deps.sh
+source "${SCRIPT_DIR}/lib/sync-runtime-deps.sh"
 
 DEPLOY_FLAG_YES=false
 DEPLOY_FLAG_FORCE_RESET=false
@@ -90,6 +110,9 @@ preflight_checks() {
       exit 1
     fi
   done
+
+  ensure_node_ready || exit 1
+  log_ok "Node ${RESOLVED_NODE_BIN} ($(resolve_node_version_label))"
 
   if [[ ! -d "${home_clone}" ]]; then
     log_error "home clone not found: ${home_clone}"
@@ -231,68 +254,76 @@ run_git_sync() {
   fi
 }
 
-run_build_in_opt() {
+run_build_in_home() {
   local home_clone="$1"
-  local opt_dir="$2"
-  local deploy_args=(--skip-pull --skip-restart)
 
-  (
-    cd "${opt_dir}"
-    bash scripts/deploy-on-server.sh "${deploy_args[@]}"
-  )
-}
-
-run_build_with_home_fallback() {
-  local home_clone="$1"
-  local opt_dir="$2"
-
-  if run_build_in_opt "${home_clone}" "${opt_dir}"; then
-    return 0
-  fi
-
-  if [[ ! -d "${home_clone}/node_modules" ]]; then
-    log_error "opt build failed and home clone has no node_modules — run npm ci in home once"
-    return 1
-  fi
-
-  log_warn "opt npm ci failed — building from home clone"
+  log_step "ensure home dependencies"
   if [[ "${DEPLOY_DRY_RUN}" == true ]]; then
-    log_info "[dry-run] cd ${home_clone} && npm run build && rsync dist → opt"
+    log_info "[dry-run] npm ci in ${home_clone} (skip if node_modules exists and registry down)"
     return 0
   fi
 
   (
     cd "${home_clone}"
+    export PATH="$(dirname "${RESOLVED_NODE_BIN}"):${PATH}"
+    if [[ -d node_modules && -f package-lock.json ]]; then
+      if ! npm ci 2>/dev/null; then
+        log_warn "home npm ci failed — using existing node_modules"
+      fi
+    elif [[ -f package-lock.json ]]; then
+      npm ci
+    else
+      npm install
+    fi
+  )
+
+  if [[ -x "${home_clone}/scripts/restore-linux-native-deps.sh" ]]; then
+    log_step "restore Linux native modules in home"
+    MODULEHUB_APP_DIR="${home_clone}" bash "${home_clone}/scripts/restore-linux-native-deps.sh"
+  fi
+
+  log_step "npm run build in home"
+  (
+    cd "${home_clone}"
+    export PATH="$(dirname "${RESOLVED_NODE_BIN}"):${PATH}"
     npm run build
   )
-  rsync -a "${home_clone}/dist/" "${opt_dir}/dist/"
-  (
-    cd "${opt_dir}"
-    npm prune --omit=dev
-  )
-  log_ok "build completed via home clone fallback"
+
+  if [[ ! -f "${home_clone}/dist/core/src/server/index.js" ]]; then
+    log_error "build output missing in home clone"
+    exit 1
+  fi
+  log_ok "build OK in home"
 }
 
-run_install_and_build() {
+run_sync_to_opt() {
   local home_clone opt_dir
   home_clone="$(resolve_home_clone)"
   opt_dir="$(resolve_opt_dir)"
 
-  log_step "install-to-opt (rsync home → opt)"
+  log_step "sync files home → opt"
   if [[ "${DEPLOY_DRY_RUN}" == true ]]; then
-    log_info "[dry-run] bash ${home_clone}/scripts/install-to-opt.sh"
-  else
-    env MODULEHUB_SOURCE="${home_clone}" MODULEHUB_APP_DIR="${opt_dir}" \
-      bash "${home_clone}/scripts/install-to-opt.sh"
-  fi
-
-  log_step "deploy-on-server build (skip pull/restart)"
-  if [[ "${DEPLOY_DRY_RUN}" == true ]]; then
-    log_info "[dry-run] bash ${opt_dir}/scripts/deploy-on-server.sh --skip-pull --skip-restart"
+    log_info "[dry-run] rsync ${home_clone} → ${opt_dir}"
     return 0
   fi
 
-  run_build_with_home_fallback "${home_clone}" "${opt_dir}"
+  MODULEHUB_SOURCE="${home_clone}" MODULEHUB_APP_DIR="${opt_dir}" sync_app_files_to_opt
+
+  log_step "sync runtime dependencies to opt"
+  MODULEHUB_SOURCE="${home_clone}" MODULEHUB_APP_DIR="${opt_dir}" sync_runtime_dependencies
+
+  if [[ -x "${home_clone}/scripts/restore-linux-native-deps.sh" ]]; then
+    log_step "restore Linux native modules in opt"
+    MODULEHUB_APP_DIR="${opt_dir}" bash "${home_clone}/scripts/restore-linux-native-deps.sh"
+  fi
+}
+
+run_install_and_build() {
+  local home_clone
+  home_clone="$(resolve_home_clone)"
+
+  run_build_in_home "${home_clone}"
+  run_sync_to_opt
 }
 
 run_service_restart() {

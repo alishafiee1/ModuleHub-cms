@@ -64,7 +64,8 @@ bash scripts/run-checks.sh
 | عیب‌یابی سریع (health) | `bash scripts/run-checks.sh` یا `npm run checks` |
 | smoke کش پکیج (روی سرور) | `npm run smoke:package-cache` |
 | deploy کامل بعد از push | `bash scripts/deploy-full.sh --yes` |
-| deploy در opt (بدون pull) | `bash scripts/deploy-on-server.sh --skip-pull` |
+| sync home → opt (بعد از build) | `bash scripts/install-to-opt.sh` |
+| node_modules از ویندوز روی لینوکس | `bash scripts/restore-linux-native-deps.sh` |
 | git pull در home | `bash scripts/lib/git-fetch.sh` یا `git pull --ff-only` |
 | backup ZIP کل سایت | `node scripts/cli.js backup --output /tmp/full.zip` |
 | sudo بدون پسورد مکرر | `python3 scripts/sudo_broker.py` + `run_via_broker.py` |

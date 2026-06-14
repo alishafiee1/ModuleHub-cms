@@ -1,55 +1,39 @@
 #!/usr/bin/env bash
-# purpose --- Copy home clone to /opt/modulehub-cms with correct ownership ------
+# purpose --- Copy home clone to /opt: rsync files + runtime deps (build first in home) ------
 set -euo pipefail
 
-SOURCE_DIR="${MODULEHUB_SOURCE:-${HOME}/ModuleHub-cms}"
-TARGET_DIR="${MODULEHUB_APP_DIR:-/opt/modulehub-cms}"
-OWNER="${MODULEHUB_OWNER:-ash}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/sync-app-to-opt.sh
+source "${SCRIPT_DIR}/lib/sync-app-to-opt.sh"
+# shellcheck source=lib/sync-runtime-deps.sh
+source "${SCRIPT_DIR}/lib/sync-runtime-deps.sh"
 
 log() {
   printf '[install-to-opt] %s\n' "$*"
 }
 
-if [[ ! -d "${SOURCE_DIR}" ]]; then
-  echo "[install-to-opt] ERROR: source not found: ${SOURCE_DIR}" >&2
-  exit 1
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  cat <<'EOF'
+Usage: bash scripts/install-to-opt.sh
+
+Syncs ~/ModuleHub-cms → /opt/modulehub-cms (rsync, no .env / storage backups).
+
+Before running:
+  cd ~/ModuleHub-cms && npm run build
+
+Does NOT run npm ci in opt first (registry outages should not block file sync).
+Runtime deps: npm ci --omit=dev in opt, or copy node_modules from home on failure.
+
+Full deploy (git + build + restart): bash scripts/deploy-full.sh --yes
+EOF
+  exit 0
 fi
 
-if [[ ! -d "${TARGET_DIR}" ]]; then
-  log "Creating ${TARGET_DIR}..."
-  if sudo -n true 2>/dev/null; then
-    sudo mkdir -p "${TARGET_DIR}"
-    sudo chown "${OWNER}:${OWNER}" "${TARGET_DIR}"
-  else
-    echo "[install-to-opt] ERROR: ${TARGET_DIR} missing and sudo needs a terminal (run: sudo mkdir -p ${TARGET_DIR} && sudo chown ${OWNER}:${OWNER} ${TARGET_DIR})" >&2
-    exit 1
-  fi
-elif [[ ! -w "${TARGET_DIR}" ]]; then
-  log "Fixing ownership on ${TARGET_DIR}..."
-  sudo chown "${OWNER}:${OWNER}" "${TARGET_DIR}"
+sync_app_files_to_opt
+sync_runtime_dependencies
+
+if [[ -x "${SCRIPT_DIR}/restore-linux-native-deps.sh" ]]; then
+  MODULEHUB_APP_DIR="${TARGET_DIR}" bash "${SCRIPT_DIR}/restore-linux-native-deps.sh"
 fi
 
-log "Syncing ${SOURCE_DIR} -> ${TARGET_DIR} (rsync)..."
-rsync -a --delete \
-  --exclude node_modules \
-  --exclude .git \
-  --exclude .env \
-  --exclude storage/logs \
-  --exclude storage/backups \
-  --exclude standalone-modules \
-  "${SOURCE_DIR}/" "${TARGET_DIR}/"
-
-log "Installing production dependencies in ${TARGET_DIR}..."
-(
-  cd "${TARGET_DIR}"
-  if [[ -f package-lock.json ]]; then
-    npm ci --omit=dev
-  else
-    npm install --omit=dev
-  fi
-)
-
-log "Done. Next:"
-echo "  cd ${TARGET_DIR}"
-echo "  bash scripts/install-systemd.sh"
-echo "  sudo systemctl restart modulehub-cms"
+log "Done. Restart: sudo systemctl restart modulehub-cms"

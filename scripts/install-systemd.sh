@@ -3,6 +3,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/resolve-node.sh
+source "${SCRIPT_DIR}/lib/resolve-node.sh"
 APP_DIR="${MODULEHUB_APP_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
 SERVICE_NAME="${MODULEHUB_SERVICE:-modulehub-cms}"
 SYSTEMD_DEST="/etc/systemd/system/${SERVICE_NAME}.service"
@@ -41,7 +43,10 @@ fi
 SERVICE_USER="${MODULEHUB_SERVICE_USER:-$(whoami)}"
 SERVICE_GROUP="${MODULEHUB_SERVICE_GROUP:-${SERVICE_USER}}"
 
-log "APP_DIR=${APP_DIR} SERVICE_USER=${SERVICE_USER}"
+ensure_node_ready
+NODE_BIN="${RESOLVED_NODE_BIN}"
+
+log "APP_DIR=${APP_DIR} SERVICE_USER=${SERVICE_USER} NODE=${NODE_BIN}"
 
 cat > "${GENERATED_UNIT}" <<EOF
 [Unit]
@@ -54,7 +59,7 @@ User=${SERVICE_USER}
 Group=${SERVICE_GROUP}
 WorkingDirectory=${APP_DIR}
 EnvironmentFile=${APP_DIR}/.env
-ExecStart=/usr/bin/node ${APP_DIR}/dist/core/src/server/index.js
+ExecStart=${NODE_BIN} ${APP_DIR}/dist/core/src/server/index.js
 Restart=on-failure
 RestartSec=5
 

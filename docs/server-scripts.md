@@ -1,52 +1,3 @@
-<style>
-body, p, h1, h2, h3, h4, h5, h6, li, ul, ol {
-  font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
-  direction: rtl;
-  text-align: right;
-}
-pre, code {
-  direction: ltr;
-  text-align: left;
-}
-.markdown-body table,
-.markdown-preview-section table,
-table {
-  direction: rtl !important;
-  text-align: right !important;
-  width: 100%;
-  border-collapse: collapse;
-  margin-inline-start: 0;
-  margin-inline-end: auto;
-}
-.markdown-body th,
-.markdown-body td,
-.markdown-preview-section th,
-.markdown-preview-section td,
-table thead th,
-table tbody td,
-table th,
-table td {
-  text-align: right !important;
-  direction: rtl;
-  vertical-align: top;
-  padding: 0.35em 0.5em;
-}
-table td code,
-table th code,
-.markdown-body table td code,
-.markdown-body table th code {
-  direction: ltr;
-  unicode-bidi: embed;
-  text-align: right !important;
-  display: inline-block;
-}
-.task-list-item input[type="checkbox"],
-input.task-list-item-checkbox {
-  margin: 0 0.5em 0 0 !important;
-}
-</style>
-
-
 # اسکریپت‌های سرور — یه راهنمای ساده
 
 این داکیومنت فقط می‌گه هر اسکریپت **کی** و **برای چی** اجرا می‌شه.  
@@ -86,9 +37,10 @@ input.task-list-item-checkbox {
 |---------|---------|
 | `setup-server-dirs.sh` | پوشه‌های `/var/...` رو یک‌بار می‌سازه |
 | `install-systemd.sh` | CMS رو سرویس systemd می‌کنه که با روشن شدن سرور بالا بیاد |
-| `deploy-on-server.sh` | بعد از هر آپدیت کد: pull، build، restart، چک سلامت |
-| `deploy-full.sh` | **استاندارد روزمره** — fetch در home، sync به opt، build، restart |
-| `install-to-opt.sh` | home → `/opt` + **`npm ci` در opt** |
+| `deploy-on-server.sh` | فقط داخل `/opt` — اضطراری؛ **ترجیح:** `deploy-full.sh` |
+| `deploy-full.sh` | **استاندارد روزمره** — git در home، build در home، sync به opt، restart |
+| `install-to-opt.sh` | home → `/opt` (rsync فایل + deps؛ build قبلش در home) |
+| `restore-linux-native-deps.sh` | اگر `node_modules` از ویندوز اومده — bcrypt لینوکس از CDN |
 
 ---
 
@@ -136,17 +88,18 @@ bash scripts/deploy-on-server.sh
 
 ---
 
-## `install-to-opt.sh` — وقتی از home می‌خوای بری opt
+## `install-to-opt.sh` — sync فایل‌ها به opt
 
-اول توی home کار کردی؟ این اسکریپت sync می‌کنه به `/opt` و **خودش `npm ci --omit=dev` در opt** می‌زنه (`node_modules` عمداً کپی نمی‌شود).
+**قبلش حتماً** در home: `npm run build`
+
+ترتیب: rsync کد و `dist/` → تلاش `npm ci --omit=dev` در opt → اگر registry قطع بود، کپی `node_modules` از home → `restore-linux-native-deps` برای bcrypt لینوکس.
 
 ```bash
 source ~/.nvm/nvm.sh && nvm use 20
 cd ~/ModuleHub-cms
-git pull
+npm run build
 bash scripts/install-to-opt.sh
-cd /opt/modulehub-cms
-bash scripts/install-systemd.sh   # ترمینال با sudo
+bash scripts/install-systemd.sh
 ```
 
 ---
@@ -157,12 +110,12 @@ bash scripts/install-systemd.sh   # ترمینال با sudo
 ۱) clone در ~/ModuleHub-cms + .env
 ۲) nvm use 20 + npm ci && npm run build (در home)
 ۳) bash scripts/setup-server-dirs.sh   (sudo)
-۴) bash scripts/install-to-opt.sh    (opt + npm ci)
-۵) bash scripts/install-systemd.sh   (sudo)
+۴) bash scripts/install-to-opt.sh
+۵) bash scripts/install-systemd.sh   (sudo — Node از nvm در unit)
 ۶) curl http://127.0.0.1:4000/health
 ```
 
-بعد از هر push: `git pull` در home → `install-to-opt` → `deploy-on-server.sh` در opt.
+بعد از هر push: `bash scripts/deploy-full.sh --yes` (همهٔ مراحل بالا خودکار).
 
 ---
 
@@ -211,3 +164,50 @@ bash scripts/setup-server-dirs.sh
 
 سوالی موند؟ اول [`deploy-guide.md`](deploy-guide.md) رو ببین، بعد توی ترمینال سرور همون دستورهای بالا رو بزن.
 
+<style>
+body, p, h1, h2, h3, h4, h5, h6, li, ul, ol {
+  font-family: 'Segoe UI', Segoe, Tahoma, Geneva, Verdana, sans-serif !important;
+  direction: rtl;
+  text-align: right;
+}
+pre, code {
+  direction: ltr;
+  text-align: left;
+}
+.markdown-body table,
+.markdown-preview-section table,
+table {
+  direction: rtl !important;
+  text-align: right !important;
+  width: 100%;
+  border-collapse: collapse;
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+}
+.markdown-body th,
+.markdown-body td,
+.markdown-preview-section th,
+.markdown-preview-section td,
+table thead th,
+table tbody td,
+table th,
+table td {
+  text-align: right !important;
+  direction: rtl;
+  vertical-align: top;
+  padding: 0.35em 0.5em;
+}
+table td code,
+table th code,
+.markdown-body table td code,
+.markdown-body table th code {
+  direction: ltr;
+  unicode-bidi: embed;
+  text-align: right !important;
+  display: inline-block;
+}
+.task-list-item input[type="checkbox"],
+input.task-list-item-checkbox {
+  margin: 0 0.5em 0 0 !important;
+}
+</style>
