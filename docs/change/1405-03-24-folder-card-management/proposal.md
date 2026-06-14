@@ -2,8 +2,9 @@
 
 # پروپزال — کارت پوشه را مثل کارت ماژول مدیریت کنیم
 
-> پوشهٔ change: `docs/change/folder-card-management/`  
+> پوشهٔ change: `docs/change/1405-03-24-folder-card-management/` — ✅ **بسته** ۱۴۰۵/۰۳/۲۴  
 > **OpenSpec (پیاده‌سازی):** [`openspec/changes/folder-card-management/`](../../../openspec/changes/folder-card-management/proposal.md)  
+> **فاز ۴ (قالب استاتیک):** پیاده نشد — منتقل به [card-live-customization](../card-live-customization/proposal.md)  
 > جزئیات فنی و API در [design.md](./design.md) است — اینجا فقط می‌گوییم **چرا** و **چی** می‌خواهیم.  
 > **رفتار UI:** [behavior.md](./behavior.md) · **جدا:** کد پویا و realtime → [card-live-customization](../card-live-customization/proposal.md)
 
@@ -76,7 +77,9 @@
 
 ---
 
-## §۵ دیزاین استاتیک کارت (فاز دوم همین change)
+## §۵ دیزاین استاتیک کارت — ⏳ منتقل به card-live-customization
+
+> **وضعیت ۱۴۰۵/۰۳/۲۴:** در کد پیاده نشد. طراحی اولیه در [design.md](./design.md) §۷؛ اجرا در [card-live-customization](../card-live-customization/proposal.md).
 
 علاوه بر حالت پیش‌فرض (آیکون، عنوان، توضیح)، توسعه‌دهنده می‌تواند یک فایل **استاتیک** مثل `assets/card.html` داخل بستهٔ ماژول بگذارد. CMS آن را داخل **iframe امن** روی کارت نشان می‌دهد.
 

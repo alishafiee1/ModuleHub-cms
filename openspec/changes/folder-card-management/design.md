@@ -3,7 +3,7 @@
 - Cards render via `public/js/card-canvas/modulehub-card-store.js` → `createCardElement`
 - Folders: fixed folder icon, no `card-desc`, no ⚙; only `POST /admin/folder` exists
 - Modules: ⚙ via `shouldShowGearForCard` (`nodeType === 'module'`); subtitle from `changelog`
-- Human UI spec: `docs/change/folder-card-management/behavior.md`
+- Human UI spec: `docs/change/1405-03-24-folder-card-management/behavior.md`
 
 ## Goals / Non-Goals
 

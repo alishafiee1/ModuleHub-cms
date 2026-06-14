@@ -25,7 +25,7 @@
   - **توضیح کوتاه** (اختیاری).
   - **نشانگر وضعیت** (دایره رنگ‌دار) – فقط برای ماژول‌ها (نه پوشه‌ها) — **پایین کارت**، بدون نمایش CPU/RAM روی بوم.
   - **آیکون چرخ‌دنده ⚙** – فقط در صورتی نمایش داده می‌شود که کاربر **وارد شده باشد** (Super Admin) یا ماژول دارای `managementPasswordHash` باشد.
-  - **کارت پوشه:** آیکون پوشه، عنوان، **توضیح کارت** اختیاری (`cardDescription`) — **بدون** نشانگر وضعیت. ⚙ **فقط Super Admin** (نه Module Manager). جزئیات: [`behavior.md`](../change/folder-card-management/behavior.md)
+  - **کارت پوشه:** آیکون پوشه، عنوان، **توضیح کارت** اختیاری (`cardDescription`) — **بدون** نشانگر وضعیت. ⚙ **فقط Super Admin** (نه Module Manager). جزئیات: [`behavior.md`](../change/1405-03-24-folder-card-management/behavior.md)
 
 ### ۱.۱.۱ ویرایش چیدمان (Super Admin)
 - نوار ابزار مدیریت کارت‌ها **بالای بوم گرید** — فقط برای Super Admin همیشه نمایش داده می‌شود.
@@ -160,7 +160,7 @@
 
 ## ۲.۵ دیالوگ چرخ‌دنده (مدیریت پوشه)
 
-> جزئیات کامل، wizard حذف، و قالب استاتیک: [`behavior.md`](../change/folder-card-management/behavior.md)
+> جزئیات کامل، wizard حذف: [`behavior.md`](../change/1405-03-24-folder-card-management/behavior.md) · قالب استاتیک → [card-live-customization](../change/card-live-customization/proposal.md)
 
 ### ۲.۵.۱ نحوه باز شدن
 - کلیک روی ⚙ در کارت **پوشه** — فقط **Super Admin** (Module Manager به پوشه دسترسی ندارد).

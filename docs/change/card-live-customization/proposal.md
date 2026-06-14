@@ -4,7 +4,7 @@
 
 > پوشهٔ change: `docs/change/card-live-customization/`  
 > جزئیات فنی در [design.md](./design.md) — **چرا** و **چی** اینجاست.  
-> **جدا از:** [folder-card-management](../folder-card-management/proposal.md) (مدیریت پوشه + HTML استاتیک بدون drag/resize).
+> **جدا از:** [1405-03-24-folder-card-management](../1405-03-24-folder-card-management/proposal.md) (مدیریت پوشه — ✅ بسته). قالب HTML استاتیک از همان طراحی اولیه اینجا پیاده می‌شود.
 
 ---
 
@@ -55,7 +55,7 @@
 
 ## §۴ چی در این change نمی‌سازیم؟
 
-مدیریت پوشه، توضیح کارت، چرخ‌دندهٔ پوشه → [folder-card-management](../folder-card-management/proposal.md).
+مدیریت پوشه، توضیح کارت، چرخ‌دندهٔ پوشه → [1405-03-24-folder-card-management](../1405-03-24-folder-card-management/proposal.md) ✅
 
 قالب HTML **استاتیک** بدون اسکریپت و با قفل drag/resize → همان change.
 

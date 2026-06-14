@@ -26,7 +26,7 @@
 | مسیر | یک خط |
 |------|--------|
 | `admin-auth/` | login، session، CSRF، Module Manager |
-| `home-layout/` | cardGrid، PATCH کارت‌ها، پس‌زمینه کارت |
+| `home-layout/` | cardGrid، PATCH کارت‌ها، پس‌زمینه، مدیریت پوشه (PATCH/DELETE) |
 | `module-upload-wizard/` | آپلود ZIP و wizard |
 | `module-manager/` | start/stop، serve `/modules/<id>/` |
 | `module-management/` | edit، delete، log، backup تکی |
@@ -50,7 +50,10 @@
 | `admin-menu.js` | منوی Super Admin (settings، logout) |
 | `card-layout-editor.js` | ویرایشگر چیدمان و پس‌زمینه کارت |
 | `home-floating-background.js` | آیکون‌های شناور پس‌زمینه |
-| `js/card-canvas/` | بوم drag/resize کارت‌ها |
+| `js/card-canvas/` | بوم drag/resize کارت‌ها + انتقال بین پوشه‌ها |
+| `js/gear-floating-menu.js` | منوی شناور ⚙ (پوشه و ماژول) |
+| `js/card-markdown.js` | رندر مارک‌داون توضیح کارت |
+| `js/folder-admin-help.js` | راهنمای ثابت ادمین برای پوشه |
 | `admin/login.html` + `login.js` | صفحهٔ ورود |
 | `admin/settings.html` + `settings.js` | تنظیمات سراسری |
 

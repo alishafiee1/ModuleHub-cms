@@ -242,6 +242,8 @@ node scripts/cli.js --help
 |------|-----|
 | `POST /admin/upload` | آپلود ZIP |
 | `POST /admin/folder` | پوشه مجازی |
+| `PATCH /admin/folder/:folderId` | rename، `cardDescription`، `parentId` |
+| `DELETE /admin/folder/:folderId` | حذف با `contentPolicy` |
 | `GET/POST /admin/settings` | تنظیمات سراسری |
 | `POST /admin/backup`, `POST /admin/restore` | backup/restore کامل |
 | `DELETE /admin/module/:id` | حذف ماژول |
@@ -422,6 +424,17 @@ request → session parser
 | GET | `/card-backgrounds/<file>` | سرو عمومی تصویر پس‌زمینه |
 
 **UI ویرایش:** نوار ابزار بالای بوم — drag/resize، دستگیره ارتفاع بوم، پالت پس‌زمینه — debounce ۵۰۰ms → PATCH. جزئیات رفتار: `docs/ui-behavior.md` §۱.۱.
+
+### ۱۱.۶ مدیریت کارت پوشه — ✅ 2026-06-14
+
+| مفهوم | محل | توضیح |
+|--------|-----|-------|
+| `cardDescription` | `LayoutTreeNode` | زیرعنوان کارت (پوشه و ماژول) — تا ۴۰۰۰ کاراکتر، مارک‌داون GFM در UI |
+| ⚙ پوشه | `shouldShowGearForCard` | فقط Super Admin؛ منوی شناور `gear-floating-menu.js` |
+| PATCH/DELETE | `folder-management.ts` | rename، move، حذف با چهار `contentPolicy` |
+| drag transfer | `layout-node-move.ts` + `card-transfer.js` | جابجایی پوشه/ماژول بین پوشه‌ها در edit mode |
+
+مرجع: [`docs/change/1405-03-24-folder-card-management/`](change/1405-03-24-folder-card-management/proposal.md)
 
 ---
 

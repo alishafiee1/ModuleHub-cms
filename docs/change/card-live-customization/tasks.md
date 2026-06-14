@@ -4,7 +4,21 @@
 
 > **مسیر:** `docs/change/card-live-customization/tasks.md`  
 > **طراحی:** [design.md](./design.md) · **چرا:** [proposal.md](./proposal.md)  
-> **پیش‌نیاز:** [folder-card-management](../folder-card-management/tasks.md) فاز ۱–۳ (یا حداقل card canvas پایدار)
+> **پیش‌نیاز:** [1405-03-24-folder-card-management](../1405-03-24-folder-card-management/tasks.md) فاز ۱–۳ ✅
+
+---
+
+## فاز ۰ — قالب استاتیک کارت (منتقل از folder-card-management)
+
+> طراحی: [1405-03-24-folder-card-management/design.md](../1405-03-24-folder-card-management/design.md) §۷
+
+- [ ] ۰.۱ `docs/module-hosting-guide.md` — بخش `cardPresentation` و `assets/card.html` استاتیک
+- [ ] ۰.۲ manifest schema: `mode: static-template`، `layoutLocked: true`
+- [ ] ۰.۳ رندر iframe بدون script در `createCardElement`
+- [ ] ۰.۴ edit mode: غیرفعال کردن drag/resize وقتی `layoutLocked`
+- [ ] ۰.۵ validation سرور: رد کردن تغییر `cardGridW/H` برای node قفل‌شده
+- [ ] ۰.۶ نمونهٔ ماژول demo با `assets/card.html` استاتیک
+- [ ] ۰.۷ تست E2E: کارت template — بدون دستگیره resize
 
 ---
 

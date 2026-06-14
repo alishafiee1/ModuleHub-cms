@@ -32,7 +32,7 @@ ModuleHub یه سرور Node (Express) است که صفحهٔ اصلی با کا
 
 ### `core/src/modules/home-layout/`
 
-قلب چیدمان صفحهٔ اصلی. `layout-store.ts` JSON رو می‌خونه/می‌نویسه. `migrate-card-grid.ts` قدیمی `cardSpan` رو به `cardGrid` تبدیل می‌کنه. `folder-cards-update.ts` و `layout-routes.ts` PATCH کارت‌ها رو از ادیتور می‌گیرن. `grid-slot.ts` جلوی overlap کارت‌ها رو می‌گیره. `grid-config.ts` باید با `public/js/card-canvas/config.js` هم‌خوان بمونه.
+قلب چیدمان صفحهٔ اصلی. `layout-store.ts` JSON رو می‌خونه/می‌نویسه. `migrate-card-grid.ts` قدیمی `cardSpan` رو به `cardGrid` تبدیل می‌کنه. `folder-cards-update.ts` و `layout-routes.ts` PATCH کارت‌ها رو از ادیتور می‌گیرن. `folder-management.ts` rename/move/delete پوشه با `contentPolicy`؛ `layout-node-move.ts` انتقال drag بین پوشه‌ها. `grid-slot.ts` جلوی overlap کارت‌ها رو می‌گیره. `grid-config.ts` باید با `public/js/card-canvas/config.js` هم‌خوان بمونه.
 
 ### `core/src/modules/module-upload-wizard/`
 
@@ -68,7 +68,7 @@ ZIP کامل از layout + modules + settings — API و CLI.
 
 ### `public/js/card-canvas/`
 
-بوم drag و resize کارت روی گرید. `card-canvas-app.js` orchestrator است؛ `interactions.js` ماوس/لمس؛ `layout-state.js` state محلی ادیتور.
+بوم drag و resize کارت روی گرید. `card-canvas-app.js` orchestrator است؛ `interactions.js` ماوس/لمس؛ `card-transfer.js` انتقال پوشه/ماژول در edit mode؛ `modulehub-card-store.js` رندر کارت + `cardDescription`. `gear-floating-menu.js` منوی شناور ⚙.
 
 ### `public/card-layout-editor.js`
 

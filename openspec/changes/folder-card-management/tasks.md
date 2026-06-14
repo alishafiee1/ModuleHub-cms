@@ -26,7 +26,7 @@
 - [x] 3.7 E2E E2E-FCM-01: edit folder name and description
 - [x] 3.8 E2E E2E-FCM-02: move folder via edit-mode drag transfer
 - [ ] 3.9 E2E E2E-FCM-03: delete with content policies
-- [x] 3.10 Verify `docs/change/folder-card-management/behavior.md` and `docs/ui-behavior.md` §2.5 stay aligned
+- [x] 3.10 Verify `docs/change/1405-03-24-folder-card-management/behavior.md` and `docs/ui-behavior.md` §2.5 stay aligned
 
 ## 4. Static card template (phase 2)
 

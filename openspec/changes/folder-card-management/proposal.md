@@ -2,7 +2,7 @@
 
 Virtual folders on the home canvas can only be opened — Super Admin cannot rename, move, delete, or add a subtitle from the UI. Module cards already have gear (⚙) management and optional descriptions; folder cards feel incomplete and force manual `site-layout.json` edits. This change closes that gap and adds optional **static** HTML card templates (layout-locked on the grid). Live/dynamic card UI is out of scope — see `card-live-customization`.
 
-**Human docs:** `docs/change/folder-card-management/` (proposal, design, behavior, tasks)
+**Human docs:** `docs/change/1405-03-24-folder-card-management/` (proposal, design, behavior, tasks) — closed 2026-06-14
 
 ## What Changes
 

@@ -2,7 +2,7 @@
 
 # طراحی — مدیریت کارت پوشه + دیزاین استاتیک
 
-> **مسیر:** `docs/change/folder-card-management/design.md`  
+> **مسیر:** `docs/change/1405-03-24-folder-card-management/design.md` · **وضعیت:** ✅ بسته ۱۴۰۵/۰۳/۲۴  
 > **پیش‌نیاز:** [proposal.md](./proposal.md)  
 > **رفتار UI:** [behavior.md](./behavior.md)  
 > **جدا:** کد پویا و realtime → [card-live-customization](../card-live-customization/design.md)
@@ -18,13 +18,15 @@
 
 ---
 
-## §۲ وضعیت فعلی (مرجع کد)
+## §۲ وضعیت پیاده‌شده (۱۴۰۵/۰۳/۲۴ — مرجع کد)
 
 - رندر کارت: `public/js/card-canvas/modulehub-card-store.js` → `createCardElement`
-- پوشه: `folder-card`، آیکون ثابت، **بدون** `card-desc`، **بدون** ⚙
-- ماژول: ⚙ با `shouldShowGearForCard` (فقط `nodeType === 'module'`)
-- توضیح ماژول: از `moduleMeta.changelog` در `card-desc`
-- ایجاد پوشه: `POST /admin/folder` — **بدون** rename/move/delete
+- پوشه: `folder-card` + `card-desc` (مارک‌داون GFM، `line-clamp` ۲ خط) + ⚙ برای Super Admin
+- ماژول: ⚙ + `cardDescription ?? changelog` در `card-desc`
+- منوی ⚙: `public/js/gear-floating-menu.js` — آیکون‌های شناور (راهنما، ویرایش چیدمان، پالت، ویرایش، جابجایی، حذف)
+- API پوشه: `PATCH` / `DELETE` در `folder-management.ts` + `folder-management-routes.ts`
+- جابجایی drag در edit: `layout-node-move.ts` + `public/js/card-canvas/card-transfer.js`
+- ایجاد پوشه: `POST /admin/folder` (قبلی) + rename/move/delete (جدید)
 
 ---
 
