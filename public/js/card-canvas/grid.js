@@ -57,6 +57,95 @@ export function computeMinCanvasRowsForCards(cards, reservedRects = []) {
 }
 
 /**
+ * resolveStoredCanvasRows --- folderCanvas row count for a breakpoint (fallback chain) ---
+ * Keep in sync with core/src/modules/home-layout/grid-slot.ts resolveFolderCanvasGridRows
+ * @param {object|null|undefined} folderCanvas
+ * @param {'desktop'|'tablet'|'mobile'} [breakpoint]
+ */
+export function resolveStoredCanvasRows(folderCanvas, breakpoint = 'desktop') {
+  if (!folderCanvas) {
+    return GRID_CONFIG.minCanvasRows;
+  }
+
+  if (breakpoint === 'mobile') {
+    const mobile = folderCanvas.gridRowsMobile;
+    if (typeof mobile === 'number' && mobile >= GRID_CONFIG.minCanvasRows) {
+      return mobile;
+    }
+    const tablet = folderCanvas.gridRowsTablet;
+    if (typeof tablet === 'number' && tablet >= GRID_CONFIG.minCanvasRows) {
+      return tablet;
+    }
+  }
+
+  if (breakpoint === 'tablet') {
+    const tablet = folderCanvas.gridRowsTablet;
+    if (typeof tablet === 'number' && tablet >= GRID_CONFIG.minCanvasRows) {
+      return tablet;
+    }
+  }
+
+  const desktop = folderCanvas.gridRows;
+  if (typeof desktop === 'number' && desktop >= GRID_CONFIG.minCanvasRows) {
+    return desktop;
+  }
+
+  return GRID_CONFIG.minCanvasRows;
+}
+
+/**
+ * getNodeCardGridForBreakpoint --- stored card grid for a layout node ---
+ * @param {object} node
+ * @param {'desktop'|'tablet'|'mobile'} breakpoint
+ */
+export function getNodeCardGridForBreakpoint(node, breakpoint) {
+  if (breakpoint === 'mobile') {
+    return node.cardGridMobile ?? node.cardGridTablet ?? node.cardGrid;
+  }
+  if (breakpoint === 'tablet') {
+    return node.cardGridTablet ?? node.cardGrid;
+  }
+  return node.cardGrid;
+}
+
+/**
+ * collectCardGridsFromChildren --- card grids at breakpoint for canvas row math ---
+ * @param {object[]} children
+ * @param {'desktop'|'tablet'|'mobile'} breakpoint
+ */
+export function collectCardGridsFromChildren(children, breakpoint) {
+  const grids = [];
+  for (const child of children || []) {
+    const grid = getNodeCardGridForBreakpoint(child, breakpoint);
+    if (grid) {
+      grids.push(grid);
+    }
+  }
+  return grids;
+}
+
+/**
+ * resolveEffectiveCanvasRows --- stored rows or enough to fit all cards at breakpoint ---
+ * Keep in sync with core/src/modules/home-layout/grid-slot.ts resolveEffectiveCanvasRows
+ * @param {object} options
+ * @param {object|null|undefined} options.folderCanvas
+ * @param {'desktop'|'tablet'|'mobile'} options.breakpoint
+ * @param {object[]} [options.children]
+ * @param {Array<{ row: number, rowSpan: number }>} [options.reservedRects]
+ */
+export function resolveEffectiveCanvasRows({
+  folderCanvas,
+  breakpoint,
+  children = [],
+  reservedRects = [],
+}) {
+  const storedRows = resolveStoredCanvasRows(folderCanvas, breakpoint);
+  const cardGrids = collectCardGridsFromChildren(children, breakpoint);
+  const minFromCards = computeMinCanvasRowsForCards(cardGrids, reservedRects);
+  return Math.max(GRID_CONFIG.minCanvasRows, storedRows, minFromCards);
+}
+
+/**
  * clampSpan --- keep card span inside min/max and container ---
  */
 export function clampSpan(span, axis, startIndex, metrics) {

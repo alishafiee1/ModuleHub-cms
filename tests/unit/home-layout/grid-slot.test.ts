@@ -3,6 +3,7 @@ import {
   CanvasFullError,
   collectOccupiedCardGrids,
   findEmptyCardSlot,
+  resolveEffectiveCanvasRows,
   resolveFolderCanvasGridRows,
 } from '../../../core/src/modules/home-layout/grid-slot';
 import { GRID_MAX_CANVAS_ROWS, NEW_CHILD_CARD_COL_SPAN, NEW_CHILD_CARD_ROW_SPAN } from '../../../core/src/modules/home-layout/grid-config';
@@ -176,5 +177,48 @@ describe('resolveFolderCanvasGridRows', () => {
   it('mobile falls back to tablet then desktop when mobile rows omitted', () => {
     const folder = { folderCanvas: { gridRows: 9, gridRowsTablet: 12 } } as LayoutTreeNode;
     expect(resolveFolderCanvasGridRows(folder, 'mobile')).toBe(12);
+  });
+});
+
+describe('resolveEffectiveCanvasRows', () => {
+  it('uses stored rows when larger than card footprint', () => {
+    const rows = resolveEffectiveCanvasRows({
+      folderCanvas: { gridRows: 21, gridRowsTablet: 15 },
+      breakpoint: 'tablet',
+      children: [{
+        id: 'a',
+        name: 'A',
+        type: 'module',
+        parentId: 'root',
+        moduleId: 'm1',
+        cardGridTablet: { col: 0, row: 0, colSpan: 5, rowSpan: 5 },
+      }],
+    });
+    expect(rows).toBe(15);
+  });
+
+  it('expands below stored rows when cards extend further on target breakpoint', () => {
+    const rows = resolveEffectiveCanvasRows({
+      folderCanvas: { gridRows: 21, gridRowsTablet: 9 },
+      breakpoint: 'tablet',
+      children: [{
+        id: 'a',
+        name: 'A',
+        type: 'module',
+        parentId: 'root',
+        moduleId: 'm1',
+        cardGridTablet: { col: 0, row: 12, colSpan: 5, rowSpan: 5 },
+      }],
+    });
+    expect(rows).toBe(17);
+  });
+
+  it('falls back to desktop stored rows for tablet when tablet rows omitted', () => {
+    const rows = resolveEffectiveCanvasRows({
+      folderCanvas: { gridRows: 18 },
+      breakpoint: 'tablet',
+      children: [],
+    });
+    expect(rows).toBe(18);
   });
 });

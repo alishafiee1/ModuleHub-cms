@@ -8,6 +8,8 @@ import {
   computeMinCanvasRowsForCards,
   gridToPixels,
   normalizeCardGrid,
+  resolveEffectiveCanvasRows,
+  resolveStoredCanvasRows,
 } from './grid.js';
 import { SnapGhost, bindCardInteractions, resetTransferController, getTransferController } from './interactions.js';
 import { isInteracting, isResizingCanvas, setResizingCanvas, setInteracting } from './layout-state.js';
@@ -60,6 +62,7 @@ let metrics = null;
  *   onOpenBackground: (element: HTMLElement) => void,
  *   onPlacementRejected?: () => void,
  *   onCanvasRowsAtMax?: () => void,
+ *   getFolderCanvas?: () => object | undefined,
  * } | null} */
 let hooks = null;
 
@@ -212,7 +215,6 @@ function adjustCanvasRowsByStep(rowDelta) {
   }
   repositionCards(getMetrics());
   hooks?.onCanvasRowsSettled?.();
-  refreshLayout({ forceRender: true });
 }
 
 function bindCanvasHeightButtons() {
@@ -252,8 +254,8 @@ function bindCanvasHeightHandle() {
     document.removeEventListener('pointermove', onMove);
     document.removeEventListener('pointerup', finish);
     document.removeEventListener('pointercancel', finish);
+    repositionCards(getMetrics());
     hooks?.onCanvasRowsSettled?.();
-    refreshLayout({ forceRender: true });
   };
 
   heightHandle.addEventListener('pointerdown', (event) => {
@@ -492,6 +494,40 @@ function handleBreakpointChange(nextBreakpoint) {
   }));
 }
 
+function buildReservedRects(context) {
+  return context.showBackCard
+    ? [{
+      col: 0,
+      row: 0,
+      colSpan: GRID_CONFIG.backCardColSpan,
+      rowSpan: GRID_CONFIG.backCardRowSpan,
+    }]
+    : [];
+}
+
+/**
+ * buildRefreshContext --- resolve breakpoint and per-device canvas rows before render ---
+ * @param {object[]} children
+ * @param {object} context
+ */
+function buildRefreshContext(children, context = {}) {
+  const breakpoint = context.breakpoint || getEffectiveBreakpoint();
+  const reservedRects = buildReservedRects(context);
+  const folderCanvas = hooks?.getFolderCanvas?.() ?? context.folderCanvas;
+  const canvasGridRows = resolveEffectiveCanvasRows({
+    folderCanvas,
+    breakpoint,
+    children,
+    reservedRects,
+  });
+
+  return {
+    ...context,
+    breakpoint,
+    canvasGridRows,
+  };
+}
+
 /**
  * refresh --- load folder children into canvas ---
  * @param {object[]} children - Layout folder children
@@ -505,21 +541,14 @@ function handleBreakpointChange(nextBreakpoint) {
 function refresh(children, context = {}) {
   if (!store) return;
 
+  const resolvedContext = buildRefreshContext(children, context);
   lastRefreshChildren = children;
-  lastRefreshContext = context;
+  lastRefreshContext = resolvedContext;
 
   const modules = hooks?.getModules() || {};
-  const breakpoint = context.breakpoint || getEffectiveBreakpoint();
-  const reservedRects = context.showBackCard
-    ? [{
-      col: 0,
-      row: 0,
-      colSpan: GRID_CONFIG.backCardColSpan,
-      rowSpan: GRID_CONFIG.backCardRowSpan,
-    }]
-    : [];
-  const startCol = context.showBackCard ? GRID_CONFIG.backCardColSpan : 0;
-  const gridRows = Number(context.canvasGridRows) || GRID_CONFIG.minCanvasRows;
+  const { breakpoint, canvasGridRows: gridRows } = resolvedContext;
+  const reservedRects = buildReservedRects(resolvedContext);
+  const startCol = resolvedContext.showBackCard ? GRID_CONFIG.backCardColSpan : 0;
 
   store.cards = ModuleHubCardStore.fromLayoutNodes(children || [], modules, {
     startCol,
@@ -527,16 +556,17 @@ function refresh(children, context = {}) {
     breakpoint,
     reservedRects,
   });
-  backInfo = context.showBackCard
+  backInfo = resolvedContext.showBackCard
     ? {
       showBack: true,
-      parentFolderId: context.parentFolderId || 'root',
-      parentName: context.parentName || 'خانه',
+      parentFolderId: resolvedContext.parentFolderId || 'root',
+      parentName: resolvedContext.parentName || 'خانه',
     }
     : null;
 
-  setActiveGridRows(gridRows, { skipMinCheck: true });
-  setActiveGridRows(activeGridRows);
+  const minFromRenderedCards = computeMinCanvasRowsForCards(store.cards, reservedRects);
+  const effectiveRows = Math.max(gridRows, minFromRenderedCards);
+  setActiveGridRows(effectiveRows, { skipMinCheck: true });
 
   lockDesignWidthForBreakpoint(breakpoint);
   applyDeviceCanvasClasses();
@@ -680,8 +710,16 @@ function setNavigating(active) {
   container?.classList.toggle('card-canvas--navigating', active);
 }
 
-function updateLayoutChildren(children) {
+/**
+ * syncSavedLayoutState --- keep in-memory layout in sync after PATCH without re-render ---
+ * Visual state on canvas already matches what was saved during edit mode.
+ * @param {object[]} children
+ */
+function syncSavedLayoutState(children) {
   lastRefreshChildren = children;
+  if (children && lastRefreshContext) {
+    lastRefreshContext = buildRefreshContext(children, lastRefreshContext);
+  }
 }
 
 window.CardCanvas = {
@@ -692,6 +730,7 @@ window.CardCanvas = {
   getActiveEditDevice,
   getEffectiveBreakpoint: getEffectiveBreakpointPublic,
   resolveViewportBreakpoint: resolveViewportBreakpointPublic,
+  resolveStoredCanvasRows,
   syncViewportBreakpoint,
   collectCardPayload,
   collectCanvasGridRows,
@@ -700,7 +739,8 @@ window.CardCanvas = {
   setNavigating,
   getStatusDisplay,
   getStore: () => store,
-  updateLayoutChildren,
+  updateLayoutChildren: syncSavedLayoutState,
+  syncSavedLayoutState,
   getGridInnerWidth: () => getGridInnerWidth(),
   getBackInfo: () => backInfo,
 };

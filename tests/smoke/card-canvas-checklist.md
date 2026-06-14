@@ -14,5 +14,6 @@ Manual checks after card-canvas changes:
 10. **Mobile 390px** — all 30 columns reachable in edit mode. (manual drag in edit)
 11. **Desktop 1280px** — grid fills canvas width; shell capped; no dead zone on right. ✅ automated (E2E-DCL-05)
 12. **Exit edit without hard refresh** — end edit → layout visible immediately; PATCH shows correct breakpoint field in Network tab. ✅ automated (E2E-DCL-03)
+13. **Device switch canvas height** — edit mode; place a card low on PC; switch to Tablet then Mobile; canvas height matches target device stored rows; no overlapping card icons. (manual)
 
 Run automated tests: `npm test` · `npm run test:e2e` — guide: [`tests/README.md`](../README.md) (`MODULEHUB_DEV_SUPER_ADMIN=1` set by Playwright config)

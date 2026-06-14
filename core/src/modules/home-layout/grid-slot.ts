@@ -162,6 +162,51 @@ export function getNodeCardGridForBreakpoint(
 }
 
 /**
+ * purpose --- card grids at breakpoint for canvas row calculations ---
+ */
+export function collectCardGridsFromChildren(
+  children: LayoutTreeNode[],
+  breakpoint: LayoutBreakpoint,
+): CardGridPosition[] {
+  const grids: CardGridPosition[] = [];
+  for (const child of children) {
+    const grid = getNodeCardGridForBreakpoint(child, breakpoint);
+    if (grid) {
+      grids.push(grid);
+    }
+  }
+  return grids;
+}
+
+export interface ResolveEffectiveCanvasRowsOptions {
+  folderCanvas?: LayoutTreeNode['folderCanvas'];
+  breakpoint: LayoutBreakpoint;
+  children?: LayoutTreeNode[];
+  reservedRects?: CardGridPosition[];
+}
+
+/**
+ * purpose --- stored canvas rows or enough to fit all cards at the breakpoint ---
+ * Keep in sync with public/js/card-canvas/grid.js resolveEffectiveCanvasRows
+ */
+export function resolveEffectiveCanvasRows({
+  folderCanvas,
+  breakpoint,
+  children = [],
+  reservedRects = [],
+}: ResolveEffectiveCanvasRowsOptions): number {
+  const storedRows = resolveFolderCanvasGridRows(
+    folderCanvas ? { folderCanvas } as LayoutTreeNode : null,
+    breakpoint,
+  );
+  const minFromCards = computeMinCanvasRowsForCards([
+    ...collectCardGridsFromChildren(children, breakpoint),
+    ...reservedRects,
+  ]);
+  return Math.max(GRID_MIN_CANVAS_ROWS, storedRows, minFromCards);
+}
+
+/**
  * purpose --- resolve start column for slot search (back card reserved in subfolders) ---
  */
 function resolveFolderStartCol(parentId: string): number {

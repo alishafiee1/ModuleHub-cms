@@ -61,7 +61,10 @@
    * purpose --- canvas row count for folder at a device breakpoint ---
    */
   function resolveCanvasGridRowsForFolder(folderNode, breakpoint) {
-    const canvas = folderNode.folderCanvas;
+    if (window.CardCanvas?.resolveStoredCanvasRows) {
+      return window.CardCanvas.resolveStoredCanvasRows(folderNode?.folderCanvas, breakpoint);
+    }
+    const canvas = folderNode?.folderCanvas;
     if (!canvas) {
       return 9;
     }
@@ -1180,6 +1183,13 @@
       },
       onCanvasRowsAtMax: () => {
         showCanvasFullToast();
+      },
+      getFolderCanvas: () => {
+        if (!siteLayout?.tree) {
+          return undefined;
+        }
+        const folderNode = findNodeById(siteLayout.tree, currentFolderId);
+        return folderNode?.folderCanvas;
       },
       onLayoutTransfer: (payload) => handleLayoutTransfer(payload),
     });
