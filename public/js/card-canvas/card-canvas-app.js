@@ -279,9 +279,28 @@ function syncHeightControlsVisibility() {
 function bindCardClick(element) {
   element.addEventListener('click', (event) => {
     if (editMode) {
+      if (event.target.closest('.card-drag-handle')) {
+        return;
+      }
+      if (event.target.closest('.resize-handle')) {
+        return;
+      }
       if (event.target.closest('.card-bg-btn')) {
         event.stopPropagation();
         hooks?.onOpenBackground(element);
+        return;
+      }
+      if (isInteracting() || getTransferController()?.isConfirmOpen()) {
+        return;
+      }
+
+      const nodeType = element.dataset.type;
+      if (nodeType === 'back') {
+        hooks?.onNavigateBack(element.dataset.folder || 'root');
+        return;
+      }
+      if (nodeType === 'folder') {
+        hooks?.onNavigateFolder(element.dataset.id || '');
       }
       return;
     }

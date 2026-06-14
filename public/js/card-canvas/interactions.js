@@ -186,6 +186,7 @@ function bindMove(
   element.addEventListener('pointerdown', (event) => {
     if (!isEditMode()) return;
     if (event.button !== 0) return;
+    if (!event.target.closest('.card-drag-handle')) return;
     if (event.target.closest('.resize-handle')) return;
     if (event.target.closest('.card-bg-btn')) return;
 
@@ -193,6 +194,7 @@ function bindMove(
     if (!card) return;
 
     event.preventDefault();
+    event.stopPropagation();
     setInteracting(true);
 
     const startX = event.clientX;

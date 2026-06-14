@@ -38,7 +38,7 @@ export class CardTransferController {
     /** @type {string|null} */
     this.sourceNodeType = null;
     /** @type {HTMLElement|null} */
-    this.dwellRing = null;
+    this.pendingSourceElement = null;
     /** @type {HTMLElement|null} */
     this.confirmButton = null;
     /** @type {HTMLElement|null} */
@@ -102,6 +102,16 @@ export class CardTransferController {
   }
 
   /**
+   * triggerTargetPulse --- short zoom pulse on transfer target ---
+   * @param {HTMLElement} targetElement
+   */
+  triggerTargetPulse(targetElement) {
+    targetElement.classList.remove('is-transfer-target-pulse');
+    void targetElement.offsetWidth;
+    targetElement.classList.add('is-transfer-target-pulse');
+  }
+
+  /**
    * updateHover --- call on pointermove during drag ---
    */
   updateHover(clientX, clientY) {
@@ -119,48 +129,46 @@ export class CardTransferController {
     this.dwellTarget = target.element;
     this.targetParentId = target.parentId;
     this.dwellTarget.classList.add('is-transfer-target');
-    this.showDwellRing(target.element);
+    this.triggerTargetPulse(this.dwellTarget);
 
     this.dwellTimer = window.setTimeout(() => {
       this.transferReady = true;
       this.sourceElement?.classList.add('is-transfer-ready');
+      if (this.dwellTarget) {
+        this.triggerTargetPulse(this.dwellTarget);
+      }
     }, this.getDwellMs());
   }
 
   /**
-   * showDwellRing --- progress ring on target during dwell ---
-   * @param {HTMLElement} targetElement
+   * resetDwellTimers --- clear dwell timer and ready flag ---
    */
-  showDwellRing(targetElement) {
-    this.removeDwellRing();
-    const ring = document.createElement('div');
-    ring.className = 'transfer-dwell-ring';
-    ring.style.setProperty('--dwell-duration', `${this.getDwellMs()}ms`);
-    targetElement.appendChild(ring);
-    this.dwellRing = ring;
-    requestAnimationFrame(() => ring.classList.add('is-active'));
-  }
-
-  removeDwellRing() {
-    if (this.dwellRing) {
-      this.dwellRing.remove();
-      this.dwellRing = null;
-    }
-  }
-
-  resetDwell() {
+  resetDwellTimers() {
     if (this.dwellTimer !== null) {
       clearTimeout(this.dwellTimer);
       this.dwellTimer = null;
     }
-    if (this.dwellTarget) {
-      this.dwellTarget.classList.remove('is-transfer-target');
-      this.dwellTarget = null;
-    }
     this.targetParentId = null;
     this.transferReady = false;
+  }
+
+  /**
+   * resetDwellTarget --- clear target highlight and pulse ---
+   */
+  resetDwellTarget() {
+    if (this.dwellTarget) {
+      this.dwellTarget.classList.remove('is-transfer-target', 'is-transfer-target-pulse');
+      this.dwellTarget = null;
+    }
+  }
+
+  /**
+   * resetDwell --- full reset during active drag ---
+   */
+  resetDwell() {
+    this.resetDwellTimers();
+    this.resetDwellTarget();
     this.sourceElement?.classList.remove('is-transfer-ready');
-    this.removeDwellRing();
   }
 
   /**
@@ -174,16 +182,19 @@ export class CardTransferController {
     const parentId = this.targetParentId;
     const nodeId = this.sourceNodeId;
     const nodeType = this.sourceNodeType;
+    const sourceEl = this.sourceElement;
 
-    this.resetDwell();
-    this.sourceElement?.classList.remove('is-dragging', 'snap-preview');
+    this.resetDwellTarget();
+    this.resetDwellTimers();
+    sourceEl?.classList.remove('is-dragging', 'snap-preview');
 
-    if (!wasReady || !parentId || !nodeId || !nodeType) {
+    if (!wasReady || !parentId || !nodeId || !nodeType || !sourceEl) {
+      sourceEl?.classList.remove('is-transfer-ready');
       this.clearSource();
       return false;
     }
 
-    restorePosition();
+    this.pendingSourceElement = sourceEl;
     this.onCancelRestore = restorePosition;
     this.showConfirmButton(clientX, clientY, {
       nodeId,
@@ -248,7 +259,13 @@ export class CardTransferController {
       this.confirmBackdrop.remove();
       this.confirmBackdrop = null;
     }
-    if (restore && this.onCancelRestore) {
+    if (this.pendingSourceElement) {
+      this.pendingSourceElement.classList.remove('is-transfer-ready');
+      if (restore && this.onCancelRestore) {
+        this.onCancelRestore();
+      }
+      this.pendingSourceElement = null;
+    } else if (restore && this.onCancelRestore) {
       this.onCancelRestore();
     }
     this.onCancelRestore = null;

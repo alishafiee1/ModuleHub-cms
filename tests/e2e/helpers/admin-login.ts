@@ -4,6 +4,17 @@ import { expect, type Locator, type Page } from '@playwright/test';
 export const LAYOUT_SAVE_DEBOUNCE_MS = 700;
 
 /**
+ * Returns the center point of a card's edit-mode drag handle.
+ */
+async function getCardDragHandleCenter(card: Locator): Promise<{ x: number; y: number }> {
+  const handle = card.locator('.card-drag-handle');
+  await expect(handle).toBeVisible();
+  const box = await handle.boundingBox();
+  expect(box).not.toBeNull();
+  return { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 };
+}
+
+/**
  * Opens the home page and waits until super-admin dev mode and card canvas are ready.
  * Requires MODULEHUB_DEV_SUPER_ADMIN=1 on the test server.
  */
@@ -56,10 +67,7 @@ export async function dragCardByOffset(
   offsetX: number,
   offsetY = 0,
 ): Promise<void> {
-  const box = await card.boundingBox();
-  expect(box).not.toBeNull();
-  const startX = box!.x + box!.width / 2;
-  const startY = box!.y + box!.height / 2;
+  const { x: startX, y: startY } = await getCardDragHandleCenter(card);
   await page.mouse.move(startX, startY);
   await page.mouse.down();
   await page.mouse.move(startX + offsetX, startY + offsetY, { steps: 24 });
@@ -97,8 +105,7 @@ export async function dragCardForTreeTransfer(
   const tgtBox = await target.boundingBox();
   expect(srcBox).not.toBeNull();
   expect(tgtBox).not.toBeNull();
-  const startX = srcBox!.x + srcBox!.width / 2;
-  const startY = srcBox!.y + srcBox!.height / 2;
+  const { x: startX, y: startY } = await getCardDragHandleCenter(source);
   const endX = tgtBox!.x + tgtBox!.width / 2;
   const endY = tgtBox!.y + tgtBox!.height / 2;
 

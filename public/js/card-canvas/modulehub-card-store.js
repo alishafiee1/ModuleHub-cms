@@ -338,6 +338,13 @@ export class ModuleHubCardStore {
         </button>`
       : '';
 
+    const dragHandleHtml = this.editMode
+      ? `<button type="button" class="card-drag-handle" aria-label="جابجایی کارت">
+          <span class="card-drag-handle__bar"></span>
+          <span class="card-drag-handle__bar"></span>
+        </button>`
+      : '';
+
     const root = document.createElement('div');
     root.className = `card card-canvas-item ${isFolder ? 'folder-card' : 'module-card'}${bgClass}${this.editMode ? ' card--edit-mode' : ''}`;
     root.dataset.id = card.id;
@@ -352,6 +359,7 @@ export class ModuleHubCardStore {
 
     root.innerHTML = `
       ${bgLayerHtml}
+      ${dragHandleHtml}
       <div class="card-content">
         <div class="card-icon">
           <div class="card-icon-img">${iconHtml}</div>
