@@ -19,12 +19,37 @@ function prepareE2eAppRoot(): string {
       parentId: null,
       children: [
         {
+          id: 'folder-a',
+          name: 'پوشه A',
+          type: 'folder',
+          parentId: 'root',
+          children: [
+            {
+              id: 'folder-b',
+              name: 'پوشه B',
+              type: 'folder',
+              parentId: 'folder-a',
+              children: [],
+              cardGrid: { col: 7, row: 0, colSpan: 3, rowSpan: 3 },
+            },
+          ],
+          cardGrid: { col: 0, row: 0, colSpan: 3, rowSpan: 3 },
+        },
+        {
+          id: 'folder-c',
+          name: 'پوشه C',
+          type: 'folder',
+          parentId: 'root',
+          children: [],
+          cardGrid: { col: 3, row: 0, colSpan: 3, rowSpan: 3 },
+        },
+        {
           id: 'node-mod-1',
           name: 'ماژول ۱',
           type: 'module',
           moduleId: 'mod-1',
           parentId: 'root',
-          cardGrid: { col: 0, row: 0, colSpan: 15, rowSpan: 3 },
+          cardGrid: { col: 18, row: 0, colSpan: 9, rowSpan: 3 },
         },
       ],
     },

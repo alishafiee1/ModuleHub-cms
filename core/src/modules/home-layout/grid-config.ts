@@ -5,8 +5,8 @@
 export const GRID_MAX_COLUMNS = 30;
 /** Default visible canvas rows per folder */
 export const GRID_MIN_CANVAS_ROWS = 9;
-/** Maximum canvas rows a folder can expand to */
-export const GRID_MAX_CANVAS_ROWS = 60;
+/** Maximum canvas rows a folder can expand to (practical unlimited) */
+export const GRID_MAX_CANVAS_ROWS = 9999;
 /** Row step when dragging canvas height handle */
 export const GRID_CANVAS_ROW_STEP = 3;
 /** @deprecated Use GRID_MIN_CANVAS_ROWS — kept for validation fallbacks */

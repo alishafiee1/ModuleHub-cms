@@ -201,6 +201,24 @@ const ModuleDialogs = (function createModuleDialogs() {
   }
 
   /**
+   * Card description help — full markdown view from gear menu.
+   * @param {{ title: string, descriptionMarkdown?: string }} options
+   */
+  async function showCardDescriptionHelpDialog({ title, descriptionMarkdown = '' }) {
+    const trimmed = String(descriptionMarkdown || '').trim();
+    const bodyHtml = trimmed
+      ? `<div class="card-description-help">${window.CardMarkdown?.renderCardDescriptionFull(trimmed) || escapeHtml(trimmed).replace(/\n/g, '<br>')}</div>`
+      : '<p class="card-description-help card-description-help--empty">هنوز توضیحی ننوشتی — از «اسم و توضیح» می‌تونی اضافه کنی.</p>';
+
+    await Swal.fire({
+      title: `توضیح · ${escapeHtml(title)}`,
+      html: bodyHtml,
+      confirmButtonText: 'بستن',
+      width: '32rem',
+    });
+  }
+
+  /**
    * Gear management menu — returns selected action id.
    * @param {object} moduleMeta - Module metadata from layout API
    * @param {object} options - { isSuperAdmin, statusLabel, statusClass }
@@ -216,6 +234,7 @@ const ModuleDialogs = (function createModuleDialogs() {
       { id: 'stop', label: 'Stop', icon: 'fa-stop', show: isRunning },
       { id: 'restart', label: 'Restart', icon: 'fa-redo', show: true },
       { id: 'logs', label: 'مشاهده لاگ', icon: 'fa-file-alt', show: true },
+      { id: 'help', label: 'توضیح کارت', icon: 'fa-circle-question', show: true },
       { id: 'edit', label: 'ویرایش تنظیمات', icon: 'fa-edit', show: true },
       { id: 'backup', label: 'پشتیبان ZIP', icon: 'fa-download', show: true },
       { id: 'github', label: 'GitHub Sync', icon: 'fa-github', show: isSuperAdmin && hasGitRepo },
@@ -292,11 +311,13 @@ const ModuleDialogs = (function createModuleDialogs() {
         <div class="swal-dialog-body">
           <div class="form-group">
             <label class="form-label" for="folder-edit-name">نام پوشه</label>
+            <p class="form-field-hint">همونیه که بزرگ بالای کارت دیده می‌شه.</p>
             <input id="folder-edit-name" class="swal2-input" value="${escapeHtml(folderNode.name)}">
           </div>
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label" for="folder-edit-desc">توضیح کارت (زیر عنوان)</label>
-            <textarea id="folder-edit-desc" class="swal2-textarea swal2-textarea--compact" placeholder="اختیاری — حداکثر ۲۰۰ کاراکتر">${escapeHtml(folderNode.cardDescription || '')}</textarea>
+            <p class="form-field-hint">خط زیر عنوان — می‌تونی چند خط بنویسی. مارک‌داون هم جوابه: <strong>پررنگ</strong>، <code>کد</code>، لینک.</p>
+            <textarea id="folder-edit-desc" class="swal2-textarea swal2-textarea--compact" placeholder="مثلاً: پروژه‌های تمام‌شده یا یه توضیح کوتاه">${escapeHtml(folderNode.cardDescription || '')}</textarea>
           </div>
         </div>
       `,
@@ -499,10 +520,12 @@ const ModuleDialogs = (function createModuleDialogs() {
           </div>
           <div class="form-group">
             <label class="form-label" for="edit-card-desc">توضیح کارت (زیر عنوان)</label>
+            <p class="form-field-hint">همین متن روی کارت دیده می‌شه — می‌تونی چند خط و مارک‌داون بنویسی.</p>
             <textarea id="edit-card-desc" class="swal2-textarea" style="height: 64px;" placeholder="روی کارت دیده می‌شود">${escapeHtml(extras.cardDescription || '')}</textarea>
           </div>
           <div class="form-group">
             <label class="form-label" for="edit-changelog">یادداشت نسخه (changelog)</label>
+            <p class="form-field-hint">فقط برای خودت و تاریخچهٔ نسخه — روی کارت نیست مگر توضیح کارت خالی باشه.</p>
             <textarea id="edit-changelog" class="swal2-textarea" style="height: 80px;">${escapeHtml(moduleMeta.changelog || '')}</textarea>
           </div>
           <div class="form-group">
@@ -727,6 +750,7 @@ const ModuleDialogs = (function createModuleDialogs() {
     showCacheInfoDialog,
     showAuthRequiredDialog,
     showGearActionsDialog,
+    showCardDescriptionHelpDialog,
     showFolderGearActionsDialog,
     showFolderEditMetaDialog,
     showFolderMovePickerDialog,

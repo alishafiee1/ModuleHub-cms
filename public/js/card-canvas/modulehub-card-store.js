@@ -3,7 +3,7 @@
  * ModuleHub card store — layout nodes rendered as absolute grid cards.
  */
 import { GRID_CONFIG, LEGACY_SPAN_TO_COL_SPAN } from './config.js';
-import { findEmptySlot, gridToPixels } from './grid.js';
+import { findEmptySlot, gridToPixels, normalizeCardGrid } from './grid.js';
 
 /** @typedef {{ id: string, col: number, row: number, colSpan: number, rowSpan: number, nodeType: string, moduleId?: string, displayName: string, cardBackground?: object|null, layoutNode: object, moduleMeta?: object|null }} CanvasCard */
 
@@ -126,7 +126,10 @@ export function resolveNodeGrid(node, {
   }
 
   if (storedGrid) {
-    return { ...storedGrid };
+    return normalizeCardGrid({ ...storedGrid }, {
+      columns: GRID_CONFIG.maxColumns,
+      rows: gridRows,
+    });
   }
 
   const colSpan = LEGACY_SPAN_TO_COL_SPAN[node.cardSpan] ?? GRID_CONFIG.minColumnSpan;
@@ -307,8 +310,12 @@ export class ModuleHubCardStore {
       : '';
 
     const descriptionText = card.cardDescription || (!isFolder && moduleMeta?.changelog) || '';
-    const descriptionHtml = descriptionText
-      ? `<div class="card-desc">${escapeAttr(descriptionText)}</div>`
+    const previewHtml = descriptionText
+      ? (window.CardMarkdown?.renderCardDescriptionPreview(descriptionText)
+        ?? escapeAttr(descriptionText))
+      : '';
+    const descriptionHtml = previewHtml
+      ? `<div class="card-desc card-desc--markdown">${previewHtml}</div>`
       : '';
 
     const showGear = !this.editMode && this.showGearFor(card);

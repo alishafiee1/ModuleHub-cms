@@ -62,7 +62,30 @@ export function clampSpan(span, axis, startIndex, metrics) {
   const min = axis === 'col' ? GRID_CONFIG.minColumnSpan : GRID_CONFIG.minRowSpan;
   const max = axis === 'col' ? GRID_CONFIG.maxColumnSpan : GRID_CONFIG.maxRowSpan;
   const limit = axis === 'col' ? metrics.columns : metrics.rows;
-  return Math.min(Math.max(span, min, 1), max, limit - startIndex);
+  return Math.min(Math.max(span, min), max, Math.max(min, limit - startIndex));
+}
+
+/**
+ * normalizeCardGrid --- enforce 3×3 minimum span and keep card inside canvas ---
+ * @param {{ col: number, row: number, colSpan: number, rowSpan: number }} grid
+ * @param {{ columns?: number, rows?: number }} [bounds]
+ */
+export function normalizeCardGrid(grid, bounds = {}) {
+  const columns = bounds.columns ?? GRID_CONFIG.maxColumns;
+  const rows = bounds.rows ?? GRID_CONFIG.minCanvasRows;
+
+  const colSpan = Math.max(
+    GRID_CONFIG.minColumnSpan,
+    Math.min(grid.colSpan, GRID_CONFIG.maxColumnSpan, columns),
+  );
+  const rowSpan = Math.max(
+    GRID_CONFIG.minRowSpan,
+    Math.min(grid.rowSpan, GRID_CONFIG.maxRowSpan, rows),
+  );
+  const col = clampIndex(grid.col, colSpan, columns);
+  const row = clampIndex(grid.row, rowSpan, rows);
+
+  return { col, row, colSpan, rowSpan };
 }
 
 /** @param {number} index @param {number} span @param {number} limit */
@@ -113,35 +136,42 @@ export function snapMove(box, colSpan, rowSpan, metrics) {
 export function snapResize(box, fixedRightCol, fixedTopRow, metrics) {
   const gap = GRID_CONFIG.cardGap;
   let colSpan = clampSpan(
-    Math.max(1, Math.round((box.width + gap) / metrics.cellWidth)),
+    Math.round((box.width + gap) / metrics.cellWidth),
     'col',
     0,
     metrics,
   );
   let rowSpan = clampSpan(
-    Math.max(1, Math.round((box.height + gap) / metrics.cellHeight)),
+    Math.round((box.height + gap) / metrics.cellHeight),
     'row',
     fixedTopRow,
     metrics,
   );
 
-  colSpan = Math.min(
-    Math.max(colSpan, GRID_CONFIG.minColumnSpan),
-    fixedRightCol,
+  const maxColSpan = Math.min(
     GRID_CONFIG.maxColumnSpan,
+    Math.max(GRID_CONFIG.minColumnSpan, fixedRightCol),
   );
-  rowSpan = Math.min(
-    Math.max(rowSpan, GRID_CONFIG.minRowSpan),
-    metrics.rows - fixedTopRow,
+  const maxRowSpan = Math.min(
     GRID_CONFIG.maxRowSpan,
+    Math.max(GRID_CONFIG.minRowSpan, metrics.rows - fixedTopRow),
   );
 
-  return {
+  colSpan = Math.max(
+    GRID_CONFIG.minColumnSpan,
+    Math.min(colSpan, maxColSpan),
+  );
+  rowSpan = Math.max(
+    GRID_CONFIG.minRowSpan,
+    Math.min(rowSpan, maxRowSpan),
+  );
+
+  return normalizeCardGrid({
     col: Math.max(0, fixedRightCol - colSpan),
     row: fixedTopRow,
     colSpan,
     rowSpan,
-  };
+  }, metrics);
 }
 
 /**

@@ -68,6 +68,73 @@ export async function dragCardByOffset(
 }
 
 /**
+ * Returns true when the response is a layout-tree reparent PATCH (not card grid save).
+ */
+function isLayoutTreeReparentPatch(resp: import('@playwright/test').Response, nodeId: string): boolean {
+  if (resp.request().method() !== 'PATCH') {
+    return false;
+  }
+  const url = resp.url();
+  if (url.includes('/cards')) {
+    return false;
+  }
+  return url.includes(`/admin/folder/${nodeId}`) || url.includes(`/admin/layout-node/${nodeId}`);
+}
+
+/**
+ * Drags a card onto another card, dwells for tree transfer, releases, and confirms.
+ */
+export async function dragCardForTreeTransfer(
+  page: Page,
+  source: Locator,
+  target: Locator,
+  dwellMs = 2100,
+): Promise<void> {
+  const sourceId = await source.getAttribute('data-id');
+  expect(sourceId).toBeTruthy();
+
+  const srcBox = await source.boundingBox();
+  const tgtBox = await target.boundingBox();
+  expect(srcBox).not.toBeNull();
+  expect(tgtBox).not.toBeNull();
+  const startX = srcBox!.x + srcBox!.width / 2;
+  const startY = srcBox!.y + srcBox!.height / 2;
+  const endX = tgtBox!.x + tgtBox!.width / 2;
+  const endY = tgtBox!.y + tgtBox!.height / 2;
+
+  await page.mouse.move(startX, startY);
+  await page.mouse.down();
+
+  const steps = 32;
+  for (let step = 1; step <= steps; step += 1) {
+    const ratio = step / steps;
+    const x = startX + (endX - startX) * ratio;
+    const y = startY + (endY - startY) * ratio;
+    await page.mouse.move(x, y);
+    await page.waitForTimeout(20);
+  }
+
+  await page.waitForTimeout(dwellMs);
+  await page.mouse.up();
+
+  const confirmBtn = page.locator('.transfer-confirm-btn');
+  await expect(confirmBtn).toBeVisible({ timeout: 10_000 });
+
+  const transferPatch = page.waitForResponse(
+    (resp) => isLayoutTreeReparentPatch(resp, sourceId!),
+    { timeout: 20_000 },
+  );
+
+  await confirmBtn.click({ force: true });
+  await transferPatch;
+  await page.waitForResponse(
+    (resp) => resp.url().includes('/api/layout') && resp.request().method() === 'GET',
+    { timeout: 20_000 },
+  );
+  await page.waitForTimeout(LAYOUT_SAVE_DEBOUNCE_MS);
+}
+
+/**
  * Switches the active edit device (PC / tablet / mobile) in layout toolbar.
  */
 export async function switchEditDevice(

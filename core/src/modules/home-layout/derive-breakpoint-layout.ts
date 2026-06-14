@@ -6,6 +6,7 @@ import {
   DEVICE_DESIGN_WIDTH,
   GRID_MAX_COLUMNS,
   GRID_MIN_COLUMN_SPAN,
+  GRID_MIN_ROW_SPAN,
 } from './grid-config';
 import {
   computeMinCanvasRowsForCards,
@@ -40,7 +41,7 @@ export function deriveCardGridForBreakpoint(
   );
   let col = Math.max(0, Math.min(GRID_MAX_COLUMNS - colSpan, Math.round(source.col * scale)));
   const row = source.row;
-  const rowSpan = source.rowSpan;
+  const rowSpan = Math.max(GRID_MIN_ROW_SPAN, source.rowSpan);
 
   let candidate: CardGridPosition = { col, row, colSpan, rowSpan };
   const collides = occupied.some((rect) => rectsOverlap(candidate, rect));

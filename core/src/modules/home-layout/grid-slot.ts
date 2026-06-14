@@ -1,6 +1,6 @@
 import {
   BACK_CARD_COL_SPAN,
-  GRID_DEFAULT_ROW_SPAN,
+  GRID_CANVAS_ROW_STEP,
   GRID_MAX_COLUMNS,
   GRID_MIN_CANVAS_ROWS,
   GRID_MIN_COLUMN_SPAN,
@@ -97,6 +97,21 @@ export function resolveFolderCanvasGridRows(
 }
 
 /**
+ * purpose --- bump folder canvas row count when content needs more vertical space ---
+ */
+function ensureMinimumFolderCanvasRows(parent: LayoutTreeNode, minRows: number): void {
+  const stepped = Math.ceil(minRows / GRID_CANVAS_ROW_STEP) * GRID_CANVAS_ROW_STEP;
+  const nextRows = Math.max(GRID_MIN_CANVAS_ROWS, stepped);
+  if (!parent.folderCanvas) {
+    parent.folderCanvas = { gridRows: nextRows };
+    return;
+  }
+  if (parent.folderCanvas.gridRows < nextRows) {
+    parent.folderCanvas.gridRows = nextRows;
+  }
+}
+
+/**
  * purpose --- reads stored cardGrid for a node at the given breakpoint ---
  */
 export function getNodeCardGridForBreakpoint(
@@ -121,21 +136,19 @@ export function assignCardGridForNewChild(
   parent: LayoutTreeNode,
   parentId: string,
 ): CardGridPosition {
-  const gridRows = resolveFolderCanvasGridRows(parent);
   const startCol = parentId === 'root' ? 0 : BACK_CARD_COL_SPAN;
   const occupied = (parent.children ?? [])
     .filter((child) => child.cardGrid)
     .map((child) => child.cardGrid as CardGridPosition);
 
-  const slot = findEmptyCardSlot(occupied, gridRows, startCol);
-  if (slot) {
-    return slot;
+  let gridRows = resolveFolderCanvasGridRows(parent);
+  let slot = findEmptyCardSlot(occupied, gridRows, startCol);
+
+  while (!slot) {
+    gridRows += GRID_CANVAS_ROW_STEP;
+    slot = findEmptyCardSlot(occupied, gridRows, startCol);
   }
 
-  return {
-    col: startCol,
-    row: 0,
-    colSpan: 7,
-    rowSpan: GRID_DEFAULT_ROW_SPAN,
-  };
+  ensureMinimumFolderCanvasRows(parent, gridRows);
+  return slot;
 }

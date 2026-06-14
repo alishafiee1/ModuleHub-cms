@@ -204,6 +204,20 @@ const ModuleHubApi = (function createModuleHubApi() {
   }
 
   /**
+   * Reparents a folder or module layout node (Super Admin).
+   * @param {string} nodeId - Layout tree node id
+   * @param {object} payload - { parentId }
+   * @returns {Promise<object>}
+   */
+  async function moveLayoutNode(nodeId, payload) {
+    return requestJson(`/admin/layout-node/${encodeURIComponent(nodeId)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /**
    * Uploads a module ZIP archive.
    * @param {File} zipFile - ZIP file from file input
    * @returns {Promise<{ moduleId: string }>}
@@ -488,6 +502,7 @@ const ModuleHubApi = (function createModuleHubApi() {
     createFolder,
     patchFolder,
     deleteFolder,
+    moveLayoutNode,
     uploadZip,
     saveWizard,
     startModule,

@@ -24,7 +24,7 @@
 - [x] 3.5 Redirect when `?folder=` references deleted folder
 - [x] 3.6 Module gear settings: «توضیح کارت» field separate from changelog
 - [x] 3.7 E2E E2E-FCM-01: edit folder name and description
-- [ ] 3.8 E2E E2E-FCM-02: move folder via gear
+- [x] 3.8 E2E E2E-FCM-02: move folder via edit-mode drag transfer
 - [ ] 3.9 E2E E2E-FCM-03: delete with content policies
 - [x] 3.10 Verify `docs/change/folder-card-management/behavior.md` and `docs/ui-behavior.md` §2.5 stay aligned
 

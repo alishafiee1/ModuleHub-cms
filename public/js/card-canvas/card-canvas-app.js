@@ -7,9 +7,10 @@ import {
   computeGridMetrics,
   computeMinCanvasRowsForCards,
   gridToPixels,
+  normalizeCardGrid,
 } from './grid.js';
-import { SnapGhost, bindCardInteractions } from './interactions.js';
-import { isInteracting, isResizingCanvas, setResizingCanvas } from './layout-state.js';
+import { SnapGhost, bindCardInteractions, resetTransferController, getTransferController } from './interactions.js';
+import { isInteracting, isResizingCanvas, setResizingCanvas, setInteracting } from './layout-state.js';
 import { ModuleHubCardStore, getStatusDisplay, shouldShowGearForCard } from './modulehub-card-store.js';
 
 /** @type {import('./modulehub-card-store.js').ModuleHubCardStore | null} */
@@ -21,7 +22,13 @@ let container = null;
 /** @type {HTMLElement | null} */
 let cardsWrapper = null;
 /** @type {HTMLElement | null} */
+let heightControls = null;
+/** @type {HTMLElement | null} */
 let heightHandle = null;
+/** @type {HTMLElement | null} */
+let heightDecreaseBtn = null;
+/** @type {HTMLElement | null} */
+let heightIncreaseBtn = null;
 
 let canvasInitialized = false;
 let editMode = false;
@@ -164,10 +171,56 @@ function setActiveGridRows(rows, { skipMinCheck = false } = {}) {
     Math.max(GRID_CONFIG.minCanvasRows, minRows, stepped),
   );
   applyCanvasHeight();
+  syncHeightControlsState();
 }
 
 function notifyPlacementRejected() {
   hooks?.onPlacementRejected?.();
+}
+
+function buildTransferOptions() {
+  if (!editMode || !hooks?.onLayoutTransfer) {
+    return null;
+  }
+  return {
+    enabled: true,
+    isReducedMotion: () => prefersReducedMotion,
+    getBackInfo: () => backInfo,
+    onConfirm: (payload) => {
+      Promise.resolve(hooks.onLayoutTransfer(payload)).finally(() => {
+        setInteracting(false);
+      });
+    },
+    onDismiss: () => setInteracting(false),
+  };
+}
+
+function adjustCanvasRowsByStep(rowDelta) {
+  if (!rowDelta) return;
+  const previousRows = activeGridRows;
+  setActiveGridRows(activeGridRows + rowDelta);
+  if (activeGridRows === previousRows) {
+    return;
+  }
+  repositionCards(getMetrics());
+  hooks?.onCanvasRowsSettled?.();
+  refreshLayout({ forceRender: true });
+}
+
+function bindCanvasHeightButtons() {
+  heightDecreaseBtn?.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!editMode) return;
+    adjustCanvasRowsByStep(-GRID_CONFIG.canvasRowStep);
+  });
+
+  heightIncreaseBtn?.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!editMode) return;
+    adjustCanvasRowsByStep(GRID_CONFIG.canvasRowStep);
+  });
 }
 
 function bindCanvasHeightHandle() {
@@ -210,10 +263,17 @@ function bindCanvasHeightHandle() {
   });
 }
 
-function syncHeightHandleVisibility() {
-  if (!heightHandle) return;
-  heightHandle.hidden = !editMode;
-  heightHandle.setAttribute('aria-hidden', editMode ? 'false' : 'true');
+function syncHeightControlsState() {
+  if (!heightDecreaseBtn) return;
+  const minRows = computeMinAllowedRows();
+  heightDecreaseBtn.disabled = activeGridRows <= minRows;
+}
+
+function syncHeightControlsVisibility() {
+  if (!heightControls) return;
+  heightControls.hidden = !editMode;
+  heightControls.setAttribute('aria-hidden', editMode ? 'false' : 'true');
+  syncHeightControlsState();
 }
 
 function bindCardClick(element) {
@@ -307,6 +367,7 @@ function refreshLayout({ forceRender = false } = {}) {
       getReservedRects,
       getPlacementStartCol,
       notifyPlacementRejected,
+      buildTransferOptions(),
     );
     bindCardClick(element);
   }, { prefersReducedMotion });
@@ -328,7 +389,10 @@ function init(options) {
   container = document.getElementById('cardCanvas');
   cardsWrapper = document.getElementById('cardsWrapper');
   const ghostLayer = document.getElementById('ghostLayer');
+  heightControls = document.getElementById('cardCanvasHeightControls');
   heightHandle = document.getElementById('cardCanvasHeightHandle');
+  heightDecreaseBtn = document.getElementById('cardCanvasHeightDecrease');
+  heightIncreaseBtn = document.getElementById('cardCanvasHeightIncrease');
 
   if (!container || !cardsWrapper || !ghostLayer) {
     console.error('Card canvas root elements missing');
@@ -346,6 +410,7 @@ function init(options) {
   store = new ModuleHubCardStore([]);
 
   bindCanvasHeightHandle();
+  bindCanvasHeightButtons();
   applyCanvasHeight();
 
   const resizeObserver = new ResizeObserver(() => {
@@ -469,11 +534,13 @@ function setEditMode(active) {
     lockDesignWidthForBreakpoint(activeBreakpoint);
   }
   applyDeviceCanvasClasses();
-  syncHeightHandleVisibility();
+  syncHeightControlsVisibility();
   if (wasEditMode === editMode) {
     return;
   }
   if (!editMode) {
+    getTransferController()?.dismissConfirm(false);
+    resetTransferController();
     return;
   }
   if (lastRefreshChildren) {
@@ -525,17 +592,20 @@ function collectCardPayload() {
   const breakpoint = editMode ? activeEditDevice : activeBreakpoint;
   const gridField = GRID_PATCH_FIELD[breakpoint];
 
+  const metrics = getMetrics();
+
   return store.cards.map((card) => {
     const element = store.elements.get(card.id);
     const bgRaw = element?.dataset.cardBackground || 'null';
     const bgCleared = element?.getAttribute('data-card-background-cleared') === '1';
+    const grid = normalizeCardGrid(card, metrics);
     const entry = {
       nodeId: card.id,
       [gridField]: {
-        col: card.col,
-        row: card.row,
-        colSpan: card.colSpan,
-        rowSpan: card.rowSpan,
+        col: grid.col,
+        row: grid.row,
+        colSpan: grid.colSpan,
+        rowSpan: grid.rowSpan,
       },
     };
     if (bgCleared) {
@@ -607,6 +677,7 @@ window.CardCanvas = {
   getStore: () => store,
   updateLayoutChildren,
   getGridInnerWidth: () => getGridInnerWidth(),
+  getBackInfo: () => backInfo,
 };
 
 window.dispatchEvent(new Event('modulehub:card-canvas-ready'));

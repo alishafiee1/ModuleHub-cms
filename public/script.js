@@ -360,8 +360,8 @@
     });
   }
 
-  function renderCards() {
-    if (window.CardLayoutEditor?.isEditModeActive?.()) {
+  function renderCards(options = {}) {
+    if (!options.force && window.CardLayoutEditor?.isEditModeActive?.()) {
       return;
     }
     const folderNode = findNodeById(siteLayout.tree, currentFolderId);
@@ -411,17 +411,59 @@
   }
 
   /**
-   * Handles folder gear menu actions.
-   * @param {string} folderId - Folder node id
-   * @param {object} folderNode - Folder layout node
+   * buildFolderGearActions --- floating menu items for folder gear ---
+   * @param {object} folderNode
    */
-  async function handleFolderGearAction(folderId, folderNode) {
-    const action = await ModuleDialogs.showFolderGearActionsDialog(folderNode);
-    if (!action) {
-      return;
-    }
+  function buildFolderGearActions(folderNode) {
+    return [
+      {
+        id: 'help',
+        label: 'توضیح کارت',
+        hint: 'همون متنی که زیر عنوان کارت می‌نویسی — اینجا کاملش رو ببین',
+        icon: 'fa-circle-question',
+        show: true,
+      },
+      {
+        id: 'edit-meta',
+        label: 'اسم و توضیح',
+        hint: 'اسم پوشه و خط زیرش روی کارت رو عوض کن',
+        icon: 'fa-edit',
+        show: true,
+      },
+      {
+        id: 'move',
+        label: 'جابجایی',
+        hint: 'ببرش تو یه پوشهٔ دیگه',
+        icon: 'fa-folder-open',
+        show: folderNode.id !== 'root',
+      },
+      {
+        id: 'delete',
+        label: 'حذف',
+        hint: 'کل پوشه رو پاک می‌کنه — با احتیاط!',
+        icon: 'fa-trash',
+        show: folderNode.id !== 'root',
+        danger: true,
+      },
+    ].filter((action) => action.show);
+  }
 
+  /**
+   * Executes a folder gear action (edit / move / delete).
+   * @param {string} folderId
+   * @param {object} folderNode
+   * @param {string} action
+   */
+  async function executeFolderGearAction(folderId, folderNode, action) {
     try {
+      if (action === 'help') {
+        await ModuleDialogs.showCardDescriptionHelpDialog({
+          title: folderNode.name,
+          descriptionMarkdown: folderNode.cardDescription || '',
+        });
+        return;
+      }
+
       if (action === 'edit-meta') {
         const payload = await ModuleDialogs.showFolderEditMetaDialog(folderNode);
         if (!payload) {
@@ -483,6 +525,21 @@
     }
   }
 
+  /**
+   * Opens floating gear actions beside folder card gear icon.
+   * @param {string} folderId
+   * @param {object} folderNode
+   * @param {HTMLElement} gearElement
+   */
+  async function handleFolderGearAction(folderId, folderNode, gearElement) {
+    const actions = buildFolderGearActions(folderNode);
+    const action = await GearFloatingMenu.show(gearElement, actions);
+    if (!action) {
+      return;
+    }
+    await executeFolderGearAction(folderId, folderNode, action);
+  }
+
   async function openGearMenu(cardElement) {
     const moduleId = cardElement.getAttribute('data-module-id');
     const nodeType = cardElement.getAttribute('data-type');
@@ -497,7 +554,11 @@
       if (!folderNode || folderNode.type !== 'folder') {
         return;
       }
-      await handleFolderGearAction(nodeId, folderNode);
+      const gearElement = cardElement.querySelector('.gear-icon');
+      if (!gearElement) {
+        return;
+      }
+      await handleFolderGearAction(nodeId, folderNode, gearElement);
       return;
     }
 
@@ -563,6 +624,15 @@
    */
   async function handleGearAction(moduleId, moduleMeta, action, cardElement) {
     try {
+      if (action === 'help') {
+        const layoutNode = findNodeById(siteLayout.tree, cardElement?.dataset?.id || '');
+        const description = layoutNode?.cardDescription || moduleMeta.changelog || '';
+        await ModuleDialogs.showCardDescriptionHelpDialog({
+          title: moduleMeta.name,
+          descriptionMarkdown: description,
+        });
+        return;
+      }
       if (action === 'start') {
         await ModuleHubApi.startModule(moduleId);
         await refreshFromServer();
@@ -844,6 +914,34 @@
   }
   AdminMenu.mount('adminAuthMenuHost', { onAfterLogout: refreshFromServer });
 
+  /**
+   * Drag-transfer reparent in layout edit mode.
+   * @param {{ nodeId: string, nodeType: string, targetParentId: string }} payload
+   */
+  async function handleLayoutTransfer(payload) {
+    if (!authStatus.isSuperAdmin) {
+      return;
+    }
+    const { nodeId, nodeType, targetParentId } = payload;
+    try {
+      if (nodeType === 'folder') {
+        await ModuleHubApi.patchFolder(nodeId, { parentId: targetParentId });
+      } else {
+        await ModuleHubApi.moveLayoutNode(nodeId, { parentId: targetParentId });
+      }
+      if (currentFolderId === nodeId && nodeType === 'folder') {
+        currentFolderId = resolveValidFolderId(targetParentId);
+        const url = currentFolderId === ROOT_ID ? '/' : `/?folder=${encodeURIComponent(currentFolderId)}`;
+        window.history.replaceState({ folder: currentFolderId }, '', url);
+      }
+      await refreshFromServer();
+      renderCards({ force: true });
+      Swal.fire({ icon: 'success', title: 'انتقال انجام شد', timer: 1200, showConfirmButton: false });
+    } catch (error) {
+      Swal.fire({ icon: 'error', title: 'خطا در انتقال', text: error.message });
+    }
+  }
+
   function initCardCanvasHooks() {
     if (!window.CardCanvas) {
       return;
@@ -889,6 +987,7 @@
           });
         }
       },
+      onLayoutTransfer: (payload) => handleLayoutTransfer(payload),
     });
   }
 

@@ -5,11 +5,36 @@
 import {
   gridToPixels,
   minPixelSize,
+  normalizeCardGrid,
   resolveSnapWithoutOverlap,
   snapMove,
   snapResize,
 } from './grid.js';
 import { setInteracting } from './layout-state.js';
+import { CardTransferController } from './card-transfer.js';
+
+/** @type {CardTransferController|null} */
+let transferController = null;
+
+/**
+ * getTransferController --- lazy singleton for edit-mode reparent drag ---
+ * @param {object} [options]
+ */
+export function getTransferController(options) {
+  if (!transferController && options) {
+    transferController = new CardTransferController(options);
+  } else if (transferController && options) {
+    transferController.isReducedMotion = options.isReducedMotion;
+    transferController.getBackInfo = options.getBackInfo;
+    transferController.onConfirm = options.onConfirm;
+    transferController.onDismiss = options.onDismiss;
+  }
+  return transferController;
+}
+
+export function resetTransferController() {
+  transferController = null;
+}
 
 /**
  * SnapGhost --- dashed preview during drag ---
@@ -54,6 +79,7 @@ export class SnapGhost {
  * @param {() => Array<{ col: number, row: number, colSpan: number, rowSpan: number }>} getReservedRects
  * @param {() => number} getStartCol
  * @param {() => void} [onPlacementRejected]
+ * @param {object} [transferOptions] - edit-mode reparent drag
  */
 export function bindCardInteractions(
   element,
@@ -66,6 +92,7 @@ export function bindCardInteractions(
   getReservedRects,
   getStartCol,
   onPlacementRejected,
+  transferOptions = null,
 ) {
   const resizeHandle = element.querySelector('.resize-handle');
   bindMove(
@@ -79,6 +106,7 @@ export function bindCardInteractions(
     getReservedRects,
     getStartCol,
     onPlacementRejected,
+    transferOptions,
   );
   if (resizeHandle) {
     bindResize(
@@ -119,7 +147,8 @@ function settleCard(element, store, cardId, metrics, grid, onSettled) {
   const card = store.find(cardId);
   if (!card) return;
 
-  store.update(cardId, grid);
+  const normalizedGrid = normalizeCardGrid(grid, metrics);
+  store.update(cardId, normalizedGrid);
   const updated = store.find(cardId);
   if (!updated) return;
 
@@ -150,7 +179,10 @@ function bindMove(
   getReservedRects,
   getStartCol,
   onPlacementRejected,
+  transferOptions = null,
 ) {
+  const transfer = transferOptions?.enabled ? getTransferController(transferOptions) : null;
+
   element.addEventListener('pointerdown', (event) => {
     if (!isEditMode()) return;
     if (event.button !== 0) return;
@@ -174,6 +206,10 @@ function bindMove(
     };
     const gestureMetrics = getMetrics();
 
+    if (transfer && (card.nodeType === 'folder' || card.nodeType === 'module')) {
+      transfer.beginDrag(element);
+    }
+
     element.setPointerCapture(event.pointerId);
     element.classList.add('is-dragging');
 
@@ -185,9 +221,25 @@ function bindMove(
         height: startBox.height,
       };
       applyRawBox(element, liveBox);
-      const snapped = snapMove(liveBox, card.colSpan, card.rowSpan, gestureMetrics);
-      ghost.show(gridToPixels(snapped, gestureMetrics));
-      element.classList.add('snap-preview');
+      if (transfer?.transferReady) {
+        ghost.hide();
+        element.classList.remove('snap-preview');
+      } else {
+        const snapped = snapMove(liveBox, card.colSpan, card.rowSpan, gestureMetrics);
+        ghost.show(gridToPixels(snapped, gestureMetrics));
+        element.classList.add('snap-preview');
+      }
+      if (transfer) {
+        transfer.updateHover(moveEvent.clientX, moveEvent.clientY);
+      }
+    };
+
+    const restoreOriginalPosition = () => {
+      applyRawBox(element, startBox);
+      const freshCard = store.find(cardId);
+      if (freshCard) {
+        store.applyPixels(element, freshCard, getMetrics());
+      }
     };
 
     const finish = (endEvent) => {
@@ -197,6 +249,10 @@ function bindMove(
       element.removeEventListener('pointercancel', finish);
       element.classList.remove('is-dragging', 'snap-preview');
       ghost.hide();
+
+      if (transfer?.endDrag(endEvent.clientX, endEvent.clientY, restoreOriginalPosition)) {
+        return;
+      }
 
       const currentMetrics = getMetrics();
       const freshCard = store.find(cardId);

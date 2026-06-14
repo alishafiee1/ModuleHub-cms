@@ -42,6 +42,35 @@ describe('assignCardGridForNewChild', () => {
     expect(slot).toEqual({ col: 15, row: 0, colSpan: 3, rowSpan: 3 });
     expect(parent.children?.[0].cardGrid).toEqual({ col: 0, row: 0, colSpan: 15, rowSpan: 3 });
   });
+
+  it('expands folder canvas rows when the grid is full', () => {
+    const occupied: Array<{ col: number; row: number; colSpan: number; rowSpan: number }> = [];
+    for (let row = 0; row < 9; row += 3) {
+      for (let col = 0; col < 30; col += 3) {
+        occupied.push({ col, row, colSpan: 3, rowSpan: 3 });
+      }
+    }
+
+    const parent: LayoutTreeNode = {
+      id: 'root',
+      name: 'Home',
+      type: 'folder',
+      parentId: null,
+      folderCanvas: { gridRows: 9 },
+      children: occupied.map((cardGrid, index) => ({
+        id: `node-${index}`,
+        name: `Card ${index}`,
+        type: 'module' as const,
+        parentId: 'root',
+        moduleId: `mod-${index}`,
+        cardGrid,
+      })),
+    };
+
+    const slot = assignCardGridForNewChild(parent, 'root');
+    expect(slot.row).toBeGreaterThanOrEqual(9);
+    expect(parent.folderCanvas?.gridRows).toBeGreaterThan(9);
+  });
 });
 
 describe('resolveFolderCanvasGridRows', () => {

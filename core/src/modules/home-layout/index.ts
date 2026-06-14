@@ -22,6 +22,7 @@ export {
 } from './layout-store';
 export { createFolderCardsRouter, createLayoutRouter, getAuthStatusHandler, getLayoutHandler } from './layout-routes';
 export { createFolderManagementRouter, patchFolderHandler, deleteFolderHandler } from './folder-management-routes';
+export { createLayoutNodeMoveRouter, patchLayoutNodeHandler } from './layout-node-move-routes';
 export {
   deleteVirtualFolder,
   findTreeNodeByModuleId,
@@ -29,6 +30,8 @@ export {
   normalizeCardDescription,
   patchVirtualFolder,
 } from './folder-management';
+export { moveLayoutNode } from './layout-node-move';
+export type { MoveLayoutNodeInput } from './layout-node-move';
 export type {
   DeleteFolderInput,
   DeleteFolderResult,

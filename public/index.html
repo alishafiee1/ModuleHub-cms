@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="/css/card-canvas.css">
     <script src="/theme.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+    <script src="/js/card-markdown.js"></script>
 </head>
 <body class="rtl-container">
     <div class="bg-glow-1"></div>
@@ -41,11 +44,19 @@
         <div id="cardsWrapper" class="cards-wrapper">
             <div class="loading-state card-canvas-empty"><i class="fas fa-spinner fa-spin"></i> در حال بارگذاری...</div>
         </div>
-        <div id="cardCanvasHeightHandle" class="card-canvas-height-handle" hidden aria-hidden="true" title="کشیدن برای بزرگ‌تر کردن بوم">
-            <svg viewBox="0 0 24 8" aria-hidden="true">
-                <line x1="4" y1="3" x2="20" y2="3" />
-                <line x1="4" y1="6" x2="20" y2="6" />
-            </svg>
+        <div id="cardCanvasHeightControls" class="card-canvas-height-controls" hidden aria-hidden="true">
+            <button type="button" id="cardCanvasHeightDecrease" class="card-canvas-height-btn" title="کاهش ارتفاع بوم" aria-label="کاهش ارتفاع بوم">
+                <i class="fas fa-minus" aria-hidden="true"></i>
+            </button>
+            <div id="cardCanvasHeightHandle" class="card-canvas-height-handle" title="کشیدن برای تغییر ارتفاع بوم">
+                <svg viewBox="0 0 24 8" aria-hidden="true">
+                    <line x1="4" y1="3" x2="20" y2="3" />
+                    <line x1="4" y1="6" x2="20" y2="6" />
+                </svg>
+            </div>
+            <button type="button" id="cardCanvasHeightIncrease" class="card-canvas-height-btn" title="افزایش ارتفاع بوم" aria-label="افزایش ارتفاع بوم">
+                <i class="fas fa-plus" aria-hidden="true"></i>
+            </button>
         </div>
     </div>
 </div>
@@ -53,6 +64,7 @@
 <script src="/api-client.js"></script>
 <script src="/admin-menu.js"></script>
 <script src="/dialog.js"></script>
+<script src="/js/gear-floating-menu.js"></script>
 <script src="/home-floating-background.js"></script>
 <script type="module" src="/js/card-canvas/card-canvas-app.js"></script>
 <script src="/card-layout-editor.js"></script>
