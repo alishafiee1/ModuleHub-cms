@@ -28,6 +28,11 @@
   let editModeActive = false;
   let saveTimer = null;
 
+  /** @type {(() => Promise<void>)|null} */
+  let exitEditModeFn = null;
+  /** @type {(() => Promise<void>)|null} */
+  let enterEditModeFn = null;
+
   /** getActiveEditDevice --- single source of truth from CardCanvas --- */
   function getActiveEditDevice() {
     return window.CardCanvas?.getActiveEditDevice?.() ?? 'desktop';
@@ -407,7 +412,11 @@
       window.CardCanvas?.setEditMode(true);
       syncDeviceToolbarButtons();
       syncEditToggleLabel(editBtn);
+      window.dispatchEvent(new CustomEvent('modulehub:layout-edit-started'));
     }
+
+    exitEditModeFn = exitEditMode;
+    enterEditModeFn = enterEditMode;
 
     if (editBtn && !editBtn.dataset.bound) {
       editBtn.dataset.bound = '1';
@@ -464,6 +473,26 @@
     return editModeActive;
   }
 
+  async function exitEditMode() {
+    if (exitEditModeFn) {
+      await exitEditModeFn();
+    }
+  }
+
+  async function enterEditMode() {
+    if (enterEditModeFn) {
+      await enterEditModeFn();
+    }
+  }
+
+  async function toggleEditMode() {
+    if (editModeActive) {
+      await exitEditMode();
+    } else {
+      await enterEditMode();
+    }
+  }
+
   window.CardLayoutEditor = {
     mount,
     refresh,
@@ -474,5 +503,8 @@
     scheduleSaveFromCanvas,
     openBackgroundForCard,
     isEditModeActive,
+    enterEditMode,
+    exitEditMode,
+    toggleEditMode,
   };
 })();

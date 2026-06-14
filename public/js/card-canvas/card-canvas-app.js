@@ -285,9 +285,7 @@ function bindCardClick(element) {
       if (event.target.closest('.resize-handle')) {
         return;
       }
-      if (event.target.closest('.card-bg-btn')) {
-        event.stopPropagation();
-        hooks?.onOpenBackground(element);
+      if (event.target.closest('.gear-icon')) {
         return;
       }
       if (isInteracting() || getTransferController()?.isConfirmOpen()) {

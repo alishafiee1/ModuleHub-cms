@@ -306,10 +306,6 @@ export class ModuleHubCardStore {
       </div>`;
     }
 
-    const resourceHint = moduleMeta?.resources
-      ? `<div class="card-resource-hint">CPU: ${moduleMeta.resources.cpu_limit} | RAM: ${moduleMeta.resources.ram_limit_mb}MB</div>`
-      : '';
-
     const descriptionText = card.cardDescription || (!isFolder && moduleMeta?.changelog) || '';
     const previewHtml = descriptionText
       ? (window.CardMarkdown?.renderCardDescriptionPreview(descriptionText)
@@ -319,15 +315,11 @@ export class ModuleHubCardStore {
       ? `<div class="card-desc card-desc--markdown">${previewHtml}</div>`
       : '';
 
-    const showGear = !this.editMode && this.showGearFor(card);
+    const showGear = this.showGearFor(card);
     const gearHtml = showGear
       ? `<div class="gear-icon" data-gear-id="${escapeAttr(card.id)}" data-module-id="${escapeAttr(card.moduleId || '')}">
           <i class="fas fa-cog"></i>
         </div>`
-      : '';
-
-    const editControlsHtml = this.editMode
-      ? '<button type="button" class="card-bg-btn" aria-label="پس‌زمینه کارت"><i class="fas fa-palette"></i></button>'
       : '';
 
     const resizeHtml = this.editMode
@@ -365,12 +357,10 @@ export class ModuleHubCardStore {
         <div class="card-icon">
           <div class="card-icon-img">${iconHtml}</div>
           ${gearHtml}
-          ${editControlsHtml}
         </div>
         <div class="card-title">${escapeAttr(card.displayName)}</div>
         ${descriptionHtml}
         ${statusHtml}
-        ${resourceHint}
       </div>
       ${resizeHtml}`;
 

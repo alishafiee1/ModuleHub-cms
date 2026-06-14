@@ -1,6 +1,7 @@
 /**
  * محاسبات گرید و اسنپ
  * Grid metrics, snapping, overlap resolution.
+ * Placement settle: keep resolvePlacementWithShrink in sync with core/.../grid-placement.ts
  */
 import { GRID_CONFIG } from './config.js';
 
@@ -131,6 +132,40 @@ export function snapMove(box, colSpan, rowSpan, metrics) {
 }
 
 /**
+ * snapMoveTopRight --- snap pixel box with fixed top and right edges ---
+ * @param {{ left: number, top: number, width: number, height: number }} box
+ */
+export function snapMoveTopRight(box, colSpan, rowSpan, metrics) {
+  const pad = GRID_CONFIG.containerPadding;
+  const offsetX = metrics.gridOffsetX ?? 0;
+  const gap = GRID_CONFIG.cardGap;
+  const minColSpan = GRID_CONFIG.minColumnSpan;
+  const minRowSpan = GRID_CONFIG.minRowSpan;
+
+  let fixedTopRow = Math.round((box.top - pad - gap / 2) / metrics.cellHeight);
+  fixedTopRow = Math.max(0, Math.min(fixedTopRow, metrics.rows - minRowSpan));
+
+  let fixedRightCol = Math.round(
+    (box.left + box.width - offsetX - pad + gap / 2) / metrics.cellWidth,
+  );
+  fixedRightCol = Math.max(minColSpan, Math.min(fixedRightCol, metrics.columns));
+
+  let fitColSpan = Math.max(minColSpan, Math.min(colSpan, fixedRightCol));
+  let fitRowSpan = Math.min(rowSpan, metrics.rows - fixedTopRow);
+  if (fitRowSpan < minRowSpan) {
+    fitRowSpan = minRowSpan;
+    fixedTopRow = Math.max(0, metrics.rows - fitRowSpan);
+  }
+
+  return normalizeCardGrid({
+    col: fixedRightCol - fitColSpan,
+    row: fixedTopRow,
+    colSpan: fitColSpan,
+    rowSpan: fitRowSpan,
+  }, metrics);
+}
+
+/**
  * snapResize --- snap resize with fixed right and top edges ---
  */
 export function snapResize(box, fixedRightCol, fixedTopRow, metrics) {
@@ -233,7 +268,150 @@ export function findEmptySlot(
 }
 
 /**
- * resolveSnapWithoutOverlap --- nudge snapped position away from obstacles ---
+ * tryShrinkAtAnchor --- shrink card at a top-right anchor until it fits or fails ---
+ * @returns {{ position: object, shrunk: boolean } | null}
+ */
+function tryShrinkAtAnchor(
+  anchorRightCol,
+  anchorTopRow,
+  startColSpan,
+  startRowSpan,
+  bounds,
+  collides,
+  minColSpan,
+  minRowSpan,
+) {
+  const rows = bounds.rows ?? GRID_CONFIG.minCanvasRows;
+
+  const buildAtAnchor = (nextColSpan, nextRowSpan) => {
+    const cappedColSpan = Math.min(nextColSpan, anchorRightCol);
+    const cappedRowSpan = Math.min(nextRowSpan, rows - anchorTopRow);
+    if (cappedColSpan < minColSpan || cappedRowSpan < minRowSpan) {
+      return null;
+    }
+    return normalizeCardGrid({
+      col: anchorRightCol - cappedColSpan,
+      row: anchorTopRow,
+      colSpan: cappedColSpan,
+      rowSpan: cappedRowSpan,
+    }, bounds);
+  };
+
+  let colSpan = startColSpan;
+  let rowSpan = startRowSpan;
+
+  const initial = buildAtAnchor(colSpan, rowSpan);
+  if (initial && !collides(initial)) {
+    return { position: initial, shrunk: false };
+  }
+
+  while (colSpan > minColSpan || rowSpan > minRowSpan) {
+    if (colSpan > minColSpan) {
+      colSpan -= 1;
+      const shrunkCol = buildAtAnchor(colSpan, rowSpan);
+      if (shrunkCol && !collides(shrunkCol)) {
+        return { position: shrunkCol, shrunk: true };
+      }
+    }
+    if (rowSpan > minRowSpan) {
+      rowSpan -= 1;
+      const shrunkRow = buildAtAnchor(colSpan, rowSpan);
+      if (shrunkRow && !collides(shrunkRow)) {
+        return { position: shrunkRow, shrunk: true };
+      }
+    }
+  }
+
+  const minimumRect = buildAtAnchor(minColSpan, minRowSpan);
+  if (minimumRect && !collides(minimumRect)) {
+    return { position: minimumRect, shrunk: true };
+  }
+  return null;
+}
+
+/**
+ * resolvePlacementWithShrink --- top-right anchor settle for drag and resize ---
+ * @param {object} options
+ * @param {{ col: number, row: number, colSpan: number, rowSpan: number }} options.candidate
+ * @param {string} options.movingId
+ * @param {Array<{ id: string, col: number, row: number, colSpan: number, rowSpan: number }>} options.cards
+ * @param {Array<{ col: number, row: number, colSpan: number, rowSpan: number }>} [options.reservedRects]
+ * @param {{ columns?: number, rows?: number } | null} [options.metrics]
+ * @param {{ col: number, row: number, colSpan: number, rowSpan: number } | null} [options.fallback]
+ * @returns {{ position: { col: number, row: number, colSpan: number, rowSpan: number }, rejected: boolean, shrunk: boolean }}
+ */
+export function resolvePlacementWithShrink({
+  candidate,
+  movingId,
+  cards,
+  reservedRects = [],
+  metrics = null,
+  fallback = null,
+}) {
+  const bounds = metrics ?? {
+    columns: GRID_CONFIG.maxColumns,
+    rows: GRID_CONFIG.minCanvasRows,
+  };
+  const obstacles = [
+    ...reservedRects,
+    ...cards.filter((card) => card.id !== movingId),
+  ];
+  const collides = (rect) => obstacles.some((obstacle) => rectsOverlap(rect, obstacle));
+
+  const normalizedCandidate = normalizeCardGrid(candidate, bounds);
+  if (!collides(normalizedCandidate)) {
+    return { position: normalizedCandidate, rejected: false, shrunk: false };
+  }
+
+  const fixedRightCol = normalizedCandidate.col + normalizedCandidate.colSpan;
+  const fixedTopRow = normalizedCandidate.row;
+  const minColSpan = GRID_CONFIG.minColumnSpan;
+  const minRowSpan = GRID_CONFIG.minRowSpan;
+  const shrinkArgs = [
+    bounds,
+    collides,
+    minColSpan,
+    minRowSpan,
+  ];
+
+  const primaryFit = tryShrinkAtAnchor(
+    fixedRightCol,
+    fixedTopRow,
+    normalizedCandidate.colSpan,
+    normalizedCandidate.rowSpan,
+    ...shrinkArgs,
+  );
+  if (primaryFit) {
+    return { position: primaryFit.position, rejected: false, shrunk: primaryFit.shrunk };
+  }
+
+  for (let anchorRightCol = fixedRightCol - 1; anchorRightCol >= minColSpan; anchorRightCol -= 1) {
+    const slidFit = tryShrinkAtAnchor(
+      anchorRightCol,
+      fixedTopRow,
+      normalizedCandidate.colSpan,
+      normalizedCandidate.rowSpan,
+      ...shrinkArgs,
+    );
+    if (slidFit) {
+      return { position: slidFit.position, rejected: false, shrunk: true };
+    }
+  }
+
+  const movingCard = cards.find((card) => card.id === movingId);
+  const revert = fallback ?? (movingCard
+    ? {
+      col: movingCard.col,
+      row: movingCard.row,
+      colSpan: movingCard.colSpan,
+      rowSpan: movingCard.rowSpan,
+    }
+    : normalizedCandidate);
+  return { position: revert, rejected: true, shrunk: false };
+}
+
+/**
+ * resolveSnapWithoutOverlap --- @deprecated use resolvePlacementWithShrink ---
  * @returns {{ position: { col: number, row: number, colSpan: number, rowSpan: number }, rejected: boolean }}
  */
 export function resolveSnapWithoutOverlap(
@@ -243,36 +421,16 @@ export function resolveSnapWithoutOverlap(
   reservedRects = [],
   metrics = null,
   fallback = null,
-  startCol = 0,
 ) {
-  const obstacles = [
-    ...reservedRects,
-    ...cards.filter((c) => c.id !== movingId),
-  ];
-
-  const collides = (rect) => obstacles.some((o) => rectsOverlap(rect, o));
-  if (!collides(candidate)) {
-    return { position: candidate, rejected: false };
-  }
-
-  const rows = metrics?.rows ?? GRID_CONFIG.minCanvasRows;
-  const slot = findEmptySlot(
-    cards.filter((c) => c.id !== movingId),
-    { columns: GRID_CONFIG.maxColumns, rows },
-    candidate.colSpan,
-    candidate.rowSpan,
+  const { position, rejected } = resolvePlacementWithShrink({
+    candidate,
+    movingId,
+    cards,
     reservedRects,
-    startCol,
-  );
-  if (slot) {
-    return { position: slot, rejected: false };
-  }
-
-  const movingCard = cards.find((c) => c.id === movingId);
-  const revert = fallback ?? (movingCard
-    ? { col: movingCard.col, row: movingCard.row, colSpan: movingCard.colSpan, rowSpan: movingCard.rowSpan }
-    : candidate);
-  return { position: revert, rejected: true };
+    metrics,
+    fallback,
+  });
+  return { position, rejected };
 }
 
 /**

@@ -30,6 +30,49 @@ export async function openHomeAsSuperAdmin(page: Page): Promise<void> {
 }
 
 /**
+ * Enters layout edit mode via gear floating menu on a card.
+ */
+export async function enterLayoutEditModeViaGear(page: Page, card: Locator): Promise<void> {
+  await card.locator('.gear-icon').click();
+  const menu = page.locator('.gear-floating-menu.is-open');
+  await expect(menu).toBeVisible();
+  await menu.locator('.gear-float-btn[data-action="layout-edit"]').click({ force: true });
+  await page.waitForFunction(
+    () => document.getElementById('cardCanvas')?.classList.contains('card-canvas--edit-mode'),
+    undefined,
+    { timeout: 15_000 },
+  );
+  await expect(page.locator('#layoutEditToggleBtn')).toHaveClass(/is-active/);
+}
+
+/**
+ * Opens card background picker from gear floating menu.
+ */
+export async function openCardBackgroundFromGear(page: Page, card: Locator): Promise<void> {
+  await card.locator('.gear-icon').click();
+  const menu = page.locator('.gear-floating-menu.is-open');
+  await expect(menu).toBeVisible();
+  await menu.locator('.gear-float-btn[data-action="card-background"]').click({ force: true });
+  await expect(page.locator('.swal2-popup')).toContainText('پس‌زمینه کارت', { timeout: 10_000 });
+}
+
+/**
+ * Exits layout edit mode via gear floating menu on a card.
+ */
+export async function exitLayoutEditModeViaGear(page: Page, card: Locator): Promise<void> {
+  await card.locator('.gear-icon').click();
+  const menu = page.locator('.gear-floating-menu.is-open');
+  await expect(menu).toBeVisible();
+  const exitClick = menu.locator('.gear-float-btn[data-action="layout-edit"]').click({ force: true });
+  await exitClick;
+  await page.waitForFunction(
+    () => !document.getElementById('cardCanvas')?.classList.contains('card-canvas--edit-mode'),
+    undefined,
+    { timeout: 15_000 },
+  );
+}
+
+/**
  * Enters layout edit mode via the toolbar toggle.
  */
 export async function enterLayoutEditMode(page: Page): Promise<void> {

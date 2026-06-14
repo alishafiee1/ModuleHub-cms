@@ -411,11 +411,59 @@
   }
 
   /**
+   * buildLayoutEditGearAction --- shared floating item for layout edit toggle ---
+   */
+  function buildLayoutEditGearAction() {
+    const isEditing = window.CardLayoutEditor?.isEditModeActive?.() ?? false;
+    return {
+      id: 'layout-edit',
+      label: isEditing ? 'پایان ویرایش' : 'ویرایش چیدمان',
+      hint: isEditing ? 'ذخیره و خروج از حالت ویرایش چیدمان' : 'جابجایی و اندازه کارت‌ها روی گرید',
+      icon: isEditing ? 'fa-check' : 'fa-th-large',
+      active: isEditing,
+      show: true,
+    };
+  }
+
+  /**
+   * buildCardBackgroundGearAction --- shared floating item for card background picker ---
+   */
+  function buildCardBackgroundGearAction() {
+    return {
+      id: 'card-background',
+      label: 'پس‌زمینه',
+      hint: 'رنگ یا عکس پس‌زمینه این کارت',
+      icon: 'fa-palette',
+      show: true,
+    };
+  }
+
+  /**
+   * handleSharedGearActions --- layout edit toggle and card background from gear menu ---
+   * @param {string} action
+   * @param {HTMLElement|null} cardElement
+   * @returns {Promise<boolean>}
+   */
+  async function handleSharedGearActions(action, cardElement) {
+    if (action === 'layout-edit') {
+      await window.CardLayoutEditor?.toggleEditMode?.();
+      return true;
+    }
+    if (action === 'card-background') {
+      if (cardElement) {
+        await window.CardLayoutEditor?.openBackgroundForCard?.(cardElement);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * buildFolderGearActions --- floating menu items for folder gear ---
    * @param {object} folderNode
    */
   function buildFolderGearActions(folderNode) {
-    return [
+    const actions = [
       {
         id: 'help',
         label: 'راهنما',
@@ -423,6 +471,13 @@
         icon: 'fa-circle-question',
         show: true,
       },
+    ];
+
+    if (authStatus.isSuperAdmin) {
+      actions.push(buildLayoutEditGearAction(), buildCardBackgroundGearAction());
+    }
+
+    actions.push(
       {
         id: 'edit-meta',
         label: 'اسم و توضیح',
@@ -445,7 +500,49 @@
         show: folderNode.id !== 'root',
         danger: true,
       },
-    ].filter((action) => action.show);
+    );
+
+    return actions.filter((action) => action.show);
+  }
+
+  /**
+   * buildModuleGearActions --- floating menu items for module gear ---
+   * @param {string} layoutNodeId
+   */
+  function buildModuleGearActions(layoutNodeId) {
+    const actions = [
+      {
+        id: 'help',
+        label: 'راهنما',
+        hint: 'چطور با ماژول کار کنی — مدیریت، جابجایی و ...',
+        icon: 'fa-circle-question',
+        show: true,
+      },
+    ];
+
+    if (authStatus.isSuperAdmin) {
+      actions.push(
+        buildLayoutEditGearAction(),
+        buildCardBackgroundGearAction(),
+        {
+          id: 'move',
+          label: 'جابجایی',
+          hint: 'ببرش تو یه پوشهٔ دیگه',
+          icon: 'fa-folder-open',
+          show: Boolean(layoutNodeId),
+        },
+      );
+    }
+
+    actions.push({
+      id: 'manage',
+      label: 'مدیریت',
+      hint: 'Start/Stop، لاگ، تنظیمات و ...',
+      icon: 'fa-sliders-h',
+      show: true,
+    });
+
+    return actions.filter((action) => action.show);
   }
 
   /**
@@ -453,9 +550,14 @@
    * @param {string} folderId
    * @param {object} folderNode
    * @param {string} action
+   * @param {HTMLElement|null} cardElement
    */
-  async function executeFolderGearAction(folderId, folderNode, action) {
+  async function executeFolderGearAction(folderId, folderNode, action, cardElement) {
     try {
+      if (await handleSharedGearActions(action, cardElement)) {
+        return;
+      }
+
       if (action === 'help') {
         await ModuleDialogs.showFolderAdminHelpDialog();
         return;
@@ -523,18 +625,103 @@
   }
 
   /**
+   * Opens the module management dialog (Start/Stop/logs/settings grid).
+   * @param {HTMLElement} cardElement
+   * @param {string} moduleId
+   * @param {object} moduleMeta
+   */
+  async function openModuleManageDialog(cardElement, moduleId, moduleMeta) {
+    const statusDisplay = window.CardCanvas?.getStatusDisplay?.(moduleMeta.status)
+      ?? { label: 'متوقف', cssClass: 'status-stopped' };
+    const action = await ModuleDialogs.showGearActionsDialog(moduleMeta, {
+      isSuperAdmin: authStatus.isSuperAdmin,
+      statusLabel: statusDisplay.label,
+      statusClass: statusDisplay.cssClass,
+    });
+
+    if (!action) {
+      return;
+    }
+
+    await handleGearAction(moduleId, moduleMeta, action, cardElement);
+  }
+
+  /**
+   * Executes a module floating gear action.
+   * @param {string} moduleId
+   * @param {object} moduleMeta
+   * @param {string} layoutNodeId
+   * @param {HTMLElement} cardElement
+   * @param {string} action
+   */
+  async function executeModuleGearAction(moduleId, moduleMeta, layoutNodeId, cardElement, action) {
+    try {
+      if (action === 'help') {
+        await ModuleDialogs.showModuleAdminHelpDialog();
+        return;
+      }
+
+      if (await handleSharedGearActions(action, cardElement)) {
+        return;
+      }
+
+      if (action === 'move') {
+        const targetId = await ModuleDialogs.showFolderMovePickerDialog(
+          siteLayout.tree,
+          layoutNodeId,
+          () => false,
+        );
+        if (!targetId) {
+          return;
+        }
+        await ModuleHubApi.moveLayoutNode(layoutNodeId, { parentId: targetId });
+        await refreshFromServer();
+        Swal.fire({ icon: 'success', title: 'ماژول جابجا شد', timer: 1200, showConfirmButton: false });
+        return;
+      }
+
+      if (action === 'manage') {
+        await openModuleManageDialog(cardElement, moduleId, moduleMeta);
+      }
+    } catch (error) {
+      Swal.fire({ icon: 'error', title: 'خطا', text: error.message });
+    }
+  }
+
+  /**
    * Opens floating gear actions beside folder card gear icon.
    * @param {string} folderId
    * @param {object} folderNode
    * @param {HTMLElement} gearElement
+   * @param {HTMLElement} cardElement
    */
-  async function handleFolderGearAction(folderId, folderNode, gearElement) {
+  async function handleFolderGearAction(folderId, folderNode, gearElement, cardElement) {
     const actions = buildFolderGearActions(folderNode);
     const action = await GearFloatingMenu.show(gearElement, actions);
     if (!action) {
       return;
     }
-    await executeFolderGearAction(folderId, folderNode, action);
+    await executeFolderGearAction(folderId, folderNode, action, cardElement);
+  }
+
+  /**
+   * Opens floating gear actions beside module card gear icon.
+   * @param {string} moduleId
+   * @param {object} moduleMeta
+   * @param {HTMLElement} cardElement
+   */
+  async function handleModuleGearAction(moduleId, moduleMeta, cardElement) {
+    const gearElement = cardElement.querySelector('.gear-icon');
+    if (!gearElement) {
+      return;
+    }
+    const layoutNodeId = cardElement.dataset.id || '';
+    const actions = buildModuleGearActions(layoutNodeId);
+    const action = await GearFloatingMenu.show(gearElement, actions);
+    if (!action) {
+      return;
+    }
+    await executeModuleGearAction(moduleId, moduleMeta, layoutNodeId, cardElement, action);
   }
 
   async function openGearMenu(cardElement) {
@@ -555,7 +742,7 @@
       if (!gearElement) {
         return;
       }
-      await handleFolderGearAction(nodeId, folderNode, gearElement);
+      await handleFolderGearAction(nodeId, folderNode, gearElement, cardElement);
       return;
     }
 
@@ -598,19 +785,7 @@
       return;
     }
 
-    const statusDisplay = window.CardCanvas?.getStatusDisplay?.(moduleMeta.status)
-      ?? { label: 'متوقف', cssClass: 'status-stopped' };
-    const action = await ModuleDialogs.showGearActionsDialog(moduleMeta, {
-      isSuperAdmin: authStatus.isSuperAdmin,
-      statusLabel: statusDisplay.label,
-      statusClass: statusDisplay.cssClass,
-    });
-
-    if (!action) {
-      return;
-    }
-
-    await handleGearAction(moduleId, moduleMeta, action, cardElement);
+    await handleModuleGearAction(moduleId, moduleMeta, cardElement);
   }
 
   /**
@@ -625,7 +800,7 @@
         await ModuleHubApi.startModule(moduleId);
         await refreshFromServer();
         if (cardElement) {
-          await openGearMenu(cardElement);
+          await openModuleManageDialog(cardElement, moduleId, moduleMeta);
         }
         return;
       }
@@ -633,7 +808,7 @@
         await ModuleHubApi.stopModule(moduleId);
         await refreshFromServer();
         if (cardElement) {
-          await openGearMenu(cardElement);
+          await openModuleManageDialog(cardElement, moduleId, moduleMeta);
         }
         return;
       }
@@ -641,7 +816,7 @@
         await ModuleHubApi.restartModule(moduleId);
         await refreshFromServer();
         if (cardElement) {
-          await openGearMenu(cardElement);
+          await openModuleManageDialog(cardElement, moduleId, moduleMeta);
         }
         return;
       }
@@ -969,7 +1144,7 @@
             toast: true,
             position: 'top',
             icon: 'warning',
-            title: 'جای خالی برای قرارگیری کارت وجود ندارد',
+            title: 'در این محدوده امکان قرارگیری کارت نیست',
             showConfirmButton: false,
             timer: 2200,
           });

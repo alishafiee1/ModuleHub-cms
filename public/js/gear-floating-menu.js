@@ -121,7 +121,7 @@ const GearFloatingMenu = (function createGearFloatingMenu() {
       actions.forEach((action, index) => {
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = `gear-float-btn${action.danger ? ' gear-float-btn--danger' : ''}`;
+        button.className = `gear-float-btn${action.danger ? ' gear-float-btn--danger' : ''}${action.active ? ' gear-float-btn--active' : ''}`;
         button.dataset.action = action.id;
         button.title = action.hint || action.label;
         button.setAttribute('aria-label', action.hint || action.label);

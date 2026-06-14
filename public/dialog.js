@@ -309,6 +309,21 @@ const ModuleDialogs = (function createModuleDialogs() {
   }
 
   /**
+   * Module admin help — static guide from gear floating menu.
+   */
+  async function showModuleAdminHelpDialog() {
+    const bodyHtml = window.ModuleAdminHelp?.buildModuleAdminHelpHtml?.()
+      || '<p class="folder-admin-help folder-admin-help--empty">راهنما در دسترس نیست.</p>';
+
+    await Swal.fire({
+      title: 'راهنمای کار با ماژول',
+      html: `<div class="folder-admin-help">${bodyHtml}</div>`,
+      confirmButtonText: 'بستن',
+      width: '32rem',
+    });
+  }
+
+  /**
    * Gear management menu — returns selected action id.
    * @param {object} moduleMeta - Module metadata from layout API
    * @param {object} options - { isSuperAdmin, statusLabel, statusClass }
@@ -337,11 +352,6 @@ const ModuleDialogs = (function createModuleDialogs() {
             وضعیت: <span class="${statusClass}">${statusLabel}</span>
             <span class="gear-dialog-summary__sep">·</span>
             نسخه ${escapeHtml(moduleMeta.version)}
-          </p>
-          <p class="gear-dialog-summary__desc">
-            CPU ${moduleMeta.resources.cpu_limit}
-            <span class="gear-dialog-summary__sep">·</span>
-            RAM ${moduleMeta.resources.ram_limit_mb} MB
             <span class="gear-dialog-summary__sep">·</span>
             پورت ${moduleMeta.port || '—'}
           </p>
@@ -846,6 +856,7 @@ const ModuleDialogs = (function createModuleDialogs() {
     showAuthRequiredDialog,
     showGearActionsDialog,
     showFolderAdminHelpDialog,
+    showModuleAdminHelpDialog,
     showFolderGearActionsDialog,
     showFolderEditMetaDialog,
     showFolderMovePickerDialog,

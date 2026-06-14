@@ -6,8 +6,8 @@ import {
   gridToPixels,
   minPixelSize,
   normalizeCardGrid,
-  resolveSnapWithoutOverlap,
-  snapMove,
+  resolvePlacementWithShrink,
+  snapMoveTopRight,
   snapResize,
 } from './grid.js';
 import { setInteracting } from './layout-state.js';
@@ -204,7 +204,7 @@ function bindMove(
     if (event.button !== 0) return;
     if (!event.target.closest('.card-drag-handle')) return;
     if (event.target.closest('.resize-handle')) return;
-    if (event.target.closest('.card-bg-btn')) return;
+    if (event.target.closest('.gear-icon')) return;
 
     const card = store.find(cardId);
     if (!card) return;
@@ -250,7 +250,7 @@ function bindMove(
         ghost.hide();
         element.classList.remove('snap-preview');
       } else {
-        const snapped = snapMove(liveBox, card.colSpan, card.rowSpan, gestureMetrics);
+        const snapped = snapMoveTopRight(liveBox, card.colSpan, card.rowSpan, gestureMetrics);
         ghost.show(gridToPixels(snapped, gestureMetrics));
         element.classList.add('snap-preview');
       }
@@ -301,16 +301,20 @@ function bindMove(
         width: startBox.width,
         height: startBox.height,
       };
-      const snapped = snapMove(finalBox, freshCard.colSpan, freshCard.rowSpan, currentMetrics);
-      const { position, rejected } = resolveSnapWithoutOverlap(
-        snapped,
-        cardId,
-        store.cards,
-        getReservedRects(),
+      const candidate = snapMoveTopRight(
+        finalBox,
+        freshCard.colSpan,
+        freshCard.rowSpan,
         currentMetrics,
-        originalGrid,
-        getStartCol(),
       );
+      const { position, rejected } = resolvePlacementWithShrink({
+        candidate,
+        movingId: cardId,
+        cards: store.cards,
+        reservedRects: getReservedRects(),
+        metrics: currentMetrics,
+        fallback: originalGrid,
+      });
       if (rejected) {
         onPlacementRejected?.();
       }
@@ -392,16 +396,15 @@ function bindResize(
 
       const currentMetrics = getMetrics();
       const liveBox = buildLiveBox(endEvent);
-      const snapped = snapResize(liveBox, fixedRightCol, fixedTopRow, currentMetrics);
-      const { position, rejected } = resolveSnapWithoutOverlap(
-        snapped,
-        cardId,
-        store.cards,
-        getReservedRects(),
-        currentMetrics,
-        originalGrid,
-        getStartCol(),
-      );
+      const candidate = snapResize(liveBox, fixedRightCol, fixedTopRow, currentMetrics);
+      const { position, rejected } = resolvePlacementWithShrink({
+        candidate,
+        movingId: cardId,
+        cards: store.cards,
+        reservedRects: getReservedRects(),
+        metrics: currentMetrics,
+        fallback: originalGrid,
+      });
       if (rejected) {
         onPlacementRejected?.();
       }

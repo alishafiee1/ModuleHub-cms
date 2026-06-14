@@ -360,29 +360,9 @@ body.dark .card-canvas-item .card-desc--markdown pre {
   flex-shrink: 0;
 }
 
-.card-canvas-item.card--edit-mode .gear-icon {
-  display: none;
-}
-
-.card-canvas-item .card-bg-btn {
-  font-size: 0.85rem;
-  color: #66819b;
-  background: var(--gear-bg);
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  transition: 0.2s;
-  pointer-events: auto;
-}
-
-.card-canvas-item .card-bg-btn:hover {
-  background: var(--gear-hover);
-  color: #1f3f57;
+.card-canvas-item.module-card .status-badge {
+  margin-top: auto;
+  align-self: center;
 }
 
 /* Physical bottom-left — grid snap uses LTR pixel coords, not logical RTL edges */
@@ -646,6 +626,13 @@ body.dark .gear-floating-backdrop {
 .gear-float-btn--danger:hover {
   border-color: #ef4444;
   box-shadow: 0 10px 26px -6px rgba(239, 68, 68, 0.4);
+}
+
+.gear-float-btn--active {
+  background: rgba(6, 182, 212, 0.14);
+  color: #0891b2;
+  border-color: rgba(6, 182, 212, 0.45);
+  box-shadow: 0 8px 22px -8px rgba(6, 182, 212, 0.45);
 }
 
 .gear-icon.gear-icon--active {
