@@ -4,7 +4,7 @@
 
 > **پایان هر فاز:** unit test + `npm run lint` + JSDoc توابع public — [`code-rolls.md`](code-rolls.md)  
 > **TypeScript:** همهٔ `core/src/` — type برای IO ماژول‌ها، بدون `any`.  
-> **وضعیت (2026-06-13):** فاز **۰–۷.۵** ✅ · فاز **۸** ⏳ جزئی (login، logout، change-password، منوی Super Admin — 2026-06-12) · **Home UI** ✅ (card canvas، folder nav، ظاهر، theme.js — 2026-06-12)
+> **وضعیت (2026-06-14):** فاز **۰–۸** ✅ · **Home UI** ✅ (card canvas، per-device، folder card mgmt — تا ۷.۹) · فاز **۹** integration ⏳
 
 | فاز | موضوع | وضعیت |
 |-----|--------|--------|
@@ -22,7 +22,7 @@
 | ۷.۹ | مدیریت کارت پوشه (⚙، توضیح، جابجایی، حذف) | ✅ 2026-06-14 — [change/1405-03-24-folder-card-management](./change/1405-03-24-folder-card-management/proposal.md) |
 | ۷.۱۰ | تکمیل دیزاین کارت (روش یکپارچه — جایگزین پلن معلق static-template) | ⏳ — [change/card-live-customization](./change/card-live-customization/proposal.md) |
 | ۷.۱۱ | استاندارد card-view و راهنمای ساخت ماژول (→ skill) | ⏳ — [change/card-view](./change/card-view/proposal.md) |
-| ۸ | auth کامل (CSRF، Module Manager WAN، …) | ⏳ جزئی |
+| ۸ | auth (CSRF، Module Manager WAN، login/logout) | ✅ 2026-06-13 |
 | ۸.۱ | ورود با ایمیل، نقش‌ها، بازیابی رمز، مدیریت کاربر | ⏳ — [change/admin-access-roles](./change/admin-access-roles/proposal.md) |
 | ۸+ | integration · … | ⏳ |
 
@@ -74,6 +74,7 @@
 | 3.4 | توقف ماژول | `systemctl --user stop scope-...` یا `docker stop` | ماژول از حالت running خارج شود | وضعیت در پنل ادمین «stopped» |
 | 3.5 | تست محدودیت RAM | ماژول تستی که حافظه مصرف می‌کند (malloc loop) | ماژول پس از عبور از حد kill شود، وضعیت «crashed» | مشاهده لاگ و وضعیت |
 | 3.6 | تست محدودیت CPU | ماژول با محاسبات فشرده (prime numbers) | مصرف CPU بالاتر از حد نرود (کندتر اجرا شود) | `top` در حین اجرا |
+| 3.7 | سقف ماژول همزمان | `maxConcurrentRunningModules` — رد Start | خطای واضح در API | `tests/unit/module-runtime/concurrent-limit.test.ts` |
 
 ---
 
@@ -139,7 +140,7 @@
 
 ## فاز ۷.۵: تنظیمات سراسری ادمین (۲ روز) — ✅ کد 2026-05-29
 
-> **UI:** `https://example.com/admin/settings` (یا لینک «Super Admin» در هدر) · تا فاز ۸: `MODULEHUB_DEV_SUPER_ADMIN=1`  
+> **UI:** `https://example.com/admin/settings` (یا لینک «Super Admin» در هدر) · **dev:** `MODULEHUB_DEV_SUPER_ADMIN=1` در `.env` فقط bypass اختیاری محلی — production از `/admin/login` استفاده می‌کند  
 > **API:** `GET /admin/settings/data` · `POST /admin/settings` · ماژول `core/src/modules/system-settings/`
 
 | # | وظیفه | جزئیات | خروجی مورد انتظار | روش تست |
@@ -212,7 +213,7 @@
 | 9.6 | تست Module Manager از WAN | رمز ماژول → start/stop بدون Super Admin | فقط همان moduleId |
 | 9.7 | تست پشتیبان و بازیابی | backup → حذف → restore | همه برگردد |
 | 9.8 | تست ۵ ماژول همزمان | ۵ running | سرور پایدار |
-| 9.9 | تست تنظیمات سراسری | تغییر NIC + نصب ماژول | npm از interface انتخاب‌شده |
+| ~~9.9~~ | ~~تست NIC در settings~~ | **لغو** — toggle رابط شبکه حذف شد (۲۰۲۶) | — |
 
 ---
 
@@ -224,9 +225,9 @@
 - [ ] `docs/admin-guide.md` – راهنمای تصویری برای ادمین
 - [x] `docs/developer-guide.md` – ساخت ZIP ماژول
 - [x] `docs/backup-restore.md` – روش پشتیبان‌گیری (UI + curl + CLI)
-- [ ] `docs/network-config.md` – نحوه مدیریت dual‑WAN
+- [ ] `docs/network-config.md` – ~~dual‑WAN از پنل~~ منسوخ؛ فقط اگر مستند ops جدا لازم شد
 - [ ] `CHANGELOG.md` – تاریخچه تغییرات هسته
-- [ ] `.eslintrc.json` و `.prettierrc`
+- [x] `eslint.config.mjs` (قبلاً `.eslintrc.json` در طرح اولیه)
 - [ ] نتایج تست‌های فاز ۹ در یک فایل `test-results.log`
 
 ---

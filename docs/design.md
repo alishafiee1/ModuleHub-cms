@@ -11,7 +11,7 @@
 ## ۱. مقدمه و هدف
 
 ModuleHub CMS پلتفرمی است که به شما امکان می‌دهد بدون دستکاری کد اصلی سایت، بخش‌های جدید (گالری، وبلاگ آموزشی، داشبورد زنده، فروشگاه کوچک و …) را به صورت ماژول‌های مستقل اضافه کنید.  
-روی Ubuntu با Nginx به‌عنوان reverse proxy و CMS روی `127.0.0.1:4000` اجرا می‌شود. در سرورهای با **دو NIC**، نصب npm/docker می‌تواند موقتاً از رابط ثانویه انجام شود بدون تغییر دائمی default route سیستم.
+روی Ubuntu با Nginx به‌عنوان reverse proxy و CMS روی `127.0.0.1:4000` اجرا می‌شود. نصب وابستگی‌ها (`npm`/`pip`/`composer`) مستقیم از اینترنت سرور انجام می‌شود (`core/src/modules/package-cache/network-install.ts`).
 
 **اهداف کلیدی:**
 - افزودن ماژول‌های جدید از طریق آپلود فایل ZIP و پاسخ به چند سؤال ساده (بدون نیاز به دستنویس `manifest.json`).
@@ -21,7 +21,7 @@ ModuleHub CMS پلتفرمی است که به شما امکان می‌دهد ب
 - **لاگ متمرکز** برای عیب‌یابی.
 - **پشتیبان‌گیری و بازیابی** کامل از تمام ماژول‌ها و تنظیمات.
 - **نسخه‌گذاری ماژول‌ها** (semantic versioning).
-- **تنظیمات سراسری ادمین** (`/admin/settings`) — محدودیت ZIP، پورت خودکار، رابط شبکه.
+- **تنظیمات سراسری ادمین** (`/admin/settings`) — محدودیت ZIP، پورت خودکار، سقف ماژول همزمان.
 - **احراز هویت Session** — Super Admin از اینترنت/LAN با login؛ CSRF + rate limit.
 - **Module Manager** — رمز جدا per-module برای مدیریت محدود همان ماژول.
 - **محدودیت منابع** (CPU, RAM, Swap, Disk I/O, Network Bandwidth) با استفاده از قابلیت‌های بومی لینوکس (cgroups, systemd, Docker, tc).
@@ -71,48 +71,44 @@ flowchart TB
 
 ---
 
-## ۳. ساختار دایرکتوری و فایل‌ها روی سرور
+## ۳. ساختار دایرکتوری (مخزن Git و مسیر deploy)
 
-> **توجه (فاز ۰–۴):** کد واقعی هسته در `core/src/modules/` (TypeScript، compile → `dist/`) است. درخت زیر **نمای کلی** است؛ ماژول کش: `core/src/modules/package-cache/`.
+> کد هسته: TypeScript در `core/src/` → compile به `dist/` · ماژول‌ها در `core/src/modules/`.
 
 ```bash
-/opt/modulehub-cms/
-├── core/                     # کد هسته (Express، روتینگ، مدیریت ماژول)
-│   ├── server.js
-│   ├── module-manager.js
-│   ├── resource-limiter.js
-│   ├── cache-manager.js
-│   ├── backup-restore.js
-│   └── logger.js
-├── public/                   # فایل‌های استاتیک فرانت‌اند (HTML, CSS, JS)
-│   ├── index.html
-│   ├── style.css
-│   ├── script.js             # صفحه اصلی + یکپارچه‌سازی card-canvas
-│   ├── theme.js              # تم لایت/دارک مشترک (home + admin)
-│   ├── card-layout-editor.js # دیالوگ پس‌زمینه کارت
-│   ├── home-floating-background.js
-│   ├── js/card-canvas/       # بوم گرید ۳۰×N (drag/resize/snap)
-│   └── admin/                # login، settings (کارت‌محور)، backup dialog
-├── standalone-modules/       # پوشه هر ماژول نصب شده (محتوای ZIP استخراج شده)
-│   └── <module-id>/
-│       ├── module.json       # تنظیمات محلی ماژول (نسخه، وضعیت، منابع)
-│       └── ... (فایل‌های پروژه)
-├── storage/
-│   ├── site-layout.json      # درخت پوشه‌ها + cardGrid/cardBackground + ماژول‌ها
-│   ├── system-settings.json  # تنظیمات سراسری + auth + ظاهر صفحه اصلی
-│   ├── admin-users.json      # hash رمز Super Admin (یا env: ADMIN_PASSWORD_HASH)
-│   ├── card-backgrounds/     # تصاویر پس‌زمینه کارت (آپلود ادمین)
-│   ├── logs/                 # لاگ هسته CMS (cms.log)
-│   └── backups/              # فایل‌های پشتیبان (ZIP)
-├── thumbnails/               # تصاویر کارت ماژول‌ها
-└── scripts/                  # ابزارهای خط فرمان و کمکی
-    ├── cli.js
-    └── setup-net-limit.sh
+modulehub-cms/                    # ریشه مخزن (روی سرور: /opt/modulehub-cms/)
+├── package.json
+├── eslint.config.mjs
+├── tsconfig.json
+├── core/
+│   └── src/
+│       ├── server/index.ts       # Express entry — mount همه routerها
+│       ├── config/paths.ts
+│       ├── bootstrap/
+│       └── modules/              # admin-auth · home-layout · module-manager · …
+├── dist/                         # خروجی tsc (سرویس systemd از اینجا)
+├── public/                       # HTML/CSS/JS — index، card-canvas، admin/
+│   ├── script.js
+│   ├── theme.js
+│   ├── js/card-canvas/
+│   └── admin/
+├── storage/                      # runtime JSON (در git معمولاً نمونه)
+│   ├── site-layout.json
+│   ├── system-settings.json
+│   ├── admin-users.json
+│   ├── card-backgrounds/
+│   ├── logs/cms.log
+│   └── backups/
+├── standalone-modules/<module-id>/
+├── thumbnails/
+├── scripts/                      # cli.js · deploy · smoke
+└── tests/unit/ · tests/e2e/
 
-/var/cache/modulehub/pkg/     # کش پکیج‌های هش‌شده (<hash>/)
-/var/log/modulehub/modules/   # لاگ‌های جداگانه هر ماژول (<module-id>.log)
-/etc/nginx/sites-available/example.com   # تنظیمات Nginx (نمونه: config/nginx/modulehub-cms.conf.example)
-/etc/systemd/system/modulehub-cms.service # سرویس هسته
+# مسیرهای سیستم (Linux production)
+/var/cache/modulehub/pkg/<hash>/
+/var/log/modulehub/modules/<module-id>.log
+/etc/nginx/sites-available/…      # نمونه: config/nginx/modulehub-cms.conf.example
+/etc/systemd/system/modulehub-cms.service
 ```
 
 ---
@@ -191,6 +187,21 @@ node scripts/cli.js --help
 
 ---
 
+## ۵.۶ API عمومی (بدون session admin)
+
+صفحهٔ اصلی و فرانت از این endpointها برای بارگذاری layout و وضعیت ورود استفاده می‌کند.
+
+| متد | مسیر | توضیح | ماژول |
+|-----|------|-------|--------|
+| GET | `/health` | سلامت سرویس | `core/src/server/index.ts` |
+| GET | `/api/layout` | `site-layout.json` + derive per-device | `home-layout/layout-routes.ts` |
+| GET | `/api/auth/status` | `{ isSuperAdmin, moduleManagerModuleId? }` | `home-layout/layout-routes.ts` |
+| GET | `/api/auth/csrf-token` | token برای درخواست‌های mutating admin | `admin-auth/csrf.ts` |
+
+**نکته:** مسیرهای `/admin/*` (به‌جز login و module auth) و mutating admin نیاز به session + CSRF دارند.
+
+---
+
 ## ۶. مدیریت روزمره ماژول‌ها (چرخ‌دنده ⚙)
 
 با کلیک روی چرخ‌دنده هر کارت (فقط ادمین) امکانات زیر در یک دیالوو مدرن ارائه می‌شود:
@@ -203,13 +214,26 @@ node scripts/cli.js --help
 | `stopped` | توسط ادمین متوقف شده | Start |
 | `crashed` | OOM Kill یا خطای داخلی | مشاهده لاگ، افزایش RAM، Start مجدد |
 
-- **Start / Stop / Restart** ماژول
+- **Start / Stop / Restart** ماژول — اگر `running` ≥ `maxConcurrentRunningModules` در system-settings → Start رد می‌شود (`concurrent-limit.ts`)
 - **مشاهده لاگ** (آخرین ۵۰ خط، دانلود فایل کامل)
 - **ویرایش تنظیمات** (منابع، آیکون، تصویر، پورت، دسترسی‌ها)
-- **همگام‌سازی از GitHub** (اگر مخزن ثبت شده باشد: `git pull` و نصب وابستگی‌های جدید)
+- **همگام‌سازی از GitHub** — `POST /admin/module/:id/github-sync` (`github-sync.ts`)
 - **به‌روزرسانی نسخه** (شماره نسخه ماژول را تغییر می‌دهد)
 - **پشتیبان‌گیری از ماژول** (دانلود ZIP از پوشه ماژول + تنظیمات)
 - **حذف ماژول** (توقف فرآیند، حذف پوشه و رکورد از JSON) — **فقط Super Admin**
+
+**Auto-restart:** اگر `autoRestartOnCrash: true` در system-settings و ماژول `crashed` شود، حداکثر `autoRestartMaxAttemptsPerHour` بار در ساعت دوباره start می‌شود (`auto-restart-tracker.ts`). پیش‌فرض: خاموش.
+
+**Endpointهای مدیریت ماژول (نمونه):**
+
+| متد | مسیر |
+|-----|------|
+| POST | `/admin/module/:id/start` · `:stop` · `:restart` |
+| GET | `/admin/module/:id/logs` |
+| GET | `/admin/module/:id/backup` |
+| PATCH | `/admin/module/:id` |
+| DELETE | `/admin/module/:id` |
+| POST | `/admin/module/:id/github-sync` |
 
 ---
 
@@ -241,6 +265,7 @@ node scripts/cli.js --help
 | مسیر | عمل |
 |------|-----|
 | `POST /admin/upload` | آپلود ZIP |
+| `POST /admin/wizard/save` | ثبت نهایی ماژول پس از wizard |
 | `POST /admin/folder` | پوشه مجازی |
 | `PATCH /admin/folder/:folderId` | rename، `cardDescription`، `parentId` |
 | `DELETE /admin/folder/:folderId` | حذف با `contentPolicy` |
@@ -413,6 +438,17 @@ request → session parser
 | `cardBackground` | هر node | `none` \| `color` \| `image` + opacity |
 | slot خالی | `grid-slot.ts` | جلوگیری از overlap هنگام settle drag/resize |
 
+**چیدمان per-device (DCL — ✅ 2026-06-13):**
+
+| فیلد | breakpoint | viewport |
+|------|------------|----------|
+| `cardGrid` · `folderCanvas.gridRows` | desktop | ≥ 1024px |
+| `cardGridTablet` · `gridRowsTablet` | tablet | 641–1023px |
+| `cardGridMobile` · `gridRowsMobile` | mobile | ≤ 640px |
+
+ثابت‌ها (`grid-config.ts`): `GRID_MAX_COLUMNS=30` · `GRID_MIN_CANVAS_ROWS=9` · `GRID_MAX_CANVAS_ROWS=180` · `GRID_CANVAS_ROW_STEP=3`.  
+مرجع change: [`change/1405-03-23-device-card-layout/`](change/1405-03-23-device-card-layout/proposal.md)
+
 **فرانت:** `public/js/card-canvas/` — `config.js` باید با `core/src/modules/home-layout/grid-config.ts` همگام بماند.
 
 **API (Super Admin):**
@@ -432,6 +468,7 @@ request → session parser
 | `cardDescription` | `LayoutTreeNode` | زیرعنوان کارت (پوشه و ماژول) — تا ۴۰۰۰ کاراکتر، مارک‌داون GFM در UI |
 | ⚙ پوشه | `shouldShowGearForCard` | فقط Super Admin؛ منوی شناور `gear-floating-menu.js` |
 | PATCH/DELETE | `folder-management.ts` | rename، move، حذف با چهار `contentPolicy` |
+| PATCH | `/admin/layout-node/:nodeId` | reparent پوشه/ماژول (`layout-node-move-routes.ts`) |
 | drag transfer | `layout-node-move.ts` + `card-transfer.js` | جابجایی پوشه/ماژول بین پوشه‌ها در edit mode |
 
 مرجع: [`docs/change/1405-03-24-folder-card-management/`](change/1405-03-24-folder-card-management/proposal.md)
@@ -466,7 +503,7 @@ request → session parser
 ### ۱۳.۲ قوانین برای فرانت‌اند (HTML/CSS/JS)
 - استفاده از **BEM** برای نام‌گذاری کلاس‌های CSS.
 - رعایت تضاد رنگ‌ها (قابل استفاده در دارک/لایت مود).
-- تمام فرم‌های admin با **CSRF token** محافظت می‌شوند (فاز ۸ — auth).
+- تمام فرم‌های admin با **CSRF token** محافظت می‌شوند.
 
 ### ۱۳.۳ نقش فایل‌های docs (برای AI)
 
@@ -487,45 +524,47 @@ request → session parser
 **AI معمولاً این‌ها را رعایت نمی‌کند — ممنوع:**
 - جدول/عدد فنی در `proposal.md` (→ `design.md`)
 - مسیر کش/لاگ زیر `storage/` (→ `/var/cache/modulehub/` و `/var/log/modulehub/`)
-- تغییر دائمی `default route` از پنل (→ فقط metric موقت + restore)
+- تغییر دائمی `default route` از پنل (حذف شده — نصب مستقیم از اینترنت سرور)
 - حدس زدن پیش‌فرض تنظیمات (→ `system-settings.example.json`)
 - داستان و تشبیه در `design.md` / `tasks.md`
 
 ### ۱۳.۴ ساختار مخزن Git (اصلی)
 ```
 modulehub-cms/
-├── .github/            (قالب issue, PR)
+├── .github/
 ├── .gitignore
-├── .eslintrc.json
-├── .prettierrc
+├── eslint.config.mjs
 ├── package.json
 ├── README.md
-├── docs/               (همه مستندات)
-├── core/               (کد هسته)
-├── public/             (frontend)
-├── scripts/            (ابزارهای کمکی)
-├── tests/              (تست‌های واحد و یکپارچگی)
+├── docs/
+├── core/src/
+├── dist/
+├── public/
+├── scripts/
+├── tests/
 │   ├── unit/
-│   ├── integration/
+│   ├── e2e/
 │   └── fixtures/
-└── Dockerfile (اختیاری برای توسعه)
+└── Dockerfile (اختیاری)
 ```
 
 ---
 
-## ۱۴. برنامه زمان‌بندی پیشنهادی پیاده‌سازی (۷ هفته)
+## ۱۴. برنامه زمان‌بندی اولیه (۷ هفته) — تکمیل‌شده · مرجع تاریخی
+
+> فازهای ۰–۸ و ۷.۶–۷.۹ در [`tasks.md`](tasks.md) بسته شده‌اند. جدول زیر فقط برای درک ترتیب اولیهٔ توسعه است.
 
 | هفته | فعالیت |
 |-------|--------|
-| ۱ | آماده‌سازی زیرساخت، دایرکتوری‌ها، سرویس systemd، Nginx، اسکریپت network‑metric‑toggler |
-| ۲ | پیاده‌سازی درخت پوشه‌های مجازی (JSON, breadcrumb, frontend) |
-| ۳ | Add wizard (آپلود، سه سؤال، دیالوگ منابع/آیکون، ذخیره در JSON) |
-| ۴ | مدیریت ماژول (چرخ‌دنده: start/stop, log viewer, edit, delete) + پشتیبان اولیه |
-| ۴.۵ | صفحه تنظیمات سراسری، `system-settings.json`، رادیو رابط شبکه |
-| ۴.۶ | **احراز هویت:** Session Super Admin + Module Manager password |
-| ۵ | کش پکیج، محدودیت منابع کامل (CPU, RAM, Disk I/O, Network) |
-| ۶ | نسخه‌گذاری، همگام‌سازی GitHub، بهبود لاگ متمرکز |
-| ۷ | تست (سناریوهای جدول‌شده)، نوشتن مستندات، استقرار نهایی روی سرور |
+| ۱ | زیرساخت، systemd، Nginx |
+| ۲ | درخت پوشه‌های مجازی |
+| ۳ | Add wizard (ZIP) |
+| ۴ | مدیریت ماژول + backup اولیه |
+| ۴.۵ | تنظیمات سراسری |
+| ۴.۶ | Session + Module Manager |
+| ۵ | کش پکیج، محدودیت منابع |
+| ۶ | نسخه‌گذاری، GitHub sync، لاگ |
+| ۷ | تست و مستندات |
 
 ---
 
@@ -533,7 +572,7 @@ modulehub-cms/
 
 جزئیات endpoint و جدول‌ها در §های بالا. برای داستان محصول → `proposal.md`.
 
-**فیچرهای بسته‌شده (جزئیات در change/):** card canvas per-device → `change/1405-03-23-device-card-layout/` · استاندارد deploy سرور → `change/1405-03-23-server-code-update-standard/`
+**فیچرهای بسته‌شده (جزئیات در change/):** card canvas per-device → `change/1405-03-23-device-card-layout/` · استاندارد deploy → `change/1405-03-23-server-code-update-standard/` · مدیریت کارت پوشه → `change/1405-03-24-folder-card-management/` · هم‌راستاسازی داک → `change/core-docs-sync/`
 
 </div>
 <style>

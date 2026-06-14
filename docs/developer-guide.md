@@ -168,8 +168,8 @@ fixture: [`tests/fixtures/modules/package-cache-test/`](../tests/fixtures/module
 | `POST /admin/upload` | آپلود ZIP | Super Admin |
 | `POST /admin/folder` | پوشه مجازی | Super Admin |
 | `POST /admin/module/:id/auth` | ورود با رمز ماژول | Module Manager |
-| `POST /admin/module/:id/start` | Start | Super Admin (فاز ۸: Module Manager) |
-| `POST /admin/module/:id/stop` | Stop | Super Admin (فاز ۸: Module Manager) |
+| `POST /admin/module/:id/start` | Start | Super Admin یا Module Manager |
+| `POST /admin/module/:id/stop` | Stop | Super Admin یا Module Manager |
 | `GET /modules/:id/*` | سرو Static یا پروکسی Backend | عمومی (وقتی `running`) |
 
 **Module Manager:** Super Admin می‌تواند در edit ماژول `managementPasswordHash` تنظیم کند. توسعه‌دهنده با همان رمز — از اینترنت — فقط start/stop/log/edit **همان** ماژول را دارد. جزئیات: `design.md` §۶.۵.
@@ -214,7 +214,7 @@ npx serve . -l 8080
 | متد | مسیر | توضیح |
 |-----|------|--------|
 | GET | `/api/layout` | درخت + ماژول‌ها + `appearance` (بک‌گراند صفحه اصلی) |
-| GET | `/api/auth/status` | وضعیت session (فاز ۸ کامل می‌شود) |
+| GET | `/api/auth/status` | وضعیت session Super Admin / Module Manager |
 | POST | `/admin/upload` | ZIP → `standalone-modules/<id>/` |
 | POST | `/admin/wizard/save` | ثبت در `site-layout.json` |
 | POST | `/admin/folder` | پوشه مجازی |
@@ -230,7 +230,7 @@ npx serve . -l 8080
 | POST | `/admin/logout` | خروج Super Admin / Module Manager |
 | POST | `/admin/change-password` | تغییر رمز Super Admin |
 
-تا فاز ۸: `MODULEHUB_DEV_SUPER_ADMIN=1` در `.env` برای تست admin — [`deploy-guide.md`](deploy-guide.md)
+**dev bypass (اختیاری):** `MODULEHUB_DEV_SUPER_ADMIN=1` در `.env` برای تست admin بدون login — [`deploy-guide.md`](deploy-guide.md). production: `/admin/login`.
 
 ### ۹.۳ بوم کارت (cardGrid)
 
