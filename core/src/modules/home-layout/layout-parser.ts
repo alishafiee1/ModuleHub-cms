@@ -263,6 +263,13 @@ function parseTreeNode(raw: unknown, modules: Record<string, ModuleEntry>): Layo
     node.cardBackground = cardBg;
   }
 
+  if (typeof raw.cardDescription === 'string') {
+    const trimmed = raw.cardDescription.trim();
+    if (trimmed) {
+      node.cardDescription = trimmed.slice(0, 200);
+    }
+  }
+
   if (type === 'folder') {
     if (!Array.isArray(raw.children)) {
       throw new LayoutParseError(`Folder "${node.id}" must include children array`);

@@ -1,32 +1,32 @@
 ## 1. Card description and folder gear (MVP UI)
 
-- [ ] 1.1 Add `cardDescription` to `LayoutTreeNode` in `types.ts` and `docs/site-layout.json` sample
-- [ ] 1.2 Render `card-desc` for folders; modules use `cardDescription ?? changelog` in `modulehub-card-store.js`
-- [ ] 1.3 Add `line-clamp` (max 2 lines) on `.card-desc` in `style.css`
-- [ ] 1.4 Extend `shouldShowGearForCard` for `folder` + Super Admin; hide in edit mode
-- [ ] 1.5 Wire folder ⚙ click in `card-canvas-app.js` with `stopPropagation` (no navigate)
+- [x] 1.1 Add `cardDescription` to `LayoutTreeNode` in `types.ts` and `docs/site-layout.json` sample
+- [x] 1.2 Render `card-desc` for folders; modules use `cardDescription ?? changelog` in `modulehub-card-store.js`
+- [x] 1.3 Add `line-clamp` (max 2 lines) on `.card-desc` in `style.css`
+- [x] 1.4 Extend `shouldShowGearForCard` for `folder` + Super Admin; hide in edit mode
+- [x] 1.5 Wire folder ⚙ click in `card-canvas-app.js` with `stopPropagation` (no navigate)
 
 ## 2. Folder tree API
 
-- [ ] 2.1 Create `folder-management.ts`: `renameFolder`, `moveFolder`, `deleteFolder`, `isDescendant`
-- [ ] 2.2 Implement `PATCH /admin/folder/:folderId` (name, cardDescription, parentId)
-- [ ] 2.3 Implement `DELETE /admin/folder/:folderId` with four `contentPolicy` values
-- [ ] 2.4 Reuse module-delete service for cascade-delete (stop running modules first)
-- [ ] 2.5 Unit tests: nested tree, cycle prevention, root rules
-- [ ] 2.6 API tests: PATCH rename; DELETE `reject-if-not-empty` → 409
+- [x] 2.1 Create `folder-management.ts`: `renameFolder`, `moveFolder`, `deleteFolder`, `isDescendant`
+- [x] 2.2 Implement `PATCH /admin/folder/:folderId` (name, cardDescription, parentId)
+- [x] 2.3 Implement `DELETE /admin/folder/:folderId` with four `contentPolicy` values
+- [x] 2.4 Reuse module-delete service for cascade-delete (stop running modules first)
+- [x] 2.5 Unit tests: nested tree, cycle prevention, root rules
+- [x] 2.6 API tests: PATCH rename; DELETE `reject-if-not-empty` → 409
 
 ## 3. Folder gear dialog and UX
 
-- [ ] 3.1 Add `showFolderGearDialog` and edit-meta form in `dialog.js`
-- [ ] 3.2 Tree picker for move from layout cache
-- [ ] 3.3 Delete wizard with content policies + cascade name confirmation
-- [ ] 3.4 `script.js`: `openFolderGearMenu`, `handleFolderGearAction`, refresh on success
-- [ ] 3.5 Redirect when `?folder=` references deleted folder
-- [ ] 3.6 Module gear settings: «توضیح کارت» field separate from changelog
-- [ ] 3.7 E2E E2E-FCM-01: edit folder name and description
+- [x] 3.1 Add `showFolderGearDialog` and edit-meta form in `dialog.js`
+- [x] 3.2 Tree picker for move from layout cache
+- [x] 3.3 Delete wizard with content policies + cascade name confirmation
+- [x] 3.4 `script.js`: `openFolderGearMenu`, `handleFolderGearAction`, refresh on success
+- [x] 3.5 Redirect when `?folder=` references deleted folder
+- [x] 3.6 Module gear settings: «توضیح کارت» field separate from changelog
+- [x] 3.7 E2E E2E-FCM-01: edit folder name and description
 - [ ] 3.8 E2E E2E-FCM-02: move folder via gear
 - [ ] 3.9 E2E E2E-FCM-03: delete with content policies
-- [ ] 3.10 Verify `docs/change/folder-card-management/behavior.md` and `docs/ui-behavior.md` §2.5 stay aligned
+- [x] 3.10 Verify `docs/change/folder-card-management/behavior.md` and `docs/ui-behavior.md` §2.5 stay aligned
 
 ## 4. Static card template (phase 2)
 
@@ -40,6 +40,6 @@
 
 ## 5. Close-out
 
-- [ ] 5.1 Update `docs/tasks.md` phase 7.9 when phases 1–3 complete
-- [ ] 5.2 Run `npm test`, `npm run lint`, `npm run test:e2e` for FCM specs
+- [x] 5.1 Update `docs/tasks.md` phase 7.9 when phases 1–3 complete
+- [ ] 5.2 Run `npm test`, `npm run lint`, `npm run test:e2e` for FCM specs (unit+lint ✅; e2e partial)
 - [ ] 5.3 Archive change with `/opsx:archive` after deploy verification

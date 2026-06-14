@@ -176,6 +176,34 @@ const ModuleHubApi = (function createModuleHubApi() {
   }
 
   /**
+   * Updates virtual folder metadata (Super Admin).
+   * @param {string} folderId - Folder id
+   * @param {object} payload - { name?, cardDescription?, parentId? }
+   * @returns {Promise<object>}
+   */
+  async function patchFolder(folderId, payload) {
+    return requestJson(`/admin/folder/${encodeURIComponent(folderId)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /**
+   * Deletes virtual folder with content policy (Super Admin).
+   * @param {string} folderId - Folder id
+   * @param {object} payload - DeleteFolderInput
+   * @returns {Promise<object>}
+   */
+  async function deleteFolder(folderId, payload) {
+    return requestJson(`/admin/folder/${encodeURIComponent(folderId)}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /**
    * Uploads a module ZIP archive.
    * @param {File} zipFile - ZIP file from file input
    * @returns {Promise<{ moduleId: string }>}
@@ -458,6 +486,8 @@ const ModuleHubApi = (function createModuleHubApi() {
     changeSuperAdminPassword,
     authenticateModule,
     createFolder,
+    patchFolder,
+    deleteFolder,
     uploadZip,
     saveWizard,
     startModule,

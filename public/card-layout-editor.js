@@ -404,8 +404,8 @@
     async function enterEditMode() {
       editModeActive = true;
       mountedToolbar.classList.add('is-editing');
-      syncDeviceToolbarButtons();
       window.CardCanvas?.setEditMode(true);
+      syncDeviceToolbarButtons();
       syncEditToggleLabel(editBtn);
     }
 

@@ -11,6 +11,7 @@
         "name": "نمونه کارها",
         "type": "folder",
         "parentId": "root",
+        "cardDescription": "پروژه‌های تمام‌شده",
         "children": [
           {
             "id": "mod-456",

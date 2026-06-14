@@ -1,0 +1,41 @@
+/* kalameh.css — self-hosted Kalameh webfont (FaNum) for ModuleHub CMS */
+
+@font-face {
+    font-family: 'Kalameh';
+    src: url('/fonts/kalameh/kalameh-light.woff2') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Kalameh';
+    src: url('/fonts/kalameh/kalameh-regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Kalameh';
+    src: url('/fonts/kalameh/kalameh-medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Kalameh';
+    src: url('/fonts/kalameh/kalameh-semibold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Kalameh';
+    src: url('/fonts/kalameh/kalameh-bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}

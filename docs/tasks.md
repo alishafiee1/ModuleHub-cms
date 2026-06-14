@@ -19,7 +19,7 @@
 | ۷.۶ | بوم cardGrid + ویرایش چیدمان + cardBackground | ✅ 2026-06-13 |
 | ۷.۷ | چیدمان per-device (موبایل / تبلت / PC) | ✅ 2026-06-13 — [change/1405-03-23-device-card-layout](./change/1405-03-23-device-card-layout/proposal.md) |
 | ۷.۸ | استاندارد به‌روزرسانی کد روی سرور | ✅ 2026-06-13 — [change/1405-03-23-server-code-update-standard](./change/1405-03-23-server-code-update-standard/proposal.md) |
-| ۷.۹ | مدیریت کارت پوشه (⚙، توضیح، جابجایی، حذف) + دیزاین استاتیک | ⏳ — [change/folder-card-management](./change/folder-card-management/proposal.md) |
+| ۷.۹ | مدیریت کارت پوشه (⚙، توضیح، جابجایی، حذف) + دیزاین استاتیک | 🔄 فاز ۱–۳ پیاده — [change/folder-card-management](./change/folder-card-management/proposal.md) · فاز ۴ استاتیک ⏳ |
 | ۷.۱۰ | سفارشی‌سازی زندهٔ کارت (کد پویا + realtime) | ⏳ — [change/card-live-customization](./change/card-live-customization/proposal.md) |
 | ۸ | auth کامل (CSRF، Module Manager WAN، …) | ⏳ جزئی |
 | ۸+ | integration · … | ⏳ |

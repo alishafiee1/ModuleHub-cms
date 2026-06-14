@@ -461,7 +461,8 @@ function setEditMode(active) {
   }
   if (editMode) {
     if (!wasEditMode) {
-      activeEditDevice = 'desktop';
+      // Match viewport breakpoint so drag/save targets the layout the user sees
+      activeEditDevice = activeBreakpoint;
     }
     lockDesignWidthForBreakpoint(activeEditDevice);
   } else {

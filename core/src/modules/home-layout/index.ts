@@ -20,12 +20,21 @@ export {
   toPublicModuleEntry,
   writeSiteLayout,
 } from './layout-store';
+export { createFolderCardsRouter, createLayoutRouter, getAuthStatusHandler, getLayoutHandler } from './layout-routes';
+export { createFolderManagementRouter, patchFolderHandler, deleteFolderHandler } from './folder-management-routes';
 export {
-  createFolderCardsRouter,
-  createLayoutRouter,
-  getAuthStatusHandler,
-  getLayoutHandler,
-} from './layout-routes';
+  deleteVirtualFolder,
+  findTreeNodeByModuleId,
+  isDescendantOf,
+  normalizeCardDescription,
+  patchVirtualFolder,
+} from './folder-management';
+export type {
+  DeleteFolderInput,
+  DeleteFolderResult,
+  FolderDeleteContentPolicy,
+  PatchFolderInput,
+} from './folder-management';
 export { applyFolderCardsUpdate, patchFolderCardsHandler } from './folder-cards-update';
 export { ensureDeviceBreakpointLayouts, deriveCardGridForBreakpoint } from './derive-breakpoint-layout';
 export { buildCardBackgroundInlineStyle } from './card-background-inline-style';

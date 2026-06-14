@@ -205,6 +205,36 @@ test.describe('device-card-layout', () => {
     }
   });
 
+  test('E2E-DCL-06: tablet viewport edit saves tablet layout without device switch', async ({ page }) => {
+    await page.setViewportSize({ width: 900, height: 800 });
+    await openHomeAsSuperAdmin(page);
+
+    const activeDeviceOnEnter = await page.evaluate(() => {
+      return window.CardCanvas.getActiveEditDevice();
+    });
+    expect(activeDeviceOnEnter).toBe('desktop');
+
+    await enterLayoutEditMode(page);
+
+    await expect(page.locator('.layout-edit-toolbar')).toHaveAttribute('data-active-device', 'tablet');
+    await expect(page.locator('#cardCanvas')).toHaveAttribute('data-active-device', 'tablet');
+
+    const card = page.locator('.card-canvas-item').first();
+    await expect(card).toBeVisible();
+    const colBefore = await getFirstCardCol(page);
+
+    await dragCardByOffset(page, card, 240);
+    const colAfterDrag = await getFirstCardCol(page);
+    expect(colAfterDrag).not.toBe(colBefore);
+
+    await exitLayoutEditMode(page);
+    await expect(page.locator('#cardCanvas.card-canvas--edit-mode')).toHaveCount(0);
+
+    const colInViewMode = await getFirstCardCol(page);
+    expect(colInViewMode).toBe(colAfterDrag);
+    expect(colInViewMode).not.toBe(colBefore);
+  });
+
   test('edit toolbar shows device switchers in edit mode', async ({ page }) => {
     await page.setViewportSize({ width: 1100, height: 900 });
     await openHomeAsSuperAdmin(page);

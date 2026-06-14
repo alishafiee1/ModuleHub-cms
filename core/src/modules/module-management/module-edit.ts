@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import type { ModuleResources, SiteLayoutDocument } from '../home-layout/types';
 import { assertValidSemver, normalizeChangelog } from '../home-layout/version-validator';
 import { renameModuleTreeNode } from './layout-tree-removal';
+import { findTreeNodeByModuleId, normalizeCardDescription } from '../home-layout/folder-management';
 
 const BCRYPT_COST = 12;
 
@@ -18,6 +19,7 @@ export interface ModuleEditInput {
   resources?: Partial<ModuleResources>;
   managementPasswordPlain?: string | null;
   clearManagementPassword?: boolean;
+  cardDescription?: string | null;
 }
 
 /**
@@ -61,6 +63,14 @@ export async function applyModuleEdit(
 
   if (input.changelog !== undefined) {
     entry.changelog = normalizeChangelog(input.changelog);
+  }
+
+  if (input.cardDescription !== undefined) {
+    const placement = findTreeNodeByModuleId(layout.tree, moduleId);
+    if (!placement) {
+      throw new Error(`Module tree node for "${moduleId}" not found`);
+    }
+    placement.cardDescription = normalizeCardDescription(input.cardDescription);
   }
 
   if (input.version !== undefined) {

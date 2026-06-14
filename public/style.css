@@ -94,7 +94,7 @@ html {
 }
 
 body {
-    font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Kalameh', 'Inter', 'Segoe UI', Tahoma, sans-serif;
     background: var(--bg-body);
     color: var(--text-primary);
     padding: 1rem;
@@ -630,6 +630,10 @@ body.dark .card--bg-image .card-bg-layer {
     font-size: 0.8rem;
     color: var(--text-secondary);
     line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .status-badge {
@@ -813,7 +817,7 @@ body.dark .layout-edit-tool-btn--primary:hover:not(:disabled) {
    ========================================================================== */
 
 .swal2-popup {
-    font-family: 'Vazirmatn', 'Segoe UI', sans-serif !important;
+    font-family: 'Kalameh', 'Inter', 'Segoe UI', sans-serif !important;
     background: var(--card-bg) !important;
     border: 1px solid var(--card-glass-border) !important;
     border-radius: 24px !important;
@@ -828,9 +832,10 @@ body.dark .swal2-popup {
 
 .swal2-title {
     color: var(--text-title) !important;
-    font-weight: 800 !important;
-    font-size: 1.35rem !important;
-    margin-bottom: 1.25rem !important;
+    font-weight: 700 !important;
+    font-size: 1.25rem !important;
+    margin-bottom: 1rem !important;
+    letter-spacing: 0;
 }
 
 .swal2-html-container {
@@ -1057,11 +1062,98 @@ body.dark .swal2-select {
 }
 
 /* Gear actions grid inside popups */
+.swal-dialog-body {
+    text-align: right;
+}
+
+.swal-dialog-lead {
+    margin: 0 0 0.85rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.gear-dialog-summary {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 0.25rem;
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+    border: 1px solid var(--input-border);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+body.dark .gear-dialog-summary {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.gear-dialog-summary--folder .gear-dialog-summary__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: rgba(6, 182, 212, 0.12);
+    color: #06b6d4;
+    font-size: 1.15rem;
+}
+
+.gear-dialog-summary__line {
+    margin: 0 0 0.35rem;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.gear-dialog-summary__desc {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--text-desc);
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.gear-dialog-summary__desc--muted {
+    font-style: italic;
+    opacity: 0.75;
+}
+
+.gear-dialog-summary__badge {
+    color: #06b6d4;
+}
+
+.gear-dialog-summary__sep {
+    margin: 0 0.35rem;
+    opacity: 0.55;
+}
+
+.swal-gear-dialog {
+    width: min(420px, calc(100vw - 2rem)) !important;
+}
+
+.swal-form-dialog {
+    width: min(460px, calc(100vw - 2rem)) !important;
+}
+
 .gear-actions-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
-    margin-top: 15px;
+    margin-top: 1rem;
+}
+
+.gear-actions-grid--folder {
+    grid-template-columns: 1fr 1fr;
+}
+
+.gear-actions-grid--single {
+    grid-template-columns: 1fr;
 }
 
 .gear-action-btn {
@@ -1069,15 +1161,26 @@ body.dark .swal2-select {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 12px 10px;
+    padding: 11px 12px;
     border: 1px solid var(--input-border);
     border-radius: 14px;
     background: rgba(255, 255, 255, 0.04);
     color: var(--text-primary);
     cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-family: 'Kalameh', 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
     transition: all 0.25s ease;
+    min-height: 44px;
+    line-height: 1.45;
+}
+
+.gear-action-btn span {
+    text-align: center;
+}
+
+.gear-action-btn--full {
+    grid-column: 1 / -1;
 }
 
 .gear-action-btn:hover {
@@ -1097,4 +1200,70 @@ body.dark .swal2-select {
     background: rgba(239, 68, 68, 0.08) !important;
     border-color: #ef4444 !important;
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15) !important;
+}
+
+.swal2-textarea--compact {
+    min-height: 72px !important;
+    height: 72px !important;
+    resize: vertical;
+}
+
+.swal-option-list {
+    max-height: 280px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-inline-start: 2px;
+}
+
+.swal-option-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 0.75rem 0.9rem;
+    border-radius: 12px;
+    border: 1px solid var(--input-border);
+    background: rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+body.dark .swal-option-item {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.swal-option-item:hover:not(.is-disabled) {
+    border-color: #06b6d4;
+    background: rgba(6, 182, 212, 0.06);
+}
+
+.swal-option-item.is-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.swal-option-item.is-danger {
+    border-color: rgba(239, 68, 68, 0.25);
+}
+
+.swal-option-item.is-danger:hover:not(.is-disabled) {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.06);
+}
+
+.swal-option-item input[type="radio"] {
+    margin-top: 0.2rem;
+    accent-color: #06b6d4;
+    flex-shrink: 0;
+}
+
+.swal-option-item.is-danger input[type="radio"] {
+    accent-color: #ef4444;
+}
+
+.swal-option-item__text {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    line-height: 1.5;
 }

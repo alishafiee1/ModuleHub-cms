@@ -13,7 +13,7 @@ import {
   requireCsrfMiddleware,
   requireSuperAdminMiddleware,
 } from '../modules/admin-auth';
-import { createLayoutRouter, createFolderCardsRouter, createCardBackgroundRouter } from '../modules/home-layout';
+import { createLayoutRouter, createFolderCardsRouter, createCardBackgroundRouter, createFolderManagementRouter } from '../modules/home-layout';
 import { requestLoggingMiddleware } from '../modules/logger';
 import { createModuleManagementRouter } from '../modules/module-management';
 import { createModuleServingRouter } from '../modules/module-manager';
@@ -64,6 +64,7 @@ export function createApp(): Application {
   app.use('/admin', createAdminLoginRouter());
   app.use('/admin', createAdminCsrfProtectionMiddleware());
   app.use('/admin', createAdminProtectedRouter());
+  app.use('/admin/folder', createFolderManagementRouter());
   app.use('/admin/folder', createFolderCardsRouter());
   app.use('/admin/card-background', createCardBackgroundRouter());
   app.use('/card-backgrounds', express.static(PATHS.cardBackgroundsDirectory));

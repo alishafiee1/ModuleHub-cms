@@ -399,16 +399,105 @@
     }
   }
 
+  function isFolderDescendant(ancestorId, nodeId) {
+    if (ancestorId === nodeId) {
+      return true;
+    }
+    const ancestor = findNodeById(siteLayout.tree, ancestorId);
+    if (!ancestor) {
+      return false;
+    }
+    return Boolean(findNodeById(ancestor, nodeId));
+  }
+
+  /**
+   * Handles folder gear menu actions.
+   * @param {string} folderId - Folder node id
+   * @param {object} folderNode - Folder layout node
+   */
+  async function handleFolderGearAction(folderId, folderNode) {
+    const action = await ModuleDialogs.showFolderGearActionsDialog(folderNode);
+    if (!action) {
+      return;
+    }
+
+    try {
+      if (action === 'edit-meta') {
+        const payload = await ModuleDialogs.showFolderEditMetaDialog(folderNode);
+        if (!payload) {
+          return;
+        }
+        await ModuleHubApi.patchFolder(folderId, payload);
+        await refreshFromServer();
+        Swal.fire({ icon: 'success', title: 'پوشه به‌روز شد', timer: 1200, showConfirmButton: false });
+        return;
+      }
+
+      if (action === 'move') {
+        const targetId = await ModuleDialogs.showFolderMovePickerDialog(
+          siteLayout.tree,
+          folderId,
+          isFolderDescendant,
+        );
+        if (!targetId) {
+          return;
+        }
+        await ModuleHubApi.patchFolder(folderId, { parentId: targetId });
+        await refreshFromServer();
+        Swal.fire({ icon: 'success', title: 'پوشه جابجا شد', timer: 1200, showConfirmButton: false });
+        return;
+      }
+
+      if (action === 'delete') {
+        const childCount = folderNode.children?.length ?? 0;
+        const deleteBody = await ModuleDialogs.showFolderDeleteWizardDialog(folderNode, childCount);
+        if (!deleteBody) {
+          return;
+        }
+        if (deleteBody._needsTarget) {
+          const targetId = await ModuleDialogs.showFolderMovePickerDialog(
+            siteLayout.tree,
+            folderId,
+            isFolderDescendant,
+          );
+          if (!targetId) {
+            return;
+          }
+          deleteBody.targetFolderId = targetId;
+          delete deleteBody._needsTarget;
+        }
+        await ModuleHubApi.deleteFolder(folderId, deleteBody);
+        if (currentFolderId === folderId) {
+          currentFolderId = resolveValidFolderId(getParentFolderId(folderId));
+          const url = currentFolderId === ROOT_ID ? '/' : `/?folder=${encodeURIComponent(currentFolderId)}`;
+          window.history.replaceState({ folder: currentFolderId }, '', url);
+        }
+        await refreshFromServer();
+        Swal.fire({ icon: 'success', title: 'پوشه حذف شد', timer: 1200, showConfirmButton: false });
+      }
+    } catch (error) {
+      const message = error.message === 'FOLDER_NOT_EMPTY'
+        ? 'پوشه خالی نیست — ابتدا محتوا را منتقل کنید یا سیاست حذف را انتخاب کنید.'
+        : error.message;
+      Swal.fire({ icon: 'error', title: 'خطا', text: message });
+    }
+  }
+
   async function openGearMenu(cardElement) {
     const moduleId = cardElement.getAttribute('data-module-id');
     const nodeType = cardElement.getAttribute('data-type');
+    const nodeId = cardElement.getAttribute('data-id');
 
     if (nodeType === 'folder') {
       if (!authStatus.isSuperAdmin) {
         await promptLogin();
-      } else {
-        Swal.fire({ icon: 'info', title: 'پوشه', text: 'مدیریت پوشه در فاز بعدی.' });
+        return;
       }
+      const folderNode = findNodeById(siteLayout.tree, nodeId);
+      if (!folderNode || folderNode.type !== 'folder') {
+        return;
+      }
+      await handleFolderGearAction(nodeId, folderNode);
       return;
     }
 
@@ -519,9 +608,11 @@
         return;
       }
       if (action === 'edit') {
+        const layoutNode = findNodeById(siteLayout.tree, cardElement?.dataset?.id || '');
         const editPayload = await ModuleDialogs.showModuleEditDialog(
           moduleMeta,
           authStatus.isSuperAdmin,
+          { cardDescription: layoutNode?.cardDescription || '' },
         );
         if (!editPayload) {
           return;

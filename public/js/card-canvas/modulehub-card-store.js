@@ -213,6 +213,7 @@ export class ModuleHubCardStore {
         nodeType: node.type,
         moduleId: node.moduleId || '',
         displayName: isFolder ? node.name : (moduleMeta?.name || node.name),
+        cardDescription: node.cardDescription || '',
         cardBackground: node.cardBackground || null,
         layoutNode: node,
         moduleMeta,
@@ -305,8 +306,9 @@ export class ModuleHubCardStore {
       ? `<div class="card-resource-hint">CPU: ${moduleMeta.resources.cpu_limit} | RAM: ${moduleMeta.resources.ram_limit_mb}MB</div>`
       : '';
 
-    const descriptionHtml = !isFolder && moduleMeta?.changelog
-      ? `<div class="card-desc">${escapeAttr(moduleMeta.changelog)}</div>`
+    const descriptionText = card.cardDescription || (!isFolder && moduleMeta?.changelog) || '';
+    const descriptionHtml = descriptionText
+      ? `<div class="card-desc">${escapeAttr(descriptionText)}</div>`
       : '';
 
     const showGear = !this.editMode && this.showGearFor(card);
@@ -378,6 +380,9 @@ export class ModuleHubCardStore {
  * @returns {boolean}
  */
 export function shouldShowGearForCard(card, auth) {
+  if (card.nodeType === 'folder') {
+    return auth.isSuperAdmin;
+  }
   if (card.nodeType !== 'module') {
     return false;
   }

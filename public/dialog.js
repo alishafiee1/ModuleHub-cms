@@ -222,43 +222,250 @@ const ModuleDialogs = (function createModuleDialogs() {
       { id: 'delete', label: 'حذف ماژول', icon: 'fa-trash', show: isSuperAdmin, danger: true },
     ].filter((action) => action.show);
 
-    const buttonsHtml = actionButtons.map((action) => `
-      <button type="button" class="gear-action-btn${action.danger ? ' gear-action-danger' : ''}" data-action="${action.id}">
-        <i class="fas ${action.icon}"></i> ${action.label}
-      </button>
-    `).join('');
+    const summaryHtml = `
+      <div class="gear-dialog-summary">
+        <div class="gear-dialog-summary__content">
+          <p class="gear-dialog-summary__line">
+            وضعیت: <span class="${statusClass}">${statusLabel}</span>
+            <span class="gear-dialog-summary__sep">·</span>
+            نسخه ${escapeHtml(moduleMeta.version)}
+          </p>
+          <p class="gear-dialog-summary__desc">
+            CPU ${moduleMeta.resources.cpu_limit}
+            <span class="gear-dialog-summary__sep">·</span>
+            RAM ${moduleMeta.resources.ram_limit_mb} MB
+            <span class="gear-dialog-summary__sep">·</span>
+            پورت ${moduleMeta.port || '—'}
+          </p>
+        </div>
+      </div>`;
 
-    const result = await Swal.fire({
+    return openGearActionsPopup({
       title: `مدیریت · ${escapeHtml(moduleMeta.name)}`,
-      html: `<div style="text-align:right;">
-        <p>وضعیت: <span class="${statusClass}">${statusLabel}</span> · نسخه ${escapeHtml(moduleMeta.version)}</p>
-        <p style="font-size:0.85rem;">CPU ${moduleMeta.resources.cpu_limit} · RAM ${moduleMeta.resources.ram_limit_mb} MB · پورت ${moduleMeta.port || '—'}</p>
-        <div class="gear-actions-grid">${buttonsHtml}</div>
-      </div>`,
-      showConfirmButton: false,
+      summaryHtml,
+      buttonsHtml: buildGearActionButtonsHtml(actionButtons),
+    });
+  }
+
+  /**
+   * Folder gear menu — returns selected action id.
+   * @param {object} folderNode - Folder layout node
+   * @returns {Promise<string|null>}
+   */
+  async function showFolderGearActionsDialog(folderNode) {
+    const actionButtons = [
+      { id: 'edit-meta', label: 'ویرایش نام و توضیح', icon: 'fa-edit', show: true },
+      { id: 'move', label: 'جابجایی به پوشهٔ دیگر', icon: 'fa-folder-open', show: folderNode.id !== 'root' },
+      {
+        id: 'delete',
+        label: 'حذف پوشه',
+        icon: 'fa-trash',
+        show: folderNode.id !== 'root',
+        danger: true,
+        fullWidth: true,
+      },
+    ].filter((action) => action.show);
+
+    const gridClass = actionButtons.length === 1
+      ? 'gear-actions-grid gear-actions-grid--single'
+      : actionButtons.length <= 3
+        ? 'gear-actions-grid gear-actions-grid--folder'
+        : 'gear-actions-grid';
+
+    return openGearActionsPopup({
+      title: `مدیریت · ${escapeHtml(folderNode.name)}`,
+      summaryHtml: buildFolderGearSummaryHtml(folderNode),
+      buttonsHtml: buildGearActionButtonsHtml(actionButtons),
+      gridClass,
+    });
+  }
+
+  /**
+   * Edit folder name and card description.
+   * @param {object} folderNode - Current folder node
+   * @returns {Promise<object|undefined>}
+   */
+  async function showFolderEditMetaDialog(folderNode) {
+    const { value: result } = await Swal.fire({
+      title: `ویرایش · ${escapeHtml(folderNode.name)}`,
+      html: `
+        <div class="swal-dialog-body">
+          <div class="form-group">
+            <label class="form-label" for="folder-edit-name">نام پوشه</label>
+            <input id="folder-edit-name" class="swal2-input" value="${escapeHtml(folderNode.name)}">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="folder-edit-desc">توضیح کارت (زیر عنوان)</label>
+            <textarea id="folder-edit-desc" class="swal2-textarea swal2-textarea--compact" placeholder="اختیاری — حداکثر ۲۰۰ کاراکتر">${escapeHtml(folderNode.cardDescription || '')}</textarea>
+          </div>
+        </div>
+      `,
+      focusConfirm: false,
+      confirmButtonText: 'ذخیره',
+      cancelButtonText: 'انصراف',
       showCancelButton: true,
-      cancelButtonText: 'بستن',
-      width: '420px',
-      didOpen: () => {
-        document.querySelectorAll('.gear-action-btn').forEach((button) => {
-          button.addEventListener('click', () => {
-            const actionId = button.getAttribute('data-action');
-            Swal.close({ isConfirmed: true, value: actionId });
-          });
-        });
+      preConfirm: () => ({
+        name: document.getElementById('folder-edit-name').value,
+        cardDescription: document.getElementById('folder-edit-desc').value,
+      }),
+    });
+    return result;
+  }
+
+  /**
+   * Flat folder tree options for move picker.
+   * @param {object} treeRoot - Layout tree root
+   * @param {string} excludeFolderId - Folder being moved (disabled with descendants)
+   * @param {function} isDescendant - (ancestorId, nodeId) => boolean
+   * @returns {Array<{ id: string, label: string, disabled: boolean }>}
+   */
+  function buildFolderPickerOptions(treeRoot, excludeFolderId, isDescendant) {
+    /** @type {Array<{ id: string, label: string, disabled: boolean }>} */
+    const options = [];
+
+    function walk(node, trail) {
+      if (node.type !== 'folder') {
+        return;
+      }
+      const pathLabel = [...trail, node.name].join(' / ');
+      const disabled = node.id === excludeFolderId || isDescendant(excludeFolderId, node.id);
+      options.push({ id: node.id, label: pathLabel, disabled });
+      for (const child of node.children ?? []) {
+        if (child.type === 'folder') {
+          walk(child, [...trail, node.name]);
+        }
+      }
+    }
+
+    walk(treeRoot, []);
+    return options;
+  }
+
+  /**
+   * Pick destination folder for move.
+   * @param {object} treeRoot - Layout tree
+   * @param {string} folderId - Folder being moved
+   * @param {function} isDescendantFn - Descendant check
+   * @returns {Promise<string|null>}
+   */
+  async function showFolderMovePickerDialog(treeRoot, folderId, isDescendantFn) {
+    const options = buildFolderPickerOptions(treeRoot, folderId, isDescendantFn);
+    const optionsHtml = buildSwalOptionListHtml(options, 'folder-move-target');
+
+    const { value: confirmed } = await Swal.fire({
+      title: 'جابجایی پوشه',
+      html: `
+        <div class="swal-dialog-body">
+          <p class="swal-dialog-lead">مقصد جدید را انتخاب کنید:</p>
+          <div class="swal-option-list">${optionsHtml}</div>
+        </div>
+      `,
+      focusConfirm: false,
+      confirmButtonText: 'جابجایی',
+      cancelButtonText: 'انصراف',
+      showCancelButton: true,
+      customClass: { popup: 'swal-form-dialog' },
+      preConfirm: () => {
+        const selected = document.querySelector('input[name="folder-move-target"]:checked');
+        if (!selected) {
+          Swal.showValidationMessage('یک مقصد انتخاب کنید');
+          return false;
+        }
+        return selected.value;
       },
     });
 
-    return result.isConfirmed ? (result.value || null) : null;
+    return confirmed || null;
+  }
+
+  /**
+   * Delete folder wizard — content policy selection.
+   * @param {object} folderNode - Folder to delete
+   * @param {number} childCount - Direct children count
+   * @returns {Promise<object|null>} Delete API body or null
+   */
+  async function showFolderDeleteWizardDialog(folderNode, childCount) {
+    if (childCount === 0) {
+      const confirmEmpty = await Swal.fire({
+        title: 'حذف پوشه',
+        text: `پوشهٔ «${folderNode.name}» حذف شود؟`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'حذف',
+        cancelButtonText: 'انصراف',
+        confirmButtonColor: '#d33',
+      });
+      if (!confirmEmpty.isConfirmed) {
+        return null;
+      }
+      return { contentPolicy: 'reject-if-not-empty' };
+    }
+
+    const policyOptions = [
+      { id: 'move-to-parent', label: 'انتقال به پوشهٔ والد', disabled: false },
+      { id: 'move-to-folder', label: 'انتقال به پوشهٔ دیگر', disabled: false },
+      { id: 'cascade-delete', label: 'حذف کامل همراه محتوا (خطر)', disabled: false, danger: true },
+    ];
+
+    const { value: policy } = await Swal.fire({
+      title: 'حذف پوشه',
+      html: `
+        <div class="swal-dialog-body">
+          <p class="swal-dialog-lead">داخل «${escapeHtml(folderNode.name)}» ${childCount} مورد هست. با محتوا چه کنیم؟</p>
+          <div class="swal-option-list">${buildSwalOptionListHtml(policyOptions, 'del-policy')}</div>
+        </div>
+      `,
+      focusConfirm: false,
+      confirmButtonText: 'ادامه',
+      cancelButtonText: 'انصراف',
+      showCancelButton: true,
+      customClass: { popup: 'swal-form-dialog' },
+      preConfirm: () => {
+        const selected = document.querySelector('input[name="del-policy"]:checked');
+        if (!selected) {
+          Swal.showValidationMessage('یک گزینه انتخاب کنید');
+          return false;
+        }
+        return selected.value;
+      },
+    });
+
+    if (!policy) {
+      return null;
+    }
+
+    if (policy === 'cascade-delete') {
+      const { value: confirmName } = await Swal.fire({
+        title: 'تأیید حذف کامل',
+        html: `<p style="text-align:right;">برای حذف همهٔ محتوا، نام پوشه را تایپ کنید:<br><strong>${escapeHtml(folderNode.name)}</strong></p>`,
+        input: 'text',
+        inputPlaceholder: folderNode.name,
+        showCancelButton: true,
+        confirmButtonText: 'حذف همه',
+        cancelButtonText: 'انصراف',
+        confirmButtonColor: '#d33',
+      });
+      if (!confirmName) {
+        return null;
+      }
+      return { contentPolicy: 'cascade-delete', confirmName };
+    }
+
+    if (policy === 'move-to-folder') {
+      return { contentPolicy: 'move-to-folder', _needsTarget: true };
+    }
+
+    return { contentPolicy: policy };
   }
 
   /**
    * Edit module dialog — resources, name, version, git, management password.
    * @param {object} moduleMeta - Current module metadata
    * @param {boolean} isSuperAdmin - Whether password fields are shown
+   * @param {{ cardDescription?: string }} [extras] - Layout card fields
    * @returns {Promise<object|undefined>}
    */
-  async function showModuleEditDialog(moduleMeta, isSuperAdmin) {
+  async function showModuleEditDialog(moduleMeta, isSuperAdmin, extras = {}) {
     const passwordFields = isSuperAdmin ? `
       <hr style="border:0; border-top:1px solid var(--card-glass-border); margin: 1.5rem 0;">
       <div class="form-group">
@@ -291,7 +498,11 @@ const ModuleDialogs = (function createModuleDialogs() {
             <input id="edit-version" class="swal2-input" value="${escapeHtml(moduleMeta.version)}">
           </div>
           <div class="form-group">
-            <label class="form-label" for="edit-changelog">توضیحات</label>
+            <label class="form-label" for="edit-card-desc">توضیح کارت (زیر عنوان)</label>
+            <textarea id="edit-card-desc" class="swal2-textarea" style="height: 64px;" placeholder="روی کارت دیده می‌شود">${escapeHtml(extras.cardDescription || '')}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-changelog">یادداشت نسخه (changelog)</label>
             <textarea id="edit-changelog" class="swal2-textarea" style="height: 80px;">${escapeHtml(moduleMeta.changelog || '')}</textarea>
           </div>
           <div class="form-group">
@@ -313,6 +524,7 @@ const ModuleDialogs = (function createModuleDialogs() {
         const payload = {
           name: document.getElementById('edit-name').value,
           version: document.getElementById('edit-version').value,
+          cardDescription: document.getElementById('edit-card-desc').value,
           changelog: document.getElementById('edit-changelog').value,
           resources: {
             cpu_limit: parseFloat(document.getElementById('edit-cpu').value),
@@ -417,6 +629,96 @@ const ModuleDialogs = (function createModuleDialogs() {
       .replace(/"/g, '&quot;');
   }
 
+  /**
+   * buildGearActionButtonsHtml --- action grid buttons for gear dialogs ---
+   * @param {Array<{ id: string, label: string, icon: string, danger?: boolean, fullWidth?: boolean }>} actions
+   */
+  function buildGearActionButtonsHtml(actions) {
+    return actions.map((action) => `
+      <button type="button"
+        class="gear-action-btn${action.danger ? ' gear-action-danger' : ''}${action.fullWidth ? ' gear-action-btn--full' : ''}"
+        data-action="${action.id}">
+        <i class="fas ${action.icon}"></i>
+        <span>${action.label}</span>
+      </button>
+    `).join('');
+  }
+
+  /** bindGearActionButtons --- wire gear grid clicks to Swal.close ---
+   * @param {ParentNode} [root]
+   */
+  function bindGearActionButtons(root = document) {
+    root.querySelectorAll('.gear-action-btn').forEach((button) => {
+      button.addEventListener('click', () => {
+        const actionId = button.getAttribute('data-action');
+        Swal.close({ isConfirmed: true, value: actionId });
+      });
+    });
+  }
+
+  /**
+   * openGearActionsPopup --- shared shell for module/folder gear menus ---
+   */
+  async function openGearActionsPopup({
+    title,
+    summaryHtml,
+    buttonsHtml,
+    gridClass = 'gear-actions-grid',
+    width = '420px',
+  }) {
+    const result = await Swal.fire({
+      title,
+      html: `<div class="swal-dialog-body">${summaryHtml}<div class="${gridClass}">${buttonsHtml}</div></div>`,
+      showConfirmButton: false,
+      showCancelButton: true,
+      cancelButtonText: 'بستن',
+      width,
+      customClass: { popup: 'swal-gear-dialog' },
+      didOpen: (popup) => bindGearActionButtons(popup),
+    });
+    return result.isConfirmed ? (result.value || null) : null;
+  }
+
+  /**
+   * buildFolderGearSummaryHtml --- meta block matching module gear dialog density ---
+   */
+  function buildFolderGearSummaryHtml(folderNode) {
+    const childCount = folderNode.children?.length ?? 0;
+    const childLabel = childCount === 0
+      ? 'پوشه خالی'
+      : `${childCount} مورد داخل پوشه`;
+    const descriptionLine = folderNode.cardDescription
+      ? `<p class="gear-dialog-summary__desc">${escapeHtml(folderNode.cardDescription)}</p>`
+      : '<p class="gear-dialog-summary__desc gear-dialog-summary__desc--muted">توضیح کارت تنظیم نشده</p>';
+
+    return `
+      <div class="gear-dialog-summary gear-dialog-summary--folder">
+        <div class="gear-dialog-summary__icon" aria-hidden="true">
+          <i class="fas fa-folder"></i>
+        </div>
+        <div class="gear-dialog-summary__content">
+          <p class="gear-dialog-summary__line">
+            <span class="gear-dialog-summary__badge">${childLabel}</span>
+            <span class="gear-dialog-summary__sep">·</span>
+            <span>پوشه مجازی</span>
+          </p>
+          ${descriptionLine}
+        </div>
+      </div>`;
+  }
+
+  /**
+   * buildSwalOptionListHtml --- styled radio list for move/policy pickers ---
+   */
+  function buildSwalOptionListHtml(options, inputName) {
+    return options.map((opt) => `
+      <label class="swal-option-item${opt.disabled ? ' is-disabled' : ''}${opt.danger ? ' is-danger' : ''}">
+        <input type="radio" name="${inputName}" value="${escapeHtml(opt.id)}" ${opt.disabled ? 'disabled' : ''}>
+        <span class="swal-option-item__text">${escapeHtml(opt.label)}</span>
+      </label>
+    `).join('');
+  }
+
   return {
     showWizardStep1Dialog,
     showResourceAndIconDialog,
@@ -425,6 +727,10 @@ const ModuleDialogs = (function createModuleDialogs() {
     showCacheInfoDialog,
     showAuthRequiredDialog,
     showGearActionsDialog,
+    showFolderGearActionsDialog,
+    showFolderEditMetaDialog,
+    showFolderMovePickerDialog,
+    showFolderDeleteWizardDialog,
     showModuleEditDialog,
   };
 })();

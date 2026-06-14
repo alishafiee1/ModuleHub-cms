@@ -98,6 +98,8 @@ export interface LayoutTreeNode {
   cardGridMobile?: CardGridPosition;
   /** Custom card background (color or image + opacity); omitted means default glass style */
   cardBackground?: CardBackground;
+  /** Short subtitle under card title — folders and module placement nodes */
+  cardDescription?: string;
 }
 
 /** One card entry in PATCH /admin/folder/:folderId/cards */
