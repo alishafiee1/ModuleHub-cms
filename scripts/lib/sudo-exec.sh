@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# purpose --- Run privileged commands: passwordless sudo, broker, or interactive password ------
+# purpose --- Run privileged commands: passwordless sudo or one password prompt at deploy start ------
 set -euo pipefail
 
 SUDO_EXEC_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -7,31 +7,7 @@ SUDO_EXEC_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SUDO_EXEC_LIB_DIR}/deploy-common.sh"
 
 SUDO_EXEC_KEEPALIVE_PID=""
-SUDO_EXEC_PASSWORD=""
 SUDO_EXEC_MODE="unknown"
-SUDO_EXEC_SOCKET_PATH=""
-
-resolve_broker_script() {
-  local home_clone
-  home_clone="$(resolve_home_clone)"
-  if [[ -n "${MODULEHUB_BROKER_SCRIPT:-}" && -f "${MODULEHUB_BROKER_SCRIPT}" ]]; then
-    printf '%s' "${MODULEHUB_BROKER_SCRIPT}"
-    return 0
-  fi
-  if [[ -f "${home_clone}/scripts/run_via_broker.py" ]]; then
-    printf '%s' "${home_clone}/scripts/run_via_broker.py"
-    return 0
-  fi
-  printf ''
-}
-
-resolve_broker_socket() {
-  if [[ -n "${SUDO_BROKER_SOCKET:-}" ]]; then
-    printf '%s' "${SUDO_BROKER_SOCKET}"
-    return 0
-  fi
-  printf '%s' "${HOME}/ModuleHub-cms/runtime/sudo_broker.sock"
-}
 
 sudo_exec_cleanup() {
   if [[ -n "${SUDO_EXEC_KEEPALIVE_PID}" ]]; then
@@ -41,9 +17,6 @@ sudo_exec_cleanup() {
 trap sudo_exec_cleanup EXIT
 
 start_sudo_keepalive() {
-  if [[ "${SUDO_EXEC_MODE}" != "password" ]]; then
-    return 0
-  fi
   (
     while true; do
       sleep 60
@@ -54,7 +27,25 @@ start_sudo_keepalive() {
   SUDO_EXEC_KEEPALIVE_PID=$!
 }
 
-detect_sudo_mode() {
+prompt_sudo_password() {
+  local sudo_user=""
+  sudo_user="$(whoami)"
+  printf '[deploy-full] Linux sudo password (user %s): ' "${sudo_user}"
+  local password=""
+  read -rs password
+  printf '\n'
+  if ! printf '%s\n' "${password}" | sudo -S -v >/dev/null 2>&1; then
+    log_error "sudo password validation failed"
+    return 1
+  fi
+  unset password
+  log_ok "sudo session ready"
+  start_sudo_keepalive
+  return 0
+}
+
+# ensure_sudo_session --- call once before steps that need root (password asked here if needed) ---
+ensure_sudo_session() {
   if [[ "${SUDO_EXEC_MODE}" != "unknown" ]]; then
     return 0
   fi
@@ -64,35 +55,23 @@ detect_sudo_mode() {
   fi
   if sudo -n true 2>/dev/null; then
     SUDO_EXEC_MODE="passwordless"
-    log_info "sudo: passwordless session available"
+    log_ok "sudo: passwordless session available"
     return 0
   fi
-
-  SUDO_EXEC_BROKER_SCRIPT="$(resolve_broker_script)"
-  SUDO_EXEC_SOCKET_PATH="$(resolve_broker_socket)"
-  if [[ -n "${SUDO_EXEC_BROKER_SCRIPT}" && -S "${SUDO_EXEC_SOCKET_PATH}" ]]; then
-    SUDO_EXEC_MODE="broker"
-    log_info "sudo: using broker socket ${SUDO_EXEC_SOCKET_PATH}"
-    return 0
+  if [[ ! -t 0 ]]; then
+    log_error "sudo required but no TTY — run deploy from an interactive SSH session"
+    return 1
   fi
-
-  if [[ -t 0 ]]; then
-    SUDO_EXEC_MODE="password"
-    printf '[deploy-full] sudo password required: '
-    read -rs SUDO_EXEC_PASSWORD
-    printf '\n'
-    if ! printf '%s\n' "${SUDO_EXEC_PASSWORD}" | sudo -S -v >/dev/null 2>&1; then
-      log_error "sudo password validation failed"
-      return 1
-    fi
-    log_ok "sudo password accepted"
-    start_sudo_keepalive
-    return 0
+  SUDO_EXEC_MODE="interactive"
+  if ! prompt_sudo_password; then
+    return 1
   fi
+  return 0
+}
 
-  log_error "sudo required but no TTY, broker, or passwordless sudo"
-  log_error "Start broker: python3 ~/ModuleHub-cms/scripts/sudo_broker.py"
-  return 1
+# detect_sudo_mode --- alias for older call sites ---
+detect_sudo_mode() {
+  ensure_sudo_session
 }
 
 sudo_exec_run() {
@@ -103,21 +82,14 @@ sudo_exec_run() {
   fi
 
   case "${SUDO_EXEC_MODE}" in
-    passwordless)
+    passwordless|interactive)
       sudo bash -c "${command}"
       ;;
-    broker)
-      python3 "${SUDO_EXEC_BROKER_SCRIPT}" "${command}"
-      local exit_code=$?
-      if [[ "${exit_code}" -ne 0 ]]; then
-        return "${exit_code}"
-      fi
-      ;;
-    password)
-      printf '%s\n' "${SUDO_EXEC_PASSWORD}" | sudo -S bash -c "${command}"
+    dry-run)
+      log_info "[dry-run] sudo: ${command}"
       ;;
     *)
-      log_error "sudo mode not initialized — call detect_sudo_mode first"
+      log_error "sudo session not initialized — call ensure_sudo_session first"
       return 1
       ;;
   esac
@@ -128,6 +100,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     echo "Usage: bash scripts/lib/sudo-exec.sh '<shell command>'" >&2
     exit 2
   fi
-  detect_sudo_mode
+  ensure_sudo_session
   sudo_exec_run "$*"
 fi

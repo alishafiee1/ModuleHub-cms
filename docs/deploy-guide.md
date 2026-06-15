@@ -108,14 +108,9 @@ sudo ln -sf /etc/nginx/sites-available/modulehub-cms /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-## sudo broker (اختیاری)
+## sudo در deploy
 
-برای deploy بدون تایپ مکرر sudo:
-
-```bash
-python3 ~/ModuleHub-cms/scripts/sudo_broker.py
-# socket: ~/ModuleHub-cms/runtime/sudo_broker.sock
-```
+`deploy-full.sh` اگر `sudo -n` کار نکند، **یک‌بار** در ابتدا رمز Linux را می‌پرسد و تا پایان deploy همان session را نگه می‌دارد. `sudo_broker.py` دیگر لازم نیست.
 
 ## مستندات بیشتر
 

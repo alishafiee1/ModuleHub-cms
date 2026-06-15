@@ -68,7 +68,7 @@ bash scripts/run-checks.sh
 | node_modules از ویندوز روی لینوکس | `bash scripts/restore-linux-native-deps.sh` |
 | git pull در home | `bash scripts/lib/git-fetch.sh` یا `git pull --ff-only` |
 | backup ZIP کل سایت | `node scripts/cli.js backup --output /tmp/full.zip` |
-| sudo بدون پسورد مکرر | `python3 scripts/sudo_broker.py` + `run_via_broker.py` |
+| sudo بدون پسورد مکرر | رمز یک‌بار در `deploy-full.sh` (یا `sudo_broker.py` قدیمی — اختیاری) |
 
 ---
 
@@ -109,7 +109,7 @@ fixture: `tests/fixtures/modules/package-cache-test/`
 |------|-----|
 | `lib/deploy-common.sh` | log، مسیر home/opt |
 | `lib/git-fetch.sh` | fetch/pull ساده با راهنمای auth |
-| `lib/sudo-exec.sh` | broker یا sudo تعاملی |
+| `lib/sudo-exec.sh` | یک‌بار رمز sudo در ابتدای deploy |
 
 ---
 

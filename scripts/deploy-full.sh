@@ -361,7 +361,7 @@ run_service_restart() {
     return 0
   fi
 
-  detect_sudo_mode
+  detect_sudo_mode 2>/dev/null || ensure_sudo_session || exit 1
   local service_user
   service_user="${MODULEHUB_SERVICE_USER:-$(whoami)}"
   sudo_exec_run "MODULEHUB_APP_DIR='${opt_dir}' MODULEHUB_SERVICE='${DEPLOY_SERVICE_NAME}' MODULEHUB_SERVICE_USER='${service_user}' bash '${opt_dir}/scripts/install-systemd.sh'"
@@ -375,7 +375,7 @@ run_optional_extras() {
   if confirm "Install/update logrotate config?" true; then
     log_step "optional: logrotate"
     if [[ "${DEPLOY_DRY_RUN}" != true ]]; then
-      detect_sudo_mode 2>/dev/null || true
+      ensure_sudo_session 2>/dev/null || true
       if [[ "${SUDO_EXEC_MODE:-}" != "unknown" && "${SUDO_EXEC_MODE:-}" != "dry-run" ]]; then
         sudo_exec_run "cp '${home_clone}/config/logrotate/modulehub-cms' '/etc/logrotate.d/modulehub-cms' && chmod 644 '/etc/logrotate.d/modulehub-cms'"
         log_ok "logrotate config installed"
@@ -388,7 +388,7 @@ run_optional_extras() {
   if confirm "Restart nginx?" true; then
     log_step "optional: nginx reload"
     if [[ "${DEPLOY_DRY_RUN}" != true ]]; then
-      detect_sudo_mode
+      ensure_sudo_session || exit 1
       sudo_exec_run "nginx -t && systemctl reload nginx"
     fi
   fi
@@ -396,7 +396,7 @@ run_optional_extras() {
   if confirm "Enable dev Super Admin (MODULEHUB_DEV)?" false; then
     log_step "optional: enable-dev-admin"
     if [[ "${DEPLOY_DRY_RUN}" != true ]]; then
-      detect_sudo_mode
+      ensure_sudo_session || exit 1
       sudo_exec_run "bash '${home_clone}/scripts/enable-dev-admin-on-server.sh'"
     fi
   fi
@@ -404,7 +404,7 @@ run_optional_extras() {
   if confirm "Disable dev Super Admin for phase 8 go-live?" true; then
     log_step "optional: disable-dev-admin"
     if [[ "${DEPLOY_DRY_RUN}" != true ]]; then
-      detect_sudo_mode
+      ensure_sudo_session || exit 1
       sudo_exec_run "bash '${home_clone}/scripts/disable-dev-admin-on-server.sh'"
     fi
   fi
@@ -454,6 +454,11 @@ main() {
   if [[ "${DEPLOY_PLAN_SKIP_ALL}" == true ]]; then
     log_ok "already up to date — nothing to deploy"
     exit 0
+  fi
+
+  if [[ "${DEPLOY_DRY_RUN}" != true ]]; then
+    log_step "sudo session (one password for restart and optional steps)"
+    ensure_sudo_session || exit 1
   fi
 
   if [[ "${DEPLOY_PLAN_INSTALL}" == true ]]; then
