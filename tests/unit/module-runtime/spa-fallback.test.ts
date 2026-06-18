@@ -1,7 +1,10 @@
 import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
-import { resolveSpaFallbackIndexPath } from '../../../core/src/modules/module-manager/spa-fallback';
+import {
+  resolveModuleContentRoot,
+  resolveSpaFallbackIndexPath,
+} from '../../../core/src/modules/module-manager/spa-fallback';
 
 describe('spa-fallback', () => {
   let tempDir: string;
@@ -23,5 +26,24 @@ describe('spa-fallback', () => {
   it('returns null for paths that look like static assets', async () => {
     const resolved = await resolveSpaFallbackIndexPath(tempDir, '/assets/app.js');
     expect(resolved).toBeNull();
+  });
+
+  it('uses dist as content root when root index is missing', async () => {
+    await fs.remove(path.join(tempDir, 'index.html'));
+    await fs.ensureDir(path.join(tempDir, 'dist'));
+    await fs.writeFile(path.join(tempDir, 'dist', 'index.html'), '<html></html>');
+
+    const resolved = await resolveModuleContentRoot(tempDir);
+
+    expect(resolved).toBe(path.join(tempDir, 'dist'));
+  });
+
+  it('prefers root index over dist index', async () => {
+    await fs.ensureDir(path.join(tempDir, 'dist'));
+    await fs.writeFile(path.join(tempDir, 'dist', 'index.html'), '<html></html>');
+
+    const resolved = await resolveModuleContentRoot(tempDir);
+
+    expect(resolved).toBe(tempDir);
   });
 });

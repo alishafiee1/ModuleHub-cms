@@ -6,7 +6,7 @@ import path from 'path';
 import { getModuleDirectory } from '../../config/paths';
 import { classifyModuleHosting } from './module-classifier';
 import { getModuleEntryForServing } from './module-manager-service';
-import { resolveSpaFallbackIndexPath } from './spa-fallback';
+import { resolveModuleContentRoot, resolveSpaFallbackIndexPath } from './spa-fallback';
 
 /**
  * Strips /modules/<id> prefix from request URL for static file serving.
@@ -93,10 +93,12 @@ async function handleModuleRequest(
     return;
   }
 
+  const contentRoot = await resolveModuleContentRoot(moduleDirectory);
   const relativePath = stripModuleUrlPrefix(request.url, moduleId);
-  const filePath = path.join(moduleDirectory, relativePath);
+  const cleanRelativePath = relativePath.split('?')[0] ?? '/';
+  const filePath = path.join(contentRoot, cleanRelativePath);
 
-  if (relativePath !== '/' && await fs.pathExists(filePath)) {
+  if (cleanRelativePath !== '/' && await fs.pathExists(filePath)) {
     const stat = await fs.stat(filePath);
     if (stat.isFile()) {
       response.sendFile(filePath);
@@ -104,13 +106,13 @@ async function handleModuleRequest(
     }
   }
 
-  const indexPath = path.join(moduleDirectory, 'index.html');
+  const indexPath = path.join(contentRoot, 'index.html');
   if (await fs.pathExists(indexPath)) {
     response.sendFile(indexPath);
     return;
   }
 
-  const spaFallback = await resolveSpaFallbackIndexPath(moduleDirectory, relativePath);
+  const spaFallback = await resolveSpaFallbackIndexPath(contentRoot, cleanRelativePath);
   if (spaFallback) {
     response.sendFile(spaFallback);
     return;

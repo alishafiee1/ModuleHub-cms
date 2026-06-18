@@ -104,6 +104,14 @@ export function resolveComposerExecutablePath(): string {
 }
 
 /**
+ * Resolves Python executable for dependency installs.
+ * @returns python executable path or command name
+ */
+export function resolvePythonExecutablePath(): string {
+  return process.env.MODULEHUB_PYTHON_PATH ?? (process.platform === 'win32' ? 'python' : 'python3');
+}
+
+/**
  * Builds install shell command for npm dependencies.
  * @returns npm install command
  */
@@ -117,7 +125,11 @@ export function buildNpmInstallCommand(): string {
  * @returns venv + pip install command
  */
 export function buildPipInstallCommand(): string {
-  return 'python3 -m venv venv && ./venv/bin/pip install --no-cache-dir -r requirements.txt';
+  const pythonExecutable = resolvePythonExecutablePath();
+  if (process.platform === 'win32') {
+    return `"${pythonExecutable}" -m venv venv && ".\\venv\\Scripts\\pip.exe" install --no-cache-dir -r requirements.txt`;
+  }
+  return `"${pythonExecutable}" -m venv venv && ./venv/bin/pip install --no-cache-dir -r requirements.txt`;
 }
 
 /**

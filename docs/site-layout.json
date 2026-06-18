@@ -7,31 +7,22 @@
     "parentId": null,
     "children": [
       {
-        "id": "folder-123",
-        "name": "نمونه کارها",
-        "type": "folder",
-        "parentId": "root",
-        "cardDescription": "پروژه‌های تمام‌شده",
-        "children": [
-          {
-            "id": "mod-456",
-            "name": "گالری تصاویر",
-            "type": "module",
-            "moduleId": "gal-789",
-            "parentId": "folder-123"
-          }
-        ]
+        "id": "node-mod-sample",
+        "name": "ماژول نمونه",
+        "type": "module",
+        "moduleId": "mod-sample",
+        "parentId": "root"
       }
     ]
   },
   "modules": {
-    "gal-789": {
-      "name": "گالری تصاویر حرفه‌ای",
-      "status": "running",
+    "mod-sample": {
+      "name": "ماژول نمونه",
+      "status": "stopped",
       "version": "1.0.0",
       "docker": false,
-      "port": 4100,
-      "permissions": "network",
+      "port": 0,
+      "permissions": "none",
       "resources": {
         "cpu_limit": 0.5,
         "ram_limit_mb": 512,
@@ -39,12 +30,12 @@
         "disk_iops": 100,
         "net_mbps": 10
       },
-      "icon": "fas fa-images",
-      "thumbnail": "/thumbnails/gal-789.png",
+      "icon": "fas fa-cube",
+      "thumbnail": "",
       "gitRepo": "",
-      "createdAt": "2025-01-15T10:30:00Z",
-      "updatedAt": "2025-01-20T14:20:00Z",
-      "changelog": "نسخه اولیه",
+      "createdAt": "2026-06-18T00:00:00.000Z",
+      "updatedAt": "2026-06-18T00:00:00.000Z",
+      "changelog": "نمونه اولیه",
       "managementPasswordHash": "",
       "managementPermissions": ["start", "stop", "logs", "edit"]
     }

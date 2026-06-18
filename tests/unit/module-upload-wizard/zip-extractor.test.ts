@@ -39,6 +39,35 @@ describe('zip-extractor', () => {
     expect(await fs.pathExists(path.join(targetDirectory, 'public', 'index.html'))).toBe(true);
   });
 
+  it('flattens archives that contain one top-level folder', async () => {
+    const zipPath = path.join(tempRoot, 'single-root.zip');
+    const targetDirectory = path.join(tempRoot, 'module');
+    const zip = new AdmZip();
+    zip.addFile('site/index.html', Buffer.from('<html></html>', 'utf8'));
+    zip.addFile('site/assets/app.js', Buffer.from('console.log("ok")', 'utf8'));
+    zip.writeZip(zipPath);
+
+    await extractZipToModuleDirectory(zipPath, targetDirectory);
+
+    expect(await fs.pathExists(path.join(targetDirectory, 'index.html'))).toBe(true);
+    expect(await fs.pathExists(path.join(targetDirectory, 'assets', 'app.js'))).toBe(true);
+    expect(await fs.pathExists(path.join(targetDirectory, 'site'))).toBe(false);
+  });
+
+  it('keeps root files in place without flattening', async () => {
+    const zipPath = path.join(tempRoot, 'root-file.zip');
+    const targetDirectory = path.join(tempRoot, 'module');
+    const zip = new AdmZip();
+    zip.addFile('index.html', Buffer.from('<html></html>', 'utf8'));
+    zip.addFile('assets/app.js', Buffer.from('console.log("ok")', 'utf8'));
+    zip.writeZip(zipPath);
+
+    await extractZipToModuleDirectory(zipPath, targetDirectory);
+
+    expect(await fs.pathExists(path.join(targetDirectory, 'index.html'))).toBe(true);
+    expect(await fs.pathExists(path.join(targetDirectory, 'assets', 'app.js'))).toBe(true);
+  });
+
   it('refuses to resolve traversal entries outside the module directory', async () => {
     const targetDirectory = path.join(tempRoot, 'module');
 

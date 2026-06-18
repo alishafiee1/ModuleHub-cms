@@ -243,6 +243,15 @@ const ModuleHubApi = (function createModuleHubApi() {
   }
 
   /**
+   * Removes an uploaded module directory that was not registered by the wizard.
+   * @param {string} moduleId - Uploaded module id
+   * @returns {Promise<object>}
+   */
+  async function cleanupAbandonedUpload(moduleId) {
+    return requestJson(`/admin/upload/${encodeURIComponent(moduleId)}`, { method: 'DELETE' });
+  }
+
+  /**
    * Completes wizard and registers module in site-layout.
    * @param {object} payload - Wizard save body
    * @returns {Promise<object>}
@@ -505,6 +514,7 @@ const ModuleHubApi = (function createModuleHubApi() {
     deleteFolder,
     moveLayoutNode,
     uploadZip,
+    cleanupAbandonedUpload,
     saveWizard,
     startModule,
     stopModule,

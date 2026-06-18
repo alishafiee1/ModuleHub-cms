@@ -140,12 +140,29 @@ const ModuleDialogs = (function createModuleDialogs() {
       confirmButtonText: 'مرحله بعد',
       cancelButtonText: 'انصراف',
       showCancelButton: true,
-      preConfirm: () => ({
-        docker: document.getElementById('wiz-docker').checked,
-        needsProcess: document.getElementById('wiz-needs-process').checked,
-        port: document.getElementById('wiz-port').value.trim(),
-        permissions: document.getElementById('wiz-permissions').value,
-      }),
+      didOpen: () => {
+        const dockerInput = document.getElementById('wiz-docker');
+        const needsProcessInput = document.getElementById('wiz-needs-process');
+        const syncDockerProcessMode = () => {
+          if (dockerInput.checked) {
+            needsProcessInput.checked = true;
+            needsProcessInput.disabled = true;
+            return;
+          }
+          needsProcessInput.disabled = false;
+        };
+        dockerInput.addEventListener('change', syncDockerProcessMode);
+        syncDockerProcessMode();
+      },
+      preConfirm: () => {
+        const docker = document.getElementById('wiz-docker').checked;
+        return {
+          docker,
+          needsProcess: docker || document.getElementById('wiz-needs-process').checked,
+          port: document.getElementById('wiz-port').value.trim(),
+          permissions: document.getElementById('wiz-permissions').value,
+        };
+      },
     });
     return result;
   }

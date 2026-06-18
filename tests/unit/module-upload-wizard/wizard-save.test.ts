@@ -27,4 +27,21 @@ describe('wizard-save', () => {
     const rootChildren = result.layout.tree.children ?? [];
     expect(rootChildren.some((child) => child.moduleId === moduleId)).toBe(true);
   });
+
+  it('rejects Docker modules without a process', () => {
+    const layout = parseSiteLayout(validFixture);
+
+    expect(() => registerModuleInLayout(layout, DEFAULT_SYSTEM_SETTINGS, {
+      moduleId: 'mod-docker-bad',
+      parentId: 'root',
+      name: 'Bad Docker Module',
+      docker: true,
+      port: null,
+      permissions: 'network',
+      resources: DEFAULT_SYSTEM_SETTINGS.defaultModuleResources,
+      icon: 'fab fa-docker',
+      thumbnail: '',
+      needsProcess: false,
+    })).toThrow('Docker modules must run as a process');
+  });
 });

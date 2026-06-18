@@ -4,7 +4,7 @@ import type { Request, Response, Router } from 'express';
 import { Router as createRouter } from 'express';
 import fs from 'fs-extra';
 import multer from 'multer';
-import { PATHS, assertModuleDirectoryInsideRoot } from '../../config/paths';
+import { PATHS, assertModuleDirectoryInsideRoot, getModuleLogFilePath } from '../../config/paths';
 import { requireSuperAdminMiddleware } from '../admin-auth';
 import { sendLayoutMutationError } from '../home-layout/layout-api-errors';
 import { readSiteLayout, writeSiteLayout } from '../home-layout/layout-store';
@@ -119,6 +119,43 @@ export async function postUploadHandler(request: Request, response: Response): P
 }
 
 /**
+ * Deletes an uploaded module directory that was not registered by the wizard.
+ * @param request - Express request with moduleId param
+ * @param response - Express response
+ */
+export async function deleteAbandonedUploadHandler(request: Request, response: Response): Promise<void> {
+  try {
+    const moduleId = request.params.moduleId;
+    if (!moduleId || Array.isArray(moduleId)) {
+      response.status(400).json({ error: 'Invalid module id' });
+      return;
+    }
+
+    assertValidModuleId(moduleId);
+    const layout = await readSiteLayout();
+    if (layout.modules[moduleId]) {
+      response.status(409).json({ error: 'Registered modules cannot be removed as abandoned uploads' });
+      return;
+    }
+
+    const moduleDirectory = assertModuleDirectoryInsideRoot(moduleId);
+    const removed = await fs.pathExists(moduleDirectory);
+    if (removed) {
+      await fs.remove(moduleDirectory);
+    }
+
+    const logPath = getModuleLogFilePath(moduleId);
+    if (await fs.pathExists(logPath)) {
+      await fs.remove(logPath);
+    }
+
+    response.status(200).json({ moduleId, removed });
+  } catch (error: unknown) {
+    sendLayoutMutationError(response, error, 'Failed to clean abandoned upload');
+  }
+}
+
+/**
  * Handles POST /admin/wizard/save — registers module metadata in site-layout.
  * @param request - Express request with wizard JSON body
  * @param response - Express response
@@ -203,6 +240,9 @@ export function createUploadWizardRouter(): Router {
 
   router.post('/upload', requireSuperAdminMiddleware, uploadWithLimit, (request, response) => {
     void postUploadHandler(request, response);
+  });
+  router.delete('/upload/:moduleId', requireSuperAdminMiddleware, (request, response) => {
+    void deleteAbandonedUploadHandler(request, response);
   });
   router.post('/wizard/save', requireSuperAdminMiddleware, (request, response) => {
     void postWizardSaveHandler(request, response);

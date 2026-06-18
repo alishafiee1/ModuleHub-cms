@@ -89,6 +89,41 @@ describe('POST /admin/folder and upload', () => {
     expect(await fs.pathExists(path.join(moduleDir, 'index.html'))).toBe(true);
   });
 
+  it('cleans an uploaded module that was not registered', async () => {
+    const moduleId = 'mod-abandoned';
+    const moduleDir = path.join(tempRoot, 'standalone-modules', moduleId);
+    await fs.ensureDir(moduleDir);
+    await fs.writeFile(path.join(moduleDir, 'index.html'), '<html></html>');
+
+    const { createApp: createFreshApp } = await import('../../../core/src/server/index');
+    const app = createFreshApp();
+    const { agent, csrfToken } = await createAgentWithCsrf(app);
+    const response = await agent
+      .delete(`/admin/upload/${moduleId}`)
+      .set('X-CSRF-Token', csrfToken);
+
+    expect(response.status).toBe(200);
+    expect(response.body.removed).toBe(true);
+    expect(await fs.pathExists(moduleDir)).toBe(false);
+  });
+
+  it('does not clean a module that is already registered', async () => {
+    const moduleId = 'mod-1';
+    const moduleDir = path.join(tempRoot, 'standalone-modules', moduleId);
+    await fs.ensureDir(moduleDir);
+    await fs.writeFile(path.join(moduleDir, 'index.html'), '<html></html>');
+
+    const { createApp: createFreshApp } = await import('../../../core/src/server/index');
+    const app = createFreshApp();
+    const { agent, csrfToken } = await createAgentWithCsrf(app);
+    const response = await agent
+      .delete(`/admin/upload/${moduleId}`)
+      .set('X-CSRF-Token', csrfToken);
+
+    expect(response.status).toBe(409);
+    expect(await fs.pathExists(moduleDir)).toBe(true);
+  });
+
   it('rejects wizard save with invalid module id before checking disk', async () => {
     const { createApp: createFreshApp } = await import('../../../core/src/server/index');
     const app = createFreshApp();

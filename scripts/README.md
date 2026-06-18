@@ -66,6 +66,7 @@ bash scripts/run-checks.sh
 | deploy کامل بعد از push | `bash scripts/deploy-full.sh --yes` |
 | sync home → opt (بعد از build) | `bash scripts/install-to-opt.sh` |
 | node_modules از ویندوز روی لینوکس | `bash scripts/restore-linux-native-deps.sh` |
+| پیدا کردن پوشه‌های ماژول بی‌صاحب | `bash scripts/cleanup-orphan-module-dirs.sh` |
 | git pull در home | `bash scripts/lib/git-fetch.sh` یا `git pull --ff-only` |
 | backup ZIP کل سایت | `node scripts/cli.js backup --output /tmp/full.zip` |
 | sudo بدون پسورد مکرر | رمز یک‌بار در `deploy-full.sh` (یا `sudo_broker.py` قدیمی — اختیاری) |

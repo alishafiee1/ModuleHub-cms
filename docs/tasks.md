@@ -22,6 +22,7 @@
 | ۷.۹ | مدیریت کارت پوشه (⚙، توضیح، جابجایی، حذف) | ✅ 2026-06-14 — [change/1405-03-24-folder-card-management](./change/1405-03-24-folder-card-management/proposal.md) |
 | ۷.۱۰ | تکمیل دیزاین کارت (روش یکپارچه — جایگزین پلن معلق static-template) | ⏳ — [change/card-live-customization](./change/card-live-customization/proposal.md) |
 | ۷.۱۱ | استاندارد card-view و راهنمای ساخت ماژول (→ skill) | ⏳ — [change/card-view](./change/card-view/proposal.md) |
+| ۷.۱۲ | محکم‌سازی آپلود ماژول (ZIP، dist، Docker، cleanup، Python) | ✅ 2026-06-18 — [change/module-upload-hardening](./change/module-upload-hardening/proposal.md) |
 | ۸ | auth (CSRF، Module Manager WAN، login/logout) | ✅ 2026-06-13 |
 | ۸.۱ | ورود با ایمیل، نقش‌ها، بازیابی رمز، مدیریت کاربر | ⏳ — [change/admin-access-roles](./change/admin-access-roles/proposal.md) |
 | ۸+ | integration · … | ⏳ |

@@ -992,18 +992,23 @@
       if (!file) {
         return;
       }
+      let uploadedModuleId = null;
+      let wizardSaved = false;
       try {
         Swal.fire({ title: 'در حال آپلود...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         const uploadResult = await ModuleHubApi.uploadZip(file);
+        uploadedModuleId = uploadResult.moduleId;
         Swal.close();
 
         const step1 = await ModuleDialogs.showWizardStep1Dialog();
         if (!step1) {
+          await ModuleHubApi.cleanupAbandonedUpload(uploadedModuleId);
           return;
         }
 
         const step2 = await ModuleDialogs.showResourceAndIconDialog({ moduleName: file.name.replace(/\.zip$/i, '') });
         if (!step2) {
+          await ModuleHubApi.cleanupAbandonedUpload(uploadedModuleId);
           return;
         }
 
@@ -1029,10 +1034,14 @@
           icon: step2.icon,
           thumbnail: '',
         });
+        wizardSaved = true;
 
         await refreshFromServer({ force: true });
         Swal.fire({ icon: 'success', title: 'ماژول ثبت شد', text: 'وضعیت: متوقف — از ⚙ استارت کنید', timer: 2500 });
       } catch (error) {
+        if (uploadedModuleId && !wizardSaved) {
+          await ModuleHubApi.cleanupAbandonedUpload(uploadedModuleId).catch(() => undefined);
+        }
         showLayoutMutationError(error);
       }
     };

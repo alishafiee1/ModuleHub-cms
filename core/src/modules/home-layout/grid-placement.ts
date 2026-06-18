@@ -87,7 +87,7 @@ export function snapMoveTopRight(
   );
   fixedRightCol = Math.max(GRID_MIN_COLUMN_SPAN, Math.min(fixedRightCol, metrics.columns));
 
-  let fitColSpan = Math.max(GRID_MIN_COLUMN_SPAN, Math.min(colSpan, fixedRightCol));
+  const fitColSpan = Math.max(GRID_MIN_COLUMN_SPAN, Math.min(colSpan, fixedRightCol));
   let fitRowSpan = Math.min(rowSpan, metrics.rows - fixedTopRow);
   if (fitRowSpan < GRID_MIN_ROW_SPAN) {
     fitRowSpan = GRID_MIN_ROW_SPAN;

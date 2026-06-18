@@ -56,6 +56,10 @@ export function registerModuleInLayout(
     throw new Error(`Module id "${input.moduleId}" already exists`);
   }
 
+  if (input.docker && !input.needsProcess) {
+    throw new Error('Docker modules must run as a process');
+  }
+
   const port = resolveModulePort(
     input.port,
     input.needsProcess,
