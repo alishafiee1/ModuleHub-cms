@@ -73,7 +73,22 @@ export const PATHS = {
  * @returns Path under standalone-modules
  */
 export function getModuleDirectory(moduleId: string): string {
-  return path.join(PATHS.standaloneModules, moduleId);
+  return assertModuleDirectoryInsideRoot(moduleId);
+}
+
+/**
+ * Returns a module directory only when it resolves inside standalone-modules.
+ * @param moduleId - Module identifier
+ * @returns Safe absolute module directory
+ */
+export function assertModuleDirectoryInsideRoot(moduleId: string): string {
+  const root = path.resolve(PATHS.standaloneModules);
+  const moduleDirectory = path.resolve(root, moduleId);
+  const relative = path.relative(root, moduleDirectory);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) {
+    throw new Error(`Invalid module directory for id: "${moduleId}"`);
+  }
+  return moduleDirectory;
 }
 
 /**

@@ -35,6 +35,19 @@ describe('system-settings schema-validator', () => {
     expect(result.valid).toBe(false);
   });
 
+  it('rejects defaultModuleResources values above the allowed maximum', () => {
+    const result = validateSystemSettingsSchema({
+      ...DEFAULT_SYSTEM_SETTINGS,
+      defaultModuleResources: {
+        ...DEFAULT_SYSTEM_SETTINGS.defaultModuleResources,
+        cpu_limit: 999_999,
+      },
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((message) => message.includes('defaultModuleResources.cpu_limit'))).toBe(true);
+  });
+
   it('throws on assertValidSystemSettings for invalid maxZipUploadMb', () => {
     expect(() => assertValidSystemSettings({
       ...DEFAULT_SYSTEM_SETTINGS,

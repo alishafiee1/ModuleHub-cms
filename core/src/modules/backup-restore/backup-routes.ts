@@ -10,6 +10,7 @@ import { isZipUpload, validateUploadSize } from '../upload-validator';
 import {
   assertRestorableFullBackupFileName,
   assertSafeBackupFileName,
+  BackupAlreadyInProgressError,
   createFullBackup,
   deleteFullBackupFile,
   listFullBackupEntries,
@@ -83,6 +84,10 @@ export async function postFullBackupHandler(request: Request, response: Response
       downloadPath: `/admin/backup/download/${encodeURIComponent(result.fileName)}`,
     });
   } catch (error: unknown) {
+    if (error instanceof BackupAlreadyInProgressError) {
+      response.status(409).json({ error: error.message });
+      return;
+    }
     const message = error instanceof Error ? error.message : 'Backup failed';
     response.status(500).json({ error: message });
   }

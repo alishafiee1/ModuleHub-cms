@@ -1,10 +1,10 @@
 import crypto from 'crypto';
+import { open } from 'fs/promises';
 import type { Request, Response, Router } from 'express';
 import { Router as createRouter } from 'express';
 import fs from 'fs-extra';
 import multer from 'multer';
-import path from 'path';
-import { PATHS } from '../../config/paths';
+import { PATHS, assertModuleDirectoryInsideRoot } from '../../config/paths';
 import { requireSuperAdminMiddleware } from '../admin-auth';
 import { sendLayoutMutationError } from '../home-layout/layout-api-errors';
 import { readSiteLayout, writeSiteLayout } from '../home-layout/layout-store';
@@ -12,8 +12,9 @@ import type { ModuleResources } from '../home-layout/types';
 import { getCmsLogger } from '../logger';
 import { installModuleDependencies } from '../package-cache';
 import { loadSystemSettings, createDynamicUploadMiddleware } from '../system-settings';
-import { isZipUpload, validateUploadSize } from '../upload-validator';
+import { hasZipMagicHeader, isZipUpload, validateUploadSize } from '../upload-validator';
 import { createVirtualFolder } from '../virtual-folder';
+import { assertValidModuleId } from '../module-management/module-id-validator';
 import { extractZipToModuleDirectory } from './zip-extractor';
 import { generateModuleId, registerModuleInLayout, type WizardSaveInput } from './wizard-save';
 
@@ -36,6 +37,22 @@ function createUploadMiddleware(maxBytes: number) {
     }),
     limits: { fileSize: maxBytes },
   }).single('zipFile');
+}
+
+/**
+ * Reads the first bytes of an uploaded file for signature validation.
+ * @param filePath - Temporary upload path
+ * @returns Header bytes
+ */
+async function readUploadHeader(filePath: string): Promise<Buffer> {
+  const handle = await open(filePath, 'r');
+  try {
+    const buffer = Buffer.alloc(4);
+    const result = await handle.read(buffer, 0, buffer.length, 0);
+    return buffer.subarray(0, result.bytesRead);
+  } finally {
+    await handle.close();
+  }
 }
 
 /**
@@ -64,9 +81,15 @@ export async function postUploadHandler(request: Request, response: Response): P
       response.status(400).json({ error: 'Only ZIP archives are allowed' });
       return;
     }
+    const header = await readUploadHeader(file.path);
+    if (!hasZipMagicHeader(header)) {
+      await fs.remove(file.path);
+      response.status(400).json({ error: 'Uploaded file is not a valid ZIP archive' });
+      return;
+    }
 
     const moduleId = generateModuleId();
-    const moduleDirectory = path.join(PATHS.standaloneModules, moduleId);
+    const moduleDirectory = assertModuleDirectoryInsideRoot(moduleId);
     await extractZipToModuleDirectory(file.path, moduleDirectory);
     await fs.remove(file.path);
 
@@ -112,7 +135,8 @@ export async function postWizardSaveHandler(request: Request, response: Response
       return;
     }
 
-    const moduleDirectory = path.join(PATHS.standaloneModules, moduleId);
+    assertValidModuleId(moduleId);
+    const moduleDirectory = assertModuleDirectoryInsideRoot(moduleId);
     if (!(await fs.pathExists(moduleDirectory))) {
       response.status(400).json({ error: 'Module files not found. Upload ZIP first.' });
       return;

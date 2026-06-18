@@ -56,6 +56,19 @@ describe('POST /admin/folder and upload', () => {
     expect(response.status).toBe(400);
   });
 
+  it('rejects fake ZIP upload with invalid file signature', async () => {
+    const { createApp: createFreshApp } = await import('../../../core/src/server/index');
+    const app = createFreshApp();
+    const { agent, csrfToken } = await createAgentWithCsrf(app);
+    const response = await agent
+      .post('/admin/upload')
+      .set('X-CSRF-Token', csrfToken)
+      .attach('zipFile', Buffer.from('not a zip'), 'fake.zip');
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toContain('valid ZIP');
+  });
+
   it('accepts valid ZIP upload', async () => {
     const zipPath = path.join(tempRoot, 'test.zip');
     const zip = new AdmZip();
@@ -74,5 +87,18 @@ describe('POST /admin/folder and upload', () => {
     expect(response.body.moduleId).toMatch(/^mod-/);
     const moduleDir = path.join(tempRoot, 'standalone-modules', response.body.moduleId);
     expect(await fs.pathExists(path.join(moduleDir, 'index.html'))).toBe(true);
+  });
+
+  it('rejects wizard save with invalid module id before checking disk', async () => {
+    const { createApp: createFreshApp } = await import('../../../core/src/server/index');
+    const app = createFreshApp();
+    const { agent, csrfToken } = await createAgentWithCsrf(app);
+    const response = await agent
+      .post('/admin/wizard/save')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ moduleId: '../outside', parentId: 'root', name: 'Bad Module' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toContain('Invalid module id');
   });
 });

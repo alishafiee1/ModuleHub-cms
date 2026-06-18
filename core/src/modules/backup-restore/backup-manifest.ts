@@ -1,3 +1,5 @@
+import { isSafeZipEntryName, normalizeZipEntryName } from '../shared/safe-zip-path';
+
 /** Manifest file name inside full backup ZIP archives */
 export const FULL_BACKUP_MANIFEST_FILENAME = 'backup-manifest.json';
 
@@ -43,27 +45,7 @@ export function buildFullBackupManifestPayload(createdAt: string): FullBackupMan
   };
 }
 
-/**
- * Normalizes ZIP entry paths to forward slashes without leading slash.
- * @param entryName - Raw ZIP entry path
- * @returns Normalized relative path
- */
-export function normalizeZipEntryName(entryName: string): string {
-  return entryName.replace(/\\/g, '/').replace(/^\/+/, '');
-}
-
-/**
- * Returns true when the entry name is safe (no path traversal).
- * @param entryName - ZIP entry path
- * @returns Whether the path is allowed
- */
-export function isSafeZipEntryName(entryName: string): boolean {
-  const normalized = normalizeZipEntryName(entryName);
-  if (!normalized || normalized.includes('..')) {
-    return false;
-  }
-  return true;
-}
+export { isSafeZipEntryName, normalizeZipEntryName };
 
 /**
  * Validates ZIP entry list against manifest requirements.

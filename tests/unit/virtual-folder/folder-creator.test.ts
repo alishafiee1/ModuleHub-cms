@@ -30,4 +30,11 @@ describe('folder-creator', () => {
     const layout = parseSiteLayout(validFixture);
     expect(() => createVirtualFolder(layout, { parentId: 'root', name: '   ' })).toThrow(/required/);
   });
+
+  it('rejects duplicate folder names under the same parent', () => {
+    const layout = parseSiteLayout(validFixture);
+    createVirtualFolder(layout, { parentId: 'root', name: 'Duplicate' });
+
+    expect(() => createVirtualFolder(layout, { parentId: 'root', name: 'Duplicate' })).toThrow(/already exists/);
+  });
 });

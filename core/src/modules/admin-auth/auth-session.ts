@@ -57,6 +57,24 @@ export function createLoginRateLimiter() {
 }
 
 /**
+ * Regenerates the session id after successful authentication.
+ * @param request - Express request
+ */
+export function regenerateSession(request: Request): Promise<void> {
+  const csrfToken = request.session.csrfToken;
+  return new Promise((resolve, reject) => {
+    request.session.regenerate((error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      request.session.csrfToken = csrfToken ?? ensureSessionCsrfToken(request);
+      resolve();
+    });
+  });
+}
+
+/**
  * Stores Super Admin authentication in the session.
  * @param request - Express request
  * @param username - Authenticated username

@@ -1,6 +1,10 @@
 import AdmZip from 'adm-zip';
 import fs from 'fs-extra';
 import path from 'path';
+import {
+  isSafeZipEntryName,
+  resolveSafeZipEntryTarget,
+} from '../shared/safe-zip-path';
 
 /**
  * Rejects ZIP entries that attempt path traversal.
@@ -8,8 +12,7 @@ import path from 'path';
  * @returns True when entry is safe to extract
  */
 export function isSafeZipEntry(entryName: string): boolean {
-  const normalized = path.normalize(entryName).replace(/^(\.\.(\/|\\|$))+/, '');
-  return !normalized.startsWith('..') && !path.isAbsolute(entryName);
+  return isSafeZipEntryName(entryName);
 }
 
 /**
@@ -25,12 +28,15 @@ export async function extractZipToModuleDirectory(
   const zip = new AdmZip(zipFilePath);
   const entries = zip.getEntries();
 
-  for (const entry of entries) {
-    if (!isSafeZipEntry(entry.entryName)) {
-      throw new Error(`Unsafe path in ZIP: ${entry.entryName}`);
-    }
-  }
-
   await fs.ensureDir(targetDirectory);
-  zip.extractAllTo(targetDirectory, true);
+  for (const entry of entries) {
+    const targetPath = resolveSafeZipEntryTarget(targetDirectory, entry.entryName);
+    if (entry.isDirectory) {
+      await fs.ensureDir(targetPath);
+      continue;
+    }
+
+    await fs.ensureDir(path.dirname(targetPath));
+    await fs.writeFile(targetPath, entry.getData());
+  }
 }

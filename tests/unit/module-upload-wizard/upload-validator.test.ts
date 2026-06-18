@@ -1,4 +1,8 @@
-import { isZipUpload, validateUploadSize } from '../../../core/src/modules/upload-validator';
+import {
+  hasZipMagicHeader,
+  isZipUpload,
+  validateUploadSize,
+} from '../../../core/src/modules/upload-validator';
 
 describe('upload-validator', () => {
   it('accepts .zip extension', () => {
@@ -7,6 +11,11 @@ describe('upload-validator', () => {
 
   it('rejects non-ZIP filename and mime', () => {
     expect(isZipUpload('site.tar.gz', 'application/gzip')).toBe(false);
+  });
+
+  it('checks ZIP magic bytes', () => {
+    expect(hasZipMagicHeader(Buffer.from([0x50, 0x4b, 0x03, 0x04]))).toBe(true);
+    expect(hasZipMagicHeader(Buffer.from('not zip', 'utf8'))).toBe(false);
   });
 
   it('returns null when size within limit', () => {

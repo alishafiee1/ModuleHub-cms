@@ -24,6 +24,16 @@ export interface FullBackupListEntry {
   createdAt: string;
 }
 
+/** Error thrown when another full backup is already running */
+export class BackupAlreadyInProgressError extends Error {
+  constructor() {
+    super('A full backup is already in progress');
+    this.name = 'BackupAlreadyInProgressError';
+  }
+}
+
+let backupInProgress = false;
+
 /**
  * Formats a timestamp for backup filenames (filesystem-safe).
  * @param date - Backup creation time
@@ -77,6 +87,25 @@ export function assertRestorableFullBackupFileName(fileName: string): void {
  * @returns Written backup metadata
  */
 export async function createFullBackup(
+  options: { label?: FullBackupLabel } = {},
+): Promise<CreateFullBackupResult> {
+  if (backupInProgress) {
+    throw new BackupAlreadyInProgressError();
+  }
+  backupInProgress = true;
+  try {
+    return await writeFullBackup(options);
+  } finally {
+    backupInProgress = false;
+  }
+}
+
+/**
+ * Creates a full CMS backup ZIP without checking the concurrency guard.
+ * @param options - Optional label for filename prefix
+ * @returns Written backup metadata
+ */
+async function writeFullBackup(
   options: { label?: FullBackupLabel } = {},
 ): Promise<CreateFullBackupResult> {
   const label = options.label ?? 'full';

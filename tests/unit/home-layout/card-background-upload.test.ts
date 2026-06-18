@@ -66,11 +66,15 @@ describe('POST /admin/card-background/upload', () => {
 
     const { createApp: createFreshApp } = await import('../../../core/src/server/index');
     const app = createFreshApp();
+    const agent = request.agent(app);
+    const csrfResponse = await agent.get('/api/auth/csrf-token');
+    const csrfToken = csrfResponse.body.csrfToken as string;
 
-    const response = await request(app)
+    const response = await agent
       .post('/admin/card-background/upload')
+      .set('X-CSRF-Token', csrfToken)
       .attach('image', Buffer.from('fake'), { filename: 'x.jpg', contentType: 'image/jpeg' });
 
-    expect(response.status).toBe(403);
+    expect(response.status).toBe(401);
   });
 });

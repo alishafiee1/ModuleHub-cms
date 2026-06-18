@@ -17,6 +17,18 @@ function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
+const DEFAULT_MODULE_RESOURCE_LIMITS: Array<{
+  key: keyof SystemSettings['defaultModuleResources'];
+  min: number;
+  max: number;
+}> = [
+  { key: 'cpu_limit', min: 0.1, max: 32 },
+  { key: 'ram_limit_mb', min: 64, max: 65_536 },
+  { key: 'swap_limit_mb', min: 0, max: 65_536 },
+  { key: 'disk_iops', min: 1, max: 100_000 },
+  { key: 'net_mbps', min: 1, max: 10_000 },
+];
+
 /**
  * Validates default module resource sliders.
  * @param resources - Nested resource object
@@ -32,18 +44,10 @@ function validateDefaultModuleResources(
   }
 
   const record = resources as Record<string, unknown>;
-  const fields: Array<{ key: keyof SystemSettings['defaultModuleResources']; min: number }> = [
-    { key: 'cpu_limit', min: 0.1 },
-    { key: 'ram_limit_mb', min: 64 },
-    { key: 'swap_limit_mb', min: 0 },
-    { key: 'disk_iops', min: 1 },
-    { key: 'net_mbps', min: 1 },
-  ];
-
-  for (const field of fields) {
+  for (const field of DEFAULT_MODULE_RESOURCE_LIMITS) {
     const value = record[field.key];
-    if (!isFiniteNumber(value) || value < field.min) {
-      errors.push(`defaultModuleResources.${field.key} must be a number >= ${field.min}`);
+    if (!isFiniteNumber(value) || value < field.min || value > field.max) {
+      errors.push(`defaultModuleResources.${field.key} must be a number between ${field.min} and ${field.max}`);
     }
   }
 }

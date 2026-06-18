@@ -39,7 +39,11 @@ export function requireSuperAdminOnlyMiddleware(
     next();
     return;
   }
-  response.status(403).json({ error: 'Super Admin access required' });
+  if (request.session.authScope === 'module-manager') {
+    response.status(403).json({ error: 'Super Admin access required' });
+    return;
+  }
+  response.status(401).json({ error: 'Super Admin access required' });
 }
 
 /**

@@ -43,6 +43,9 @@ export function createVirtualFolder(
   if (!parent || parent.type !== 'folder') {
     throw new Error(`Parent folder "${input.parentId}" not found`);
   }
+  if (parent.children?.some((child) => child.type === 'folder' && child.name === trimmedName)) {
+    throw new Error(`Folder "${trimmedName}" already exists in this parent`);
+  }
 
   const folderId = generateFolderId();
   const newNode: LayoutTreeNode = {

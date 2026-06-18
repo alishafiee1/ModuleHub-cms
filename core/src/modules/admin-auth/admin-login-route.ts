@@ -4,12 +4,19 @@ import path from 'path';
 import { PATHS } from '../../config/paths';
 import { readSiteLayout } from '../home-layout/layout-store';
 import { loadSystemSettings } from '../system-settings';
-import { clearAuthSession, createLoginRateLimiter, establishSuperAdminSession, establishModuleManagerSession } from './auth-session';
+import {
+  clearAuthSession,
+  createLoginRateLimiter,
+  establishSuperAdminSession,
+  establishModuleManagerSession,
+  regenerateSession,
+} from './auth-session';
 import { findAdminUser, updateAdminPassword } from './admin-users-loader';
 import { hashPassword, verifyPassword } from './bcrypt-verify';
 import { validateNewPassword } from './password-validation';
 import { SESSION_COOKIE_NAME } from './session-config';
 import { ensureSessionCsrfToken } from './csrf';
+import { assertValidModuleId } from '../module-management/module-id-validator';
 import {
   clearModuleAuthLockout,
   getModuleLockoutRemainingMs,
@@ -63,6 +70,7 @@ export async function postAdminLoginHandler(request: Request, response: Response
     return;
   }
 
+  await regenerateSession(request);
   establishSuperAdminSession(request, adminUser.username);
   response.status(200).json({ redirect: '/', message: 'Login successful' });
 }
@@ -201,6 +209,13 @@ export async function postModuleAuthHandler(request: Request, response: Response
     response.status(400).json({ error: 'Module id is required' });
     return;
   }
+  try {
+    assertValidModuleId(moduleId);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Invalid module id';
+    response.status(400).json({ error: message });
+    return;
+  }
 
   if (request.session.authScope === 'super-admin' || isDevSuperAdminEnabled()) {
     response.status(200).json({ moduleId, message: 'Super Admin already authenticated' });
@@ -246,6 +261,7 @@ export async function postModuleAuthHandler(request: Request, response: Response
     return;
   }
 
+  await regenerateSession(request);
   clearModuleAuthLockout(moduleId);
   establishModuleManagerSession(request, moduleId);
   response.status(200).json({ moduleId, message: 'Module Manager authenticated' });

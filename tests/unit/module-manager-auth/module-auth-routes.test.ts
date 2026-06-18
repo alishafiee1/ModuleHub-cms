@@ -159,6 +159,18 @@ describe('module-manager-auth HTTP routes', () => {
     expect(response.body.error).toContain('Invalid module password');
   });
 
+  it('returns 400 for invalid module id in module auth route', async () => {
+    const app = await createTestApp();
+    const { agent, csrfToken } = await createModuleManagerTestAgent(app);
+
+    const response = await agent
+      .post('/admin/module/bad_id/auth')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ password: 'module-pass-123' });
+
+    expect(response.status).toBe(400);
+  });
+
   it('returns 429 after too many failed module auth attempts', async () => {
     const app = await createTestApp();
     const { agent, csrfToken } = await createModuleManagerTestAgent(app);

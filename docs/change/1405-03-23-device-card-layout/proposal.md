@@ -4,7 +4,7 @@
 
 > **مسیر:** `docs/change/1405-03-23-device-card-layout/proposal.md`  
 > **مرتبط:** [ui-behavior.md](../../ui-behavior.md) §۱.۱ · [behavior.md](./behavior.md) · بوم cardGrid فعلی  
-> **راهنما:** `AI learning docs/00-start-new-project/how-to-manage-change-folders.md`
+> **راهنما:** `AI learning docs/write-docs-friendly/how-to-manage-change-folders.md`
 
 ---
 

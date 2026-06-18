@@ -19,6 +19,19 @@ export function isZipUpload(originalName: string, mimeType: string): boolean {
 }
 
 /**
+ * Checks the first ZIP signature bytes.
+ * @param header - First bytes read from the uploaded file
+ * @returns True when the header matches a ZIP archive signature
+ */
+export function hasZipMagicHeader(header: Buffer): boolean {
+  if (header.length < 4) {
+    return false;
+  }
+  const signature = header.subarray(0, 4).toString('binary');
+  return signature === 'PK\x03\x04' || signature === 'PK\x05\x06' || signature === 'PK\x07\x08';
+}
+
+/**
  * Validates upload size against system maxZipUploadMb.
  * @param fileSizeBytes - Uploaded file size in bytes
  * @param maxZipUploadMb - Limit from system-settings

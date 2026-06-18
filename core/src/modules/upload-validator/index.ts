@@ -1,1 +1,1 @@
-export { isZipUpload, validateUploadSize } from './upload-validator';
+export { hasZipMagicHeader, isZipUpload, validateUploadSize } from './upload-validator';
